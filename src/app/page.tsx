@@ -2,10 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/layout/footer";
+import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import React, { useState } from "react";
 
 export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const scrollToVideo = () => {
     const section = document.getElementById("video-section");
     if (section) {
@@ -17,17 +21,19 @@ export default function LandingPage() {
     <div className="min-h-screen font-body bg-white">
         
       {/* Hero Section */}
-      <section className="relative bg-[#D2E6E4] pb-32 pt-6 rounded-b-[60px] md:rounded-b-[100px] overflow-visible">
+      <section className="relative bg-[#D2E6E4] pb-0 pt-6 rounded-b-[60px] md:rounded-b-[100px] overflow-visible md:pb-32">
          {/* Background Pattern */}
          <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply" 
               style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: 'cover' }}>
          </div>
 
         {/* Navbar */}
-        <nav className="relative z-20 container mx-auto flex items-center justify-between px-6 py-4 md:px-12 mb-12">
+        <nav className="relative z-50 container mx-auto flex items-center justify-between px-6 py-4 md:px-12 mb-8 md:mb-12">
             <Link href="/" className="font-heading text-3xl font-bold text-[#0F5A5A]">
               Signify
             </Link>
+            
+            {/* Desktop Nav */}
             <div className="hidden gap-12 md:flex">
               <Link href="#" className="font-medium text-[#FF7D50] hover:text-[#ff6b3d]">
                 Home
@@ -36,24 +42,47 @@ export default function LandingPage() {
                 Quiz
               </Link>
             </div>
-            <div className="flex items-center gap-4">
-              <Button className="hidden bg-white text-[#0F5A5A] hover:bg-gray-50 md:inline-flex shadow-sm px-8 py-6">
+            <div className="hidden items-center gap-4 md:flex">
+              <Button className="bg-white text-[#0F5A5A] hover:bg-gray-50 shadow-sm px-8 py-6">
                 LOG IN
               </Button>
               <Button className="bg-[#0B7077] text-white hover:bg-[#0b4545] shadow-lg shadow-[#0F5A5A]/20 px-8 py-6">
                 SIGN UP
               </Button>
             </div>
+
+            {/* Mobile Menu Toggle */}
+            <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <X className="text-[#0F5A5A] h-8 w-8" /> : <Menu className="text-[#0F5A5A] h-8 w-8" />}
+            </button>
         </nav>
+
+        {/* Mobile Menu Overlay */}
+        {isMenuOpen && (
+            <div className="absolute top-[80px] left-0 z-40 w-full bg-[#D2E6E4]/95 backdrop-blur-sm p-6 shadow-xl border-t border-[#0F5A5A]/10 md:hidden">
+                <div className="flex flex-col gap-6 text-center">
+                    <Link href="#" className="font-medium text-[#FF7D50] text-lg py-2">Home</Link>
+                    <Link href="#" className="font-medium text-gray-600 text-lg py-2">Quiz</Link>
+                    <div className="flex flex-col gap-4 mt-2">
+                        <Button className="w-full bg-white text-[#0F5A5A] border border-[#0F5A5A]/20 hover:bg-gray-50 py-6">
+                            LOG IN
+                        </Button>
+                        <Button className="w-full bg-[#0B7077] text-white hover:bg-[#0b4545] py-6">
+                            SIGN UP
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         <div className="relative z-10 container mx-auto flex flex-col items-center gap-12 px-6 md:flex-row md:justify-between md:px-12">
           {/* Left Content */}
-          <div className="flex max-w-3xl flex-col items-start gap-8 text-left">
+          <div className="flex max-w-3xl flex-col items-start gap-6 md:gap-8 text-left z-20">
             <span className="inline-block rounded-lg bg-[#FFE75C] px-4 py-2 text-sm font-bold text-[#5A4A00]">
               #1 Inclusive Education Platform
             </span>
             
-            <h1 className="font-heading text-5xl font-bold leading-[1.1] text-[#0F5A5A] md:text-6xl lg:text-7xl">
+            <h1 className="font-heading text-4xl font-bold leading-[1.1] text-[#0F5A5A] md:text-6xl lg:text-7xl">
               Where <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Vision</span> <br />
               <span className="whitespace-nowrap">
                 Meets <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Understanding</span>
@@ -88,8 +117,8 @@ export default function LandingPage() {
           </div>
           
           {/* Right Image */}
-          <div className="relative mt-8 md:mt-0 md:-mb-32">
-              <div className="relative z-10 h-[400px] w-full md:h-[600px] md:w-[600px]">
+          <div className="relative mt-8 h-[350px] w-full md:mt-0 md:-mb-32 md:h-[600px] md:w-[600px]">
+              <div className="relative z-10 h-full w-full">
                   <Image 
                     src="/landing/girl.png" 
                     alt="Learning Sign Language" 
@@ -102,12 +131,13 @@ export default function LandingPage() {
         </div>
 
         {/* Floating Play Button Overlay */}
-        <div className="absolute bottom-0 left-1/2 translate-y-1/2 -translate-x-1/2 z-30 ">
+        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 z-30 md:bottom-0 md:translate-y-1/2">
              <button 
                 onClick={scrollToVideo}
-                className="relative flex h-52 w-52 items-center justify-center rounded-full bg-[#D2E6E4] p-6 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                className="relative flex h-24 w-24 md:h-52 md:w-52 items-center justify-center rounded-full bg-[#D2E6E4] p-4 md:p-6 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer"
              >
                  <div className="relative h-full w-full rounded-full">
+
                       <Image src="/landing/play.png" alt="Play Video" fill className="object-cover scale-110" /> 
                  </div>
              </button>
@@ -118,7 +148,7 @@ export default function LandingPage() {
       <div className="h-24"></div>
 
       {/* Meet SIGNA Section */}
-      <section id="video-section" className="bg-white py-20 relative overflow-hidden">
+      <section id="video-section" className="bg-white min-h-screen flex flex-col justify-center py-20 relative overflow-hidden">
         <div className="container mx-auto px-6 text-center">
           <div className="mb-12 flex flex-col items-center">
             <h2 className="flex items-center justify-center gap-3 font-heading text-4xl font-bold md:text-5xl">
@@ -135,7 +165,7 @@ export default function LandingPage() {
 
           <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-3xl p-2">
              {/* Video Container */}
-             <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-white">
+             <div className="relative aspect-video w-full">
                  <Image 
                     src="/landing/video.png" 
                     alt="Signa Video Demo" 
@@ -156,7 +186,7 @@ export default function LandingPage() {
       
       {/* Keeping features and footer placeholders for now to maintain page structure */}
       {/* Key Features Section */}
-      <section className="container mx-auto px-6 py-24 md:px-12">
+      <section className="container mx-auto min-h-screen flex flex-col justify-center px-6 py-24 md:px-12">
         <div className="flex flex-col gap-16 lg:flex-row lg:items-center lg:gap-24">
           <div className="flex-1">
              <div className="relative mx-auto aspect-square w-full max-w-lg">
@@ -204,10 +234,10 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="container mx-auto px-6 py-20 text-center relative overflow-hidden">
+      <section className="container mx-auto min-h-screen flex flex-col justify-center px-6 py-20 text-center relative overflow-hidden">
         <h2 className="font-heading text-4xl font-bold text-[#0F5A5A] md:text-5xl">
           How to Get Started <span className="text-[#0F5A5A] relative inline-block">with Signify
-            <div className="absolute -bottom-6 -left-20 w-full h-4">
+            <div className="absolute -bottom-6 md:-left-20 w-full h-4">
                <Image src="/landing/line.png" alt="Underline" fill className="object-contain" />
             </div>
           </span>
@@ -251,7 +281,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-6 py-20">
+      <section className="container mx-auto min-h-screen flex flex-col justify-center px-6 py-20">
         <div className="relative rounded-[3rem] bg-[#E85D75] px-8 pt-12 md:overflow-visible overflow-hidden md:px-16 md:pt-16">
             {/* Background Pattern Overlay with Clipping */}
             <div className="absolute inset-0 z-0 rounded-[3rem] overflow-hidden">
