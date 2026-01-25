@@ -1,22 +1,23 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/layout/footer";
-import {
-  Users,
-  CheckCircle,
-  Play,
-  Activity,
-  UserPlus,
-  ClipboardList,
-} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function LandingPage() {
+  const scrollToVideo = () => {
+    const section = document.getElementById("video-section");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen font-body bg-white">
         
       {/* Hero Section */}
-      <section className="relative bg-[#D6EFEF] pb-32 pt-6 rounded-b-[60px] md:rounded-b-[100px] overflow-visible">
+      <section className="relative bg-[#D2E6E4] pb-32 pt-6 rounded-b-[60px] md:rounded-b-[100px] overflow-visible">
          {/* Background Pattern */}
          <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply" 
               style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: 'cover' }}>
@@ -47,20 +48,24 @@ export default function LandingPage() {
 
         <div className="relative z-10 container mx-auto flex flex-col items-center gap-12 px-6 md:flex-row md:justify-between md:px-12">
           {/* Left Content */}
-          <div className="flex max-w-xl flex-col items-start gap-8 text-left">
+          <div className="flex max-w-3xl flex-col items-start gap-8 text-left">
             <span className="inline-block rounded-lg bg-[#FFE75C] px-4 py-2 text-sm font-bold text-[#5A4A00]">
               #1 Inclusive Education Platform
             </span>
             
             <h1 className="font-heading text-5xl font-bold leading-[1.1] text-[#0F5A5A] md:text-6xl lg:text-7xl">
               Where <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Vision</span> <br />
-              Meets <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Understanding</span>
+              <span className="whitespace-nowrap">
+                Meets <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Understanding</span>
+              </span>
             </h1>
 
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <Button size="lg" className="h-14 rounded-xl bg-[#FF7D50] px-8 text-lg font-bold text-white shadow-lg shadow-orange-500/30 hover:bg-[#ff6b3d] hover:scale-105 transition-transform">
-                START LEARNING FREE
-              </Button>
+              <Link href="/dashboard">
+                <Button size="lg" className="h-14 rounded-xl bg-[#FD661F] px-8 text-lg text-white hover:bg-[#ff6b3d] hover:scale-105 transition-transform">
+                  START LEARNING FREE
+                </Button>
+              </Link>
               
               <div className="flex items-center gap-3">
                  <div className="flex -space-x-3">
@@ -83,13 +88,13 @@ export default function LandingPage() {
           </div>
           
           {/* Right Image */}
-          <div className="relative mt-8 md:mt-0">
-              <div className="relative z-10 h-[400px] w-full md:h-[500px] md:w-[450px]">
+          <div className="relative mt-8 md:mt-0 md:-mb-32">
+              <div className="relative z-10 h-[400px] w-full md:h-[600px] md:w-[600px]">
                   <Image 
                     src="/landing/girl.png" 
                     alt="Learning Sign Language" 
                     fill 
-                    className="object-contain"
+                    className="object-contain object-bottom"
                     priority
                   />
               </div>
@@ -97,13 +102,15 @@ export default function LandingPage() {
         </div>
 
         {/* Floating Play Button Overlay */}
-        <div className="absolute bottom-0 left-1/2 translate-y-1/2 -translate-x-1/2 z-30">
-             <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-[#D6EFEF] p-2 shadow-2xl">
-                 <div className="relative h-full w-full rounded-full bg-gradient-to-b from-purple-600 to-indigo-700 p-1 shadow-inner flex items-center justify-center overflow-hidden border-4 border-[#0F5A5A]">
-                      {/* Using the play.png asset */}
+        <div className="absolute bottom-0 left-1/2 translate-y-1/2 -translate-x-1/2 z-30 ">
+             <button 
+                onClick={scrollToVideo}
+                className="relative flex h-52 w-52 items-center justify-center rounded-full bg-[#D2E6E4] p-6 shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+             >
+                 <div className="relative h-full w-full rounded-full">
                       <Image src="/landing/play.png" alt="Play Video" fill className="object-cover scale-110" /> 
                  </div>
-             </div>
+             </button>
         </div>
       </section>
 
@@ -111,12 +118,12 @@ export default function LandingPage() {
       <div className="h-24"></div>
 
       {/* Meet SIGNA Section */}
-      <section className="bg-white py-20 relative overflow-hidden">
+      <section id="video-section" className="bg-white py-20 relative overflow-hidden">
         <div className="container mx-auto px-6 text-center">
           <div className="mb-12 flex flex-col items-center">
             <h2 className="flex items-center justify-center gap-3 font-heading text-4xl font-bold md:text-5xl">
-              <span className="text-[#6B46C1]">Meet</span> 
-              <span className="text-[#FFC107]">SIGNA</span>
+              <span className="text-[#6632FF]">Meet</span> 
+              <span className="text-[#FFC619]">SIGNA</span>
               <Image src="/landing/message.png" alt="Message Icon" width={50} height={50} className="object-contain" />
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
@@ -164,7 +171,7 @@ export default function LandingPage() {
 
           <div className="flex-1 space-y-10">
             <div className="space-y-4">
-              <span className="inline-block rounded-lg bg-[#D1E3FF] px-4 py-1.5 text-sm font-bold text-[#4285F4]">
+              <span className="inline-block rounded-lg bg-[#D4E1FF] px-4 py-1.5 text-md text-[#0B7077]">
                 Key Feature
               </span>
               <h2 className="font-heading text-4xl font-bold text-[#FF5722] md:text-5xl">
@@ -200,12 +207,12 @@ export default function LandingPage() {
       <section className="container mx-auto px-6 py-20 text-center relative overflow-hidden">
         <h2 className="font-heading text-4xl font-bold text-[#0F5A5A] md:text-5xl">
           How to Get Started <span className="text-[#0F5A5A] relative inline-block">with Signify
-            <div className="absolute -bottom-4 left-0 w-full h-4">
+            <div className="absolute -bottom-6 -left-20 w-full h-4">
                <Image src="/landing/line.png" alt="Underline" fill className="object-contain" />
             </div>
           </span>
         </h2>
-        <p className="mt-8 text-lg text-gray-500">Just 4 easy steps to begin your learning journey</p>
+        <p className="mt-12 text-xl text-gray-500">Just 4 easy steps to begin your learning journey</p>
 
         <div className="relative mt-20">
              {/* Connecting Line */}
@@ -219,28 +226,28 @@ export default function LandingPage() {
                 title="Create Account" 
                 desc="Sign up for free in seconds with your email."
                 icon={<Image src="/landing/laptop.png" alt="Laptop" width={40} height={40} className="object-contain" />}
-                bgColor="bg-[#F3E5F5] shadow-lg shadow-purple-100"
+                bgColor="bg-[#F1C9FF] shadow-lg shadow-purple-100"
             />
             <StepCard 
                 number={2} 
                 title="Quick Survey" 
                 desc="Answer a few questions to personalize your learning experience."
                 icon={<Image src="/landing/survey.png" alt="Survey" width={40} height={40} className="object-contain" />}
-                bgColor="bg-[#E1F5FE] shadow-lg shadow-blue-100"
+                bgColor="bg-[#A2D3FF] shadow-lg shadow-blue-100"
             />
             <StepCard 
                 number={3} 
                 title="Start Learning" 
                 desc="Access all features: translator, materials, and interactive practice."
                 icon={<Image src="/landing/book.png" alt="Book" width={40} height={40} className="object-contain" />}
-                bgColor="bg-[#FFF8E1] shadow-lg shadow-yellow-100"
+                bgColor="bg-[#FFDB7E] shadow-lg shadow-yellow-100"
             />
             <StepCard 
                 number={4} 
                 title="Track Progress" 
                 desc="Monitor progress, collect streaks, and improve your skills."
                 icon={<Image src="/landing/progress.png" alt="Progress" width={40} height={40} className="object-contain" />}
-                bgColor="bg-[#E8EAF6] shadow-lg shadow-indigo-100"
+                bgColor="bg-[#CAC9FF] shadow-lg shadow-indigo-100"
             />
             </div>
         </div>
@@ -317,9 +324,9 @@ function StepCard({ number, title, desc, icon, bgColor } : { number: number, tit
                 </div>
                 {icon}
             </div>
-            <h3 className="font-bold text-quaternary">{title}</h3>
-            <p className="text-sm text-grey">{desc}</p>
-             <Button variant="link" className="h-auto p-0 text-xs text-quinary">
+            <h3 className="mt-2 font-bold text-[#0B7077] text-xl">{title}</h3>
+            <p className="text-md text-grey">{desc}</p>
+             <Button className="bg-white text-[#0B7077]">
                 More
             </Button>
         </div>
