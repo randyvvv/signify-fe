@@ -215,10 +215,7 @@ export default function LandingPage() {
         <p className="mt-12 text-xl text-gray-500">Just 4 easy steps to begin your learning journey</p>
 
         <div className="relative mt-20">
-             {/* Connecting Line */}
-            <div className="absolute top-10 left-0 hidden w-full -translate-y-1/2 md:block">
-                 <div className="mx-auto h-2 w-3/4 rounded-full bg-[#E0F2F1]"></div>
-            </div>
+             {/* Connecting Line removed, now inside individual cards */}
 
             <div className="relative grid gap-12 sm:grid-cols-2 md:grid-cols-4">
             <StepCard 
@@ -255,10 +252,12 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-6 py-20">
-        <div className="relative overflow-hidden rounded-[3rem] bg-[#E85D75] px-8 pt-12 md:px-16 md:pt-16">
-            {/* Background Pattern Overlay */}
-            <div className="absolute inset-0 z-0 opacity-30 invert" 
-                 style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: 'cover' }}>
+        <div className="relative rounded-[3rem] bg-[#E85D75] px-8 pt-12 md:overflow-visible overflow-hidden md:px-16 md:pt-16">
+            {/* Background Pattern Overlay with Clipping */}
+            <div className="absolute inset-0 z-0 rounded-[3rem] overflow-hidden">
+                <div className="absolute inset-0 opacity-30 invert" 
+                     style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: 'cover' }}>
+                </div>
             </div>
             
             <div className="relative z-10 flex flex-col items-center gap-12 md:flex-row md:justify-between">
@@ -273,17 +272,19 @@ export default function LandingPage() {
                         <div className="relative h-6 w-6 shrink-0 mt-1">
                             <Image src="/landing/star-circle.png" alt="Star" fill className="object-contain" />
                         </div>
-                        <p className="text-white/90 text-sm md:text-base max-w-sm">
+                        <p className="text-white/90 text-sm md:text-base max-w-xl">
                             Join thousands of students who already experience the ease of learning with SignBridge. Sign up now and feel the difference.
                         </p>
                     </div>
 
-                    <Button className="h-14 rounded-xl bg-white px-8 text-lg font-bold text-[#0F5A5A] hover:bg-gray-50 shadow-lg">
-                        GET STARTED NOW
-                    </Button>
+                    <Link href="/dashboard">
+                        <Button className="h-14 rounded-xl bg-white px-8 text-lg text-[#0B7077] hover:bg-gray-50 shadow-lg">
+                            GET STARTED NOW
+                        </Button>
+                    </Link>
                 </div>
 
-                <div className="relative mt-auto h-[400px] w-full max-w-md self-end md:-mb-16 md:h-[500px] md:w-[500px]">
+                <div className="relative mt-8 h-[400px] w-full self-end md:absolute md:bottom-0 md:right-0 md:mt-0 md:h-[800px] md:w-[800px] md:-mr-24">
                      <Image 
                         src="/landing/girl-laugh.png" 
                         alt="Happy Student" 
@@ -317,17 +318,22 @@ function FeatureItem({ icon, title, description, iconBg } : { icon: React.ReactN
 
 function StepCard({ number, title, desc, icon, bgColor } : { number: number, title: string, desc: string, icon: React.ReactNode, bgColor: string }) {
     return (
-        <div className="flex flex-col items-center gap-4 text-center">
-            <div className={`relative flex h-20 w-20 items-center justify-center rounded-full ${bgColor}`}>
-                <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-200 text-xs font-bold text-green-700">
-                    {number}
+        <div className="flex h-full flex-col items-center text-center w-full">
+            <div className="relative flex flex-1 flex-col items-center gap-4 w-full">
+                 {/* Card Line */}
+                 <div className="absolute top-10 left-0 hidden h-[6px] w-full -translate-y-1/2 rounded-full bg-[#E1F2E3] md:block"></div>
+                 
+                <div className={`relative z-10 flex h-20 w-20 items-center justify-center rounded-full ${bgColor}`}>
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-[#E1F2E3] text-lg font-bold text-[#0F5A5A] shadow-sm">
+                        {number}
+                    </div>
+                    {icon}
                 </div>
-                {icon}
+                <h3 className="mt-2 font-bold text-[#0B7077] text-xl">{title}</h3>
+                <p className="text-md text-grey">{desc}</p>
             </div>
-            <h3 className="mt-2 font-bold text-[#0B7077] text-xl">{title}</h3>
-            <p className="text-md text-grey">{desc}</p>
-             <Button className="bg-white text-[#0B7077]">
-                More
+             <Button className="mt-6 bg-white text-[#0B7077] shadow-md hover:bg-gray-50 px-16 py-6">
+                more
             </Button>
         </div>
     )
