@@ -350,8 +350,12 @@ function StepCard({ number, title, desc, icon, bgColor } : { number: number, tit
     return (
         <div className="flex h-full flex-col items-center text-center w-full">
             <div className="relative flex flex-1 flex-col items-center gap-4 w-full">
-                 {/* Card Line */}
-                 <div className="absolute top-10 left-0 hidden h-[6px] w-full -translate-y-1/2 rounded-full bg-[#E1F2E3] md:block"></div>
+                 {/* Card Line - with animation */}
+                 <div className="absolute top-10 left-0 hidden h-[6px] w-full -translate-y-1/2 rounded-full bg-[#E1F2E3] md:block overflow-hidden">
+                    <div 
+                        className={`h-full w-full bg-gradient-to-r from-[#0B7077] to-[#0F5A5A] animate-fill-step-${number} rounded-full`}
+                    ></div>
+                 </div>
                  
                 <div className={`relative z-10 flex h-20 w-20 items-center justify-center rounded-full ${bgColor}`}>
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-[#E1F2E3] text-lg font-bold text-[#0F5A5A] shadow-sm">
