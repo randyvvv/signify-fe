@@ -1,0 +1,187 @@
+"use client";
+
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Target, 
+  Trophy, 
+  Clock, 
+  Video, 
+  Calendar,
+  ChevronRight,
+  Flame,
+  BookOpen
+} from "lucide-react";
+
+export function MainDashboard() {
+  return (
+    <div className="p-6 space-y-8 max-w-[1600px] mx-auto">
+      {/* Top Banner Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Welcome Banner */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 p-8">
+            <div className="relative z-10 flex flex-col justify-center h-full space-y-4">
+                <div>
+                   <h2 className="text-2xl font-semibold text-slate-800">Good afternoon,</h2>
+                   <h1 className="text-4xl font-bold text-teal-600">Thea Josephine!</h1>
+                </div>
+                <p className="text-slate-600 max-w-md">
+                    Ready to continue your learning journey today?
+                </p>
+                <div>
+                    <Button className="bg-slate-800 hover:bg-slate-900 text-white rounded-full px-6 gap-2">
+                        Start Now <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+            
+            {/* Abstract Background Shapes & Placeholder Image */}
+             <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-end justify-center pointer-events-none">
+                 <div className="absolute top-1/2 right-10 w-64 h-64 bg-yellow-200/50 rounded-full blur-3xl" />
+                 <div className="absolute bottom-0 right-32 w-48 h-48 bg-teal-200/50 rounded-full blur-2xl" />
+                 {/* This would be the user image from screenshot */}
+                 {/* <div className="relative h-full w-full bg-contain bg-no-repeat bg-bottom z-10" style={{ backgroundImage: 'url(/path-to-image.png)' }}></div> */}
+            </div>
+        </div>
+
+        {/* Streak Card */}
+         <div className="relative rounded-2xl bg-gradient-to-b from-pink-50 to-rose-50 border border-pink-100 p-6 flex items-center justify-between">
+            <div className="z-10 space-y-1">
+                <h3 className="text-rose-500 font-semibold mb-2">Your current streak is</h3>
+                <div className="text-5xl font-black text-rose-500 flex items-baseline gap-1" style={{ WebkitTextStroke: '1px white' }}>
+                    22
+                </div>
+                <p className="text-rose-600 font-medium">Keep it up!</p>
+            </div>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <Flame className="h-28 w-28 text-orange-400 fill-orange-400 drop-shadow-lg" />
+            </div>
+         </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-0 shadow-sm bg-white ring-1 ring-slate-100 rounded-xl overflow-hidden">
+            <CardContent className="p-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
+                    <Target className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-slate-500">Daily Goal</span>
+                        <span className="text-teal-600 font-semibold text-xs">Finish today&apos;s goal to gain extra coins!</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-800">35</div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full mt-2">
+                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: '45%' }}></div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-white ring-1 ring-slate-100 rounded-xl">
+             <CardContent className="p-6 flex items-center gap-4 relative overflow-hidden">
+                <div className="h-12 w-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 z-10">
+                    <Trophy className="h-6 w-6" />
+                </div>
+                <div className="z-10">
+                     <span className="text-sm font-medium text-slate-500">Rank</span>
+                     <div className="text-xl font-bold text-teal-500 flex items-center gap-1">
+                        ⬆ #12
+                     </div>
+                </div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full" />
+             </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-white ring-1 ring-slate-100 rounded-xl">
+             <CardContent className="p-6 flex items-center gap-4 relative overflow-hidden">
+                <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 z-10">
+                    <Clock className="h-6 w-6" />
+                </div>
+                <div className="z-10">
+                     <span className="text-sm font-medium text-slate-500">Total Learning</span>
+                     <div className="text-2xl font-bold text-slate-900">12.5hours</div>
+                </div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full" />
+             </CardContent>
+        </Card>
+      </div>
+
+      {/* Recommended Course */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+             <h2 className="text-lg font-semibold text-slate-900">Recommended Course For You</h2>
+             <Button variant="link" className="text-teal-600">See all courses</Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {[1, 2, 3, 4, 5].map((card) => (
+                <div key={card} className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer space-y-3">
+                    <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative">
+                         {/* Placeholder for course image */}
+                         <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-400">
+                            <Video className="h-8 w-8" />
+                         </div>
+                    </div>
+                    <div className="space-y-2">
+                         <div className="flex gap-2 items-center text-xs text-slate-500">
+                            <span className="flex items-center gap-1"><Video className="h-3 w-3" /> 11 min</span>
+                            <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-0 text-[10px] h-5">VOCATIONAL</Badge>
+                         </div>
+                         <h3 className="font-semibold text-sm leading-tight text-slate-900 line-clamp-2">
+                             Beginner&apos;s guide to become a Professional Front-end developer
+                         </h3>
+                         <div className="h-1 w-20 bg-indigo-500 rounded-full"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Bottom Section: Activity & Quiz */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[300px]">
+        {/* Recent Activity */}
+        <Card className="lg:col-span-2 border-slate-200 shadow-sm">
+             <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex justify-between items-center mb-10">
+                    <h3 className="font-semibold text-lg text-slate-900">Recent Activity</h3>
+                    <Button variant="outline" size="sm" className="gap-2 text-slate-600">
+                        <Calendar className="h-4 w-4" /> Last 30 days
+                    </Button>
+                </div>
+                
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                    <BookOpen className="h-16 w-16 opacity-20" />
+                    <p>No activity yet</p>
+                </div>
+             </CardContent>
+        </Card>
+
+        {/* Daily Quiz */}
+        <Card className="relative overflow-hidden bg-yellow-100 border-yellow-200 shadow-sm">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-500 via-transparent to-transparent" style={{ backgroundSize: '20px 20px' }}></div>
+            <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center space-y-6 relative z-10">
+                 <div>
+                    <div className="font-black text-3xl text-purple-900 mb-1" style={{ textShadow: '2px 2px 0px white' }}>DailyQuiz</div>
+                    <p className="text-sm text-yellow-800">Do daily quiz to gain extra coins!</p>
+                 </div>
+                 
+                 <div className="relative">
+                    <div className="h-24 w-24 rounded-full bg-purple-700 flex items-center justify-center text-white text-5xl font-bold shadow-xl ring-4 ring-yellow-200">
+                        ?
+                    </div>
+                 </div>
+
+                 <Button className="bg-slate-900 hover:bg-slate-800 text-white rounded-full w-full max-w-[200px] mb-4">
+                    Take the quiz <ChevronRight className="ml-2 h-4 w-4" />
+                 </Button>
+            </CardContent>
+        </Card>
+      </div>
+
+    </div>
+  );
+}
