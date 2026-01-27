@@ -78,7 +78,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <p className="text-muted-foreground text-lg">Select up to 3 areas you want to focus on</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px] content-start">
               {[
                 { id: "k12", label: "K-12 Education", desc: "Elementary, Middle, or High School", icon: School },
                 { id: "vocational", label: "Vocational Education", desc: "Trade school or skill courses", icon: GraduationCap },
@@ -124,7 +124,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <p className="text-muted-foreground text-lg">Select your primary focus areas</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px] content-start">
               {[
                 { id: "sign-master", label: "Sign Language", desc: "Learn and practice sign language", icon: Globe },
                 { id: "academic", label: "Academic Materials", desc: "School/university subjects", icon: School },
@@ -169,7 +169,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <p className="text-muted-foreground text-lg">We&apos;ll remind you based on your preference</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px] content-start">
                {[
                 { id: "casual", label: "Casual", desc: "1-2 times per week", icon: School },
                 { id: "regular", label: "Regular", desc: "3-4 times per week", icon: GraduationCap },
