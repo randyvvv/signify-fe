@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 
 const categories = [
 	{ name: "Sign Language Basics", icon: Hand },
@@ -28,6 +29,32 @@ export default function SignPracticePage() {
 	const [isPracticeActive, setIsPracticeActive] = useState(false);
 	const [stream, setStream] = useState<MediaStream | null>(null);
 	const videoRef = useRef<HTMLVideoElement>(null);
+
+	// MediaPipe State
+	const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(
+		null,
+	);
+	const [detectedHands, setDetectedHands] = useState<
+		{ x: number; y: number; width: number; height: number; label: string }[]
+	>([]);
+
+	useEffect(() => {
+		const initMediaPipe = async () => {
+			const vision = await FilesetResolver.forVisionTasks(
+				"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm",
+			);
+			const landmarker = await HandLandmarker.createFromOptions(vision, {
+				baseOptions: {
+					modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+					delegate: "GPU",
+				},
+				runningMode: "VIDEO",
+				numHands: 2,
+			});
+			setHandLandmarker(landmarker);
+		};
+		initMediaPipe();
+	}, []);
 
 	const startCamera = async () => {
 		try {
@@ -55,6 +82,59 @@ export default function SignPracticePage() {
 			videoRef.current.srcObject = stream;
 		}
 	}, [isPracticeActive, stream]);
+
+	useEffect(() => {
+		let animationFrameId: number;
+
+		const predictWebcam = () => {
+			if (
+				handLandmarker &&
+				videoRef.current &&
+				videoRef.current.videoWidth > 0
+			) {
+				const startTimeMs = performance.now();
+				const results = handLandmarker.detectForVideo(
+					videoRef.current,
+					startTimeMs,
+				);
+
+				if (results.landmarks) {
+					const newHands = results.landmarks.map(
+						(landmarks, index) => {
+							const xList = landmarks.map((l) => l.x);
+							const yList = landmarks.map((l) => l.y);
+
+							const minX = Math.min(...xList);
+							const maxX = Math.max(...xList);
+							const minY = Math.min(...yList);
+							const maxY = Math.max(...yList);
+
+							return {
+								x: minX,
+								y: minY,
+								width: maxX - minX,
+								height: maxY - minY,
+								label: results.handedness[index][0]
+									.categoryName,
+							};
+						},
+					);
+					setDetectedHands(newHands);
+				}
+			}
+			if (isPracticeActive) {
+				animationFrameId = requestAnimationFrame(predictWebcam);
+			}
+		};
+
+		if (isPracticeActive && handLandmarker) {
+			predictWebcam();
+		}
+
+		return () => {
+			if (animationFrameId) cancelAnimationFrame(animationFrameId);
+		};
+	}, [isPracticeActive, handLandmarker]);
 
 	useEffect(() => {
 		return () => {
@@ -133,25 +213,26 @@ export default function SignPracticePage() {
 									</span>
 								</div>
 
-								{/* Dummy Hand Boxes */}
-								{/* Left Hand (Right side of screen due to mirror) */}
-								<div className="absolute top-1/2 right-[20%] w-[180px] h-[220px] border-2 border-red-400 rounded-lg -translate-y-1/2 bg-transparent z-10">
-									<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
-										<Hand className="w-4 h-4 text-grey" />
-										<span className="text-sm font-medium text-grey">
-											Left Hand
-										</span>
+								{/* Dynamic Hand Boxes */}
+								{detectedHands.map((hand, index) => (
+									<div
+										key={index}
+										className="absolute border-2 border-red-400 rounded-lg bg-transparent z-10 transition-all duration-75 ease-linear"
+										style={{
+											left: `${(1 - hand.x - hand.width) * 100}%`,
+											top: `${hand.y * 100}%`,
+											width: `${hand.width * 100}%`,
+											height: `${hand.height * 100}%`,
+										}}
+									>
+										<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
+											<Hand className="w-4 h-4 text-grey" />
+											<span className="text-sm font-medium text-grey">
+												{hand.label} Hand
+											</span>
+										</div>
 									</div>
-								</div>
-								{/* Right Hand (Left side of screen due to mirror) */}
-								<div className="absolute top-1/2 left-[20%] w-[180px] h-[220px] border-2 border-red-400 rounded-lg -translate-y-1/2 bg-transparent z-10">
-									<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
-										<Hand className="w-4 h-4 text-grey" />
-										<span className="text-sm font-medium text-grey">
-											Right Hand
-										</span>
-									</div>
-								</div>
+								))}
 
 								{/* Bottom - Feedback Card */}
 								<div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white w-[80%] rounded-xl p-4 shadow-lg flex items-center justify-between z-10">
