@@ -93,7 +93,7 @@ export default function ProfilePage() {
                       disabled={!isEditing}
                       className="w-full appearance-none rounded-lg bg-gray-100 p-3 text-sm text-quaternary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      <option>Your First Name</option>{" "}
+                      <option>Your Gender</option>{" "}
                       <option>Male</option>
                       <option>Female</option>
                     </select>
