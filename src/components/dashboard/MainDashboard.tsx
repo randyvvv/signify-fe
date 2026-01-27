@@ -14,6 +14,7 @@ import {
   Flame,
   BookOpen
 } from "lucide-react";
+import Image from "next/image";
 
 export function MainDashboard() {
   return (
@@ -21,16 +22,16 @@ export function MainDashboard() {
       {/* Top Banner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Welcome Banner */}
-        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 p-8">
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-teal-100 p-8 bg-gradient-to-r from-[#C5FBF9] to-[#FDF5BF]">
             <div className="relative z-10 flex flex-col justify-center h-full space-y-4">
                 <div>
                    <h2 className="text-2xl font-semibold text-slate-800">Good afternoon,</h2>
-                   <h1 className="text-4xl font-bold text-teal-600">Thea Josephine!</h1>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-[#2DA5A2] via-[#DF5D73] to-[#E799A3] bg-clip-text text-transparent">Thea Josephine!</h1>
                 </div>
-                <p className="text-slate-600 max-w-md">
+                <p className="text-slate-600 max-w-md font-semibold">
                     Ready to continue your learning journey today?
                 </p>
-                <div>
+                <div className="mt-8">
                     <Button className="bg-slate-800 hover:bg-slate-900 text-white rounded-full px-6 gap-2">
                         Start Now <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -39,10 +40,19 @@ export function MainDashboard() {
             
             {/* Abstract Background Shapes & Placeholder Image */}
              <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-end justify-center pointer-events-none">
-                 <div className="absolute top-1/2 right-10 w-64 h-64 bg-yellow-200/50 rounded-full blur-3xl" />
-                 <div className="absolute bottom-0 right-32 w-48 h-48 bg-teal-200/50 rounded-full blur-2xl" />
+                 <div className="absolute right-0 bottom-15 w-[224px] h-[224px] bg-[#DBCE584D] rounded-full " />
+                 <div className="absolute left-1/2 top-5 -translate-x-1/2  w-[270px] h-[270px] bg-[#207D7B2E] rounded-full" />
+                 <div className="absolute bottom-2 right-78 w-[121px] h-[121px] bg-[#DBCE584D] rounded-full " />
                  {/* This would be the user image from screenshot */}
-                 {/* <div className="relative h-full w-full bg-contain bg-no-repeat bg-bottom z-10" style={{ backgroundImage: 'url(/path-to-image.png)' }}></div> */}
+                 <div className="relative h-[228px] w-[254px] bg-contain bg-no-repeat bg-bottom z-10" >
+                    <Image 
+                    src="/dashboard/girl.png" 
+                    alt="Learning Sign Language" 
+                    fill 
+                    className="object-contain object-bottom"
+                    priority
+                    />
+                 </div>
             </div>
         </div>
 
