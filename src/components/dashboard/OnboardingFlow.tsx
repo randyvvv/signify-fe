@@ -47,10 +47,25 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-cyan-50 via-white to-amber-50">
+    // <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-cyan-50 via-white to-amber-50">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-6"
+      style={{ background: 'linear-gradient(112.27deg, #C5FBF9 0%, #FFFFFF 77.41%, #FDF5BF 100%)' }}
+    >
+      {/* Top Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-2 bg-[#D8D5D5] z-50">
+        <div 
+          className="h-full transition-all duration-500 ease-out"
+          style={{ 
+            width: `${((step - 1) / 3) * 100}%`,
+            background: 'linear-gradient(90deg, #458785 0%, #E799A3 100%)'
+          }}
+        />
+      </div>
+
       <div className="w-full max-w-4xl space-y-8">
         
-        {/* Progress Indicator (simple text for now matching screenshot style somewhat) */}
+        {/* Step Counter */}
         <div className="flex justify-end text-muted-foreground font-medium">
           {step} of 3
         </div>
@@ -209,7 +224,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     onClick={handleNext}
                     className="bg-teal-600 hover:bg-teal-700 w-32"
                 >
-                    Next <ChevronRight className="ml-2 h-4 w-4" />
+                    Confirm <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
             ) : (
                 <Button 
