@@ -9,11 +9,12 @@ import {
 	Briefcase,
 	Building2,
 	X,
+	XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const categories = [
 	{ name: "Sign Language Basics", icon: Hand },
@@ -23,6 +24,45 @@ const categories = [
 ];
 
 export default function SignPracticePage() {
+	// Camera State
+	const [isPracticeActive, setIsPracticeActive] = useState(false);
+	const [stream, setStream] = useState<MediaStream | null>(null);
+	const videoRef = useRef<HTMLVideoElement>(null);
+
+	const startCamera = async () => {
+		try {
+			const mediaStream = await navigator.mediaDevices.getUserMedia({
+				video: true,
+			});
+			setStream(mediaStream);
+			setIsPracticeActive(true);
+		} catch (err) {
+			console.error("Error accessing camera:", err);
+			alert("Could not access camera. Please allow permissions.");
+		}
+	};
+
+	const stopCamera = () => {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			setStream(null);
+		}
+		setIsPracticeActive(false);
+	};
+
+	useEffect(() => {
+		if (isPracticeActive && stream && videoRef.current) {
+			videoRef.current.srcObject = stream;
+		}
+	}, [isPracticeActive, stream]);
+
+	useEffect(() => {
+		return () => {
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+		};
+	}, [stream]);
 	const [showTutorial, setShowTutorial] = useState(true);
 	const [selectedCategory, setSelectedCategory] = useState(
 		categories[0].name,
@@ -53,13 +93,97 @@ export default function SignPracticePage() {
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-[25px]">
 					{/* Left Section - Practice Area */}
 					<div className="lg:col-span-2 relative h-[500px] rounded-[20px] bg-senary/30 flex items-center justify-center group overflow-hidden">
-						<Button className="bg-quinary hover:bg-quinary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold shadow-lg transition-transform hover:scale-105">
-							Start Sign Practice
-						</Button>
+						{!isPracticeActive ? (
+							<>
+								<Button
+									onClick={startCamera}
+									className="bg-quinary hover:bg-quinary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold shadow-lg transition-transform hover:scale-105"
+								>
+									Start Sign Practice
+								</Button>
 
-						<button className="absolute bottom-6 right-6 p-2 rounded-lg hover:bg-black/5 transition-colors text-grey hover:text-quaternary">
-							<Maximize2 className="w-6 h-6" />
-						</button>
+								<button className="absolute bottom-6 right-6 p-2 rounded-lg hover:bg-black/5 transition-colors text-grey hover:text-quaternary">
+									<Maximize2 className="w-6 h-6" />
+								</button>
+							</>
+						) : (
+							<div className="relative w-full h-full">
+								{/* Video Feed */}
+								<video
+									ref={videoRef}
+									autoPlay
+									playsInline
+									muted
+									className="w-full h-full object-cover transform -scale-x-100"
+								/>
+
+								{/* Overlays */}
+								{/* Top Left - Category Badge */}
+								<div className="absolute top-6 left-6 flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg shadow-sm z-10">
+									<Hand className="w-4 h-4 text-quaternary" />
+									<span className="font-bold text-quaternary">
+										{selectedCategory}
+									</span>
+								</div>
+
+								{/* Top Right - Goal Badge */}
+								<div className="absolute top-12 right-6 bg-tertiary px-6 py-3 rounded-xl shadow-sm z-10 animate-fade-in">
+									<span className="font-heading font-bold text-quaternary text-lg tracking-wide">
+										GOAL : WELCOME
+									</span>
+								</div>
+
+								{/* Dummy Hand Boxes */}
+								{/* Left Hand (Right side of screen due to mirror) */}
+								<div className="absolute top-1/2 right-[20%] w-[180px] h-[220px] border-2 border-red-400 rounded-lg -translate-y-1/2 bg-transparent z-10">
+									<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
+										<Hand className="w-4 h-4 text-grey" />
+										<span className="text-sm font-medium text-grey">
+											Left Hand
+										</span>
+									</div>
+								</div>
+								{/* Right Hand (Left side of screen due to mirror) */}
+								<div className="absolute top-1/2 left-[20%] w-[180px] h-[220px] border-2 border-red-400 rounded-lg -translate-y-1/2 bg-transparent z-10">
+									<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
+										<Hand className="w-4 h-4 text-grey" />
+										<span className="text-sm font-medium text-grey">
+											Right Hand
+										</span>
+									</div>
+								</div>
+
+								{/* Bottom - Feedback Card */}
+								<div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white w-[80%] rounded-xl p-4 shadow-lg flex items-center justify-between z-10">
+									<div className="flex items-center gap-4">
+										<div className="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center">
+											<span className="text-xl">✏️</span>
+										</div>
+										<div>
+											<h4 className="font-bold text-quaternary">
+												Improving...
+											</h4>
+											<p className="text-sm text-grey">
+												Adjust your left and right hand
+												to be slightly higher
+											</p>
+										</div>
+									</div>
+									<div className="h-6 w-11 bg-quaternary rounded-full relative cursor-pointer">
+										<div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full"></div>
+									</div>
+								</div>
+
+								{/* End Button */}
+								<button
+									onClick={stopCamera}
+									className="absolute bottom-6 left-6 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium shadow-lg z-20 flex items-center gap-2"
+								>
+									<span>End</span>
+									<XCircle className="w-5 h-5" />
+								</button>
+							</div>
+						)}
 					</div>
 
 					{/* Right Section - Sidebar */}
