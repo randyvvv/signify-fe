@@ -245,7 +245,7 @@ export default function LearningMaterialsPage() {
             {/* Materials Grid */}
             <div className="flex-1">
               <h2 className="font-heading text-lg font-semibold text-gray-900 mb-4">
-                All results ({filteredMaterials.length})
+                All results
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -360,7 +360,7 @@ export default function LearningMaterialsPage() {
                   </div>
                   <button
                     onClick={() => setShowMoreSubjects(!showMoreSubjects)}
-                    className="text-sm text-quinary hover:text-quaternary font-medium mt-2 transition-colors"
+                    className="text-sm font-medium mt-2 transition-colors underline"
                   >
                     {showMoreSubjects ? "Show less" : "Show 7 more"}
                   </button>
@@ -394,7 +394,7 @@ export default function LearningMaterialsPage() {
                   </div>
                   <button
                     onClick={() => setShowMoreLanguages(!showMoreLanguages)}
-                    className="text-sm text-quinary hover:text-quaternary font-medium mt-2 transition-colors"
+                    className="text-sm font-medium mt-2 transition-colors underline"
                   >
                     {showMoreLanguages ? "Show less" : "Show 7 more"}
                   </button>
