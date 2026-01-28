@@ -3,7 +3,7 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Coins } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -19,10 +19,10 @@ export default function ProfilePage() {
             href="/dashboard"
             className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
           >
-            <ChevronLeft className="h-6 w-6 text-quaternary" />
+            <ChevronLeft className="h-6 w-6 text-black" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-quaternary">
+            <h1 className="text-xl font-bold text-black">
               {isEditing ? "Edit Profile" : "My Profile"}
             </h1>
             <p className="text-sm text-grey">Your own profile</p>
@@ -30,12 +30,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Content */}
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+        <div className="overflow-hidden bg-white shadow-sm">
 
           {/* Banner Gradient */}
           <div className="h-24 w-full bg-linear-to-r from-[#C5FBF9] to-[#FFFADA]"></div>
 
-          <div className="px-8 pb-8">
+          <div className="flex justify-left px-8 pb-8">
+            <div className="w-full max-w-3xl">
             <div className="relative mt-6 mb-6 flex items-end justify-between">
               <div className="flex items-end gap-4">
                 <div className="relative">
@@ -43,19 +44,21 @@ export default function ProfilePage() {
                     <AvatarImage
                       src="/profile/avatar.png"
                       alt="Randy Kirk"
-                    />
-                    <AvatarFallback className="text-2xl">RK</AvatarFallback>
+                    />Alexa Rawles
+                    <AvatarFallback className="text-2xl">AR</AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="mb-2">
-                  <h2 className="text-lg font-bold text-quaternary">
-                    Randy Kirk
+                  <h2 className="text-lg font-medium text-black">
+                    Alexa Rawles
                   </h2>
-                  <p className="text-sm text-grey">randykirk@gmail.com</p>
-                  <div className="mt-2 flex w-fit items-center gap-1 rounded-full bg-senary/20 px-3 py-1 text-sm font-bold text-quinary">
+                  <p className="text-sm font-normal text-grey">alexa.rawles@gmail.com</p>
+                  <div className="mt-2 flex w-fit items-center gap-1 rounded-full bg-senary px-3 py-1 text-sm font-bold text-white">
                     <span>67</span>
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] text-white">
-                      <Coins className="h-3 w-3" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
+                        <img src="/profile/coins 1.png" alt="Coins" className="h-4 w-4" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -74,24 +77,24 @@ export default function ProfilePage() {
             <div className="grid gap-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-quaternary">
+                  <label className="text-sm font-bold text-black">
                     Full Name
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     placeholder="Your First Name"
-                    className="w-full rounded-lg bg-gray-100 p-3 text-sm text-quaternary placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="w-full rounded-lg bg-gray-100 p-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-quaternary">
+                  <label className="text-sm font-bold text-black">
                     Gender
                   </label>
                   <div className="relative">
                     <select
                       disabled={!isEditing}
-                      className="w-full appearance-none rounded-lg bg-gray-100 p-3 text-sm text-quaternary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="w-full appearance-none rounded-lg bg-gray-100 p-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       <option>Your Gender</option>{" "}
                       <option>Male</option>
@@ -114,24 +117,24 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-quaternary">
+                <label className="text-sm font-bold text-black">
                   Email Address
                 </label>
                 <input
                   type="email"
                   disabled={!isEditing}
                   placeholder="Your Email Address"
-                  className="w-full rounded-lg bg-gray-100 p-3 text-sm text-quaternary placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="w-full rounded-lg bg-gray-100 p-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-quaternary">Bio</label>
+                <label className="text-sm font-bold text-black">Bio</label>
                 <textarea
                   disabled={!isEditing}
                   placeholder="Your Bio"
                   rows={4}
-                  className="w-full resize-none rounded-lg bg-gray-100 p-3 text-sm text-quaternary placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="w-full resize-none rounded-lg bg-gray-100 p-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
 
@@ -141,7 +144,7 @@ export default function ProfilePage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsEditing(false)}
-                    className="w-full border-quaternary px-8 text-quaternary hover:bg-quaternary/5 sm:w-auto"
+                    className="w-full border-black px-8 text-black hover:bg-black/5 sm:w-auto"
                   >
                     Cancel
                   </Button>
@@ -153,6 +156,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
