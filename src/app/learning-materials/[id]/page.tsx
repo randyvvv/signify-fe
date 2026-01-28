@@ -1,10 +1,12 @@
 "use client";
 
+import { useRef } from "react";
 import { MainLayout } from "@/components/layout";
 import { ChevronLeft, Download, FileText, Link2, Send, Play, Volume2, Maximize2, MoreVertical, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import Draggable from "react-draggable";
 
 // Mock data for materials
 const materialsData: Record<string, {
@@ -239,65 +241,38 @@ export default function MaterialDetailPage() {
 
 // Video Layout Component
 function VideoLayout({ material }: { material: typeof materialsData[string] }) {
+  const nodeRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="space-y-4">
       {/* Title */}
       <h2 className="text-xl font-bold text-gray-900">{material.title}</h2>
 
-      {/* Video Player */}
+      {/* YouTube Video Player */}
       <div className="relative rounded-2xl overflow-hidden aspect-video shadow-lg">
-        {/* Video Background Image */}
-        <Image
-          src="/learning-materials/video-template.png"
-          alt="Video background"
-          fill
-          className="object-cover"
+        <iframe
+          src="https://www.youtube.com/embed/v1desDduz5M"
+          title={material.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full h-full"
         />
 
-        {/* Sign Language Interpreter */}
-        <div className="absolute top-4 right-4 w-36 h-44 rounded-xl overflow-hidden shadow-lg bg-gray-100">
-          <Image
-            src="/learning-materials/avatar.png"
-            alt="Sign Language Interpreter"
-            fill
-            className="object-cover"
-          />
-          {/* Resize icon */}
-          <div className="absolute bottom-2 right-2">
-            <Maximize2 className="h-4 w-4 text-gray-600" />
+        {/* Draggable Sign Language Avatar */}
+        <Draggable bounds="parent" defaultPosition={{ x: 0, y: 0 }} nodeRef={nodeRef}>
+          <div ref={nodeRef} className="absolute top-4 right-4 w-36 h-44 rounded-xl overflow-hidden shadow-lg bg-gray-100 cursor-move z-10 border-2 border-white/50">
+            <Image
+              src="/learning-materials/avatar.png"
+              alt="Sign Language Interpreter"
+              fill
+              className="object-cover pointer-events-none"
+            />
+            {/* Resize/drag indicator */}
+            <div className="absolute bottom-2 right-2 bg-black/30 rounded p-1">
+              <Maximize2 className="h-3 w-3 text-white" />
+            </div>
           </div>
-        </div>
-
-        {/* Subtitle Bar - positioned just above controls */}
-        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-[85%]">
-          <div className="bg-white px-6 py-2.5 rounded-full shadow-md">
-            <span className="text-gray-800 text-sm text-center block">subtitle</span>
-          </div>
-        </div>
-
-        {/* Video Controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 pt-8 pb-2">
-          <div className="flex items-center gap-3 text-white">
-            <button className="hover:text-gray-300 transition-colors">
-              <Play className="h-5 w-5" fill="currentColor" />
-            </button>
-            <span className="text-sm text-white">0:00 / 0:10</span>
-            <div className="flex-1" />
-            <button className="hover:text-gray-300 transition-colors">
-              <Volume2 className="h-5 w-5" />
-            </button>
-            <button className="hover:text-gray-300 transition-colors">
-              <Maximize2 className="h-5 w-5" />
-            </button>
-            <button className="hover:text-gray-300 transition-colors">
-              <MoreVertical className="h-5 w-5" />
-            </button>
-          </div>
-          {/* Progress bar */}
-          <div className="mt-2 h-1 bg-gray-500/50 rounded-full">
-            <div className="h-full w-0 bg-red-500 rounded-full"></div>
-          </div>
-        </div>
+        </Draggable>
       </div>
 
       {/* Video Transcript */}
