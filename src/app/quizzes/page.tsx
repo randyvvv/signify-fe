@@ -261,10 +261,10 @@ export default function QuizzesPage() {
             href="/dashboard"
             className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
           >
-            <ChevronLeft className="h-6 w-6 text-quaternary" />
+            <ChevronLeft className="h-6 w-6" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-quaternary">Quizzes</h1>
+            <h1 className="text-xl font-bold">Quizzes</h1>
             <p className="text-sm text-grey">
               Practice to test your sign language skills and gain coins
             </p>
