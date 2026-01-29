@@ -172,7 +172,7 @@ export default function SignPracticePage() {
 				{/* Content */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-[25px]">
 					{/* Left Section - Practice Area */}
-					<div className="lg:col-span-2 relative h-[500px] rounded-[20px] bg-senary/30 flex items-center justify-center group overflow-hidden">
+					<div className="lg:col-span-2 relative aspect-[3/2] rounded-[20px] bg-senary/30 flex items-center justify-center group overflow-hidden">
 						{!isPracticeActive ? (
 							<>
 								<Button
