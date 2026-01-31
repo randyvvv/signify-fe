@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import { MainLayout } from "@/components/layout";
-import { ChevronLeft, Check, X } from "lucide-react";
+import {
+  ChevronLeft,
+  Check,
+  X,
+  PartyPopper,
+  Timer,
+  CheckSquare,
+  Coins,
+  Filter,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -76,7 +88,19 @@ export default function QuizPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<
+    {
+      questionId: number;
+      question: string;
+      answerIndex: number;
+      isCorrect: boolean;
+      type: string;
+      term?: string;
+    }[]
+  >([]);
 
   const currentQuestionData = quizData.questions[currentQuestionIndex];
   const optionLabels = ["A", "B", "C", "D"];
@@ -90,7 +114,24 @@ export default function QuizPage() {
   const handleSubmit = () => {
     if (selectedAnswer !== null) {
       setIsSubmitted(true);
-      setIsCorrect(selectedAnswer === currentQuestionData.correctAnswer);
+      const correct = selectedAnswer === currentQuestionData.correctAnswer;
+      setIsCorrect(correct);
+
+      // Save answer history
+      setUserAnswers([
+        ...userAnswers,
+        {
+          questionId: currentQuestionData.id,
+          question: currentQuestionData.question,
+          answerIndex: selectedAnswer,
+          isCorrect: correct,
+          type: currentQuestionData.type,
+          term:
+            "term" in currentQuestionData
+              ? (currentQuestionData as any).term
+              : undefined,
+        },
+      ]);
     }
   };
 
@@ -101,18 +142,230 @@ export default function QuizPage() {
   };
 
   const handleNextQuestion = () => {
-    // Reset state for next question
-    setSelectedAnswer(null);
-    setIsSubmitted(false);
-    setIsCorrect(null);
     // Move to next question if available
     if (currentQuestionIndex < quizData.questions.length - 1) {
+      // Reset state for next question
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+      setIsCorrect(null);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      setIsQuizCompleted(true);
     }
   };
 
   const progressPercentage =
     (quizData.currentQuestion / quizData.totalQuestions) * 100;
+
+  if (isQuizCompleted) {
+    const totalQuestions = userAnswers.length;
+    const correctAnswers = userAnswers.filter((a) => a.isCorrect).length;
+    const accuracy =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+    // SVG circle calculation
+    const radius = 70;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (accuracy / 100) * circumference;
+
+    return (
+      <MainLayout>
+        <div className="flex flex-col gap-6">
+          {/* Header Section */}
+          <div className="flex items-center gap-4 bg-white p-4 shadow-sm">
+            <Link
+              href="/quizzes"
+              className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold">Quizzes</h1>
+              <p className="text-sm text-grey">{quizData.title}</p>
+            </div>
+          </div>
+
+          {/* Results Area */}
+          <div className="min-h-[calc(100vh-180px)] space-y-6">
+            {/* Celebration Card */}
+            <div className="relative bg-gradient-to-r from-[#E0F7FA] to-[#FFF9C4] p-12 text-center shadow-sm overflow-hidden">
+              {/* Decorative circles */}
+              <div className="absolute top-10 left-20 w-4 h-4 rounded-full bg-red-200" />
+              <div className="absolute top-20 left-[10%] w-6 h-6 rounded-full bg-orange-200 opacity-80" />
+              <div className="absolute bottom-10 left-[30%] w-4 h-4 rounded-full bg-yellow-400 opacity-60" />
+              <div className="absolute top-10 right-[20%] w-4 h-4 rounded-full bg-purple-400 opacity-60" />
+              <div className="absolute top-20 right-10 w-4 h-4 rounded-full bg-blue-400 opacity-60" />
+              <div className="absolute bottom-20 right-[15%] w-6 h-6 rounded-full bg-teal-300 opacity-60" />
+
+              {/* Content */}
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                  <PartyPopper className="w-10 h-10 text-purple-600 fill-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Quiz Completed!</h2>
+                <h1 className="text-3xl font-bold mb-4">{quizData.title}</h1>
+                <p className="text-gray-600">Great job for finishing the quiz!</p>
+              </div>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Accuracy */}
+              <div className="bg-white p-8 shadow-sm flex flex-col items-center justify-center">
+                <div className="relative w-40 h-40 mb-4 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="80"
+                      cy="80"
+                      r={radius}
+                      stroke="#E5E7EB"
+                      strokeWidth="12"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="80"
+                      cy="80"
+                      r={radius}
+                      stroke="#0F766E"
+                      strokeWidth="12"
+                      fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-4xl font-bold" style={{ color: "#0F766E" }}>
+                      {accuracy}%
+                    </span>
+                    <span className="text-sm text-gray-500">Accuracy</span>
+                  </div>
+                </div>
+                <div className="px-14 py-2 bg-teal-50 text-teal-600 rounded-full text-sm font-bold">
+                  Great Job!
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="md:col-span-2 bg-white p-8 shadow-sm grid grid-cols-3">
+                <div className="flex flex-col items-center justify-center p-4">
+                  <div className="w-14 h-14 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                    <CheckSquare className="w-7 h-7 stroke-[2.5]" />
+                  </div>
+                  <p className="text-gray-500 font-medium mb-1">
+                    Correct Answers
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {correctAnswers}
+                    <span className="text-gray-400 text-lg font-medium">
+                      /{totalQuestions}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <div className="w-14 h-14 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mb-4">
+                    <Coins className="w-7 h-7 stroke-[2.5]" />
+                  </div>
+                  <p className="text-gray-500 font-medium mb-1">
+                    Points Earned
+                  </p>
+                  <p className="text-3xl font-bold text-yellow-500">+50</p>
+                </div>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-4">
+                    <Timer className="w-7 h-7 stroke-[2.5]" />
+                  </div>
+                  <p className="text-gray-500 font-medium mb-1">Time Taken</p>
+                  <p className="text-3xl font-bold text-gray-900">04:12</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Review Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4 mt-8">
+                <h3 className="text-lg font-bold">Question Review</h3>
+                <div className="relative">
+                  <select
+                    className="appearance-none flex items-center gap-2 px-4 py-2 pr-10 border border-teal-500 bg-teal-50 rounded-lg text-sm text-gray-900 focus:outline-none cursor-pointer"
+                    value={activeFilter}
+                    onChange={(e) => setActiveFilter(e.target.value)}
+                  >
+                    <option value="all">Filter</option>
+                    <option value="correct">Correct (Benar)</option>
+                    <option value="incorrect">Incorrect (Salah)</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                {userAnswers
+                  .filter((ans) => {
+                    if (activeFilter === "correct") return ans.isCorrect;
+                    if (activeFilter === "incorrect") return !ans.isCorrect;
+                    return true;
+                  })
+                  .map((ans, idx) => (
+                    <div
+                      key={idx}
+                      className={`border rounded-xl p-4 flex items-center justify-between bg-white ${ans.isCorrect
+                        ? "border-quinary"
+                        : "border-red-500"
+                        }`}
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className="w-32 h-20 relative rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                          {ans.type === "text" ? (
+                            <Image
+                              src="/quizzes/hand.png"
+                              alt="Quiz"
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full flex items-center justify-center text-quinary font-bold text-xl"
+                              style={{ fontFamily: "'Raleway', sans-serif" }}
+                            >
+                              {ans.term}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900 mb-2 text-lg">
+                            {quizData.title}
+                          </h4>
+                          <p className="text-sm">
+                            <span className="text-gray-500">Your Answer: </span>
+                            <span
+                              className={
+                                ans.isCorrect
+                                  ? "text-teal-600 font-bold"
+                                  : "text-red-600 font-bold"
+                              }
+                            >
+                              {optionLabels[ans.answerIndex]}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="pr-4">
+                        {ans.isCorrect ? (
+                          <CheckCircle className="w-8 h-8 text-white fill-quinary" />
+                        ) : (
+                          <XCircle className="w-8 h-8 text-white fill-red-500" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -135,7 +388,7 @@ export default function QuizPage() {
         <div className="min-h-[calc(100vh-180px)] ">
           <div className="flex gap-6">
             {/* Left Column - Quiz Content */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm p-6">
+            <div className="flex-1 bg-white shadow-sm p-6">
               {/* Question Header - Sign Image or Term */}
               {currentQuestionData.type === "text" ? (
                 /* Type 1: Show sign image for text-based options */
@@ -357,7 +610,7 @@ export default function QuizPage() {
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="hidden lg:flex flex-col w-72 shrink-0 bg-white rounded-xl shadow-sm p-4">
+            <div className="hidden lg:flex flex-col w-72 shrink-0 bg-white shadow-sm p-4">
               {/* Quiz Info */}
               <h2 className="text-2xl font-bold mb-2">
                 {quizData.title.split(" & ")[0]} &
