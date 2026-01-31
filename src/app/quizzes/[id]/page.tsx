@@ -18,10 +18,24 @@ const quizData = {
   questions: [
     {
       id: 1,
+      type: "text", // Text-based options with sign image
       image: "/quizzes/hand.png",
       question: "What is the correct term for this sign?",
       options: ["Aljabar", "Kalkulus", "Trigonometri", "Geometri"],
       correctAnswer: 0, // Index of correct answer (Aljabar)
+    },
+    {
+      id: 2,
+      type: "image", // Image-based options with term text
+      term: "Algebra",
+      question: "What is the correct sign for this term?",
+      options: [
+        "/learning-materials/avatar.png",
+        "/learning-materials/avatar.png",
+        "/learning-materials/avatar.png",
+        "/learning-materials/avatar.png",
+      ],
+      correctAnswer: 0, // Index of correct answer
     },
   ],
 };
@@ -59,11 +73,12 @@ const recommendedQuizzes = [
 ];
 
 export default function QuizPage() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const currentQuestionData = quizData.questions[0];
+  const currentQuestionData = quizData.questions[currentQuestionIndex];
   const optionLabels = ["A", "B", "C", "D"];
 
   const handleSelectAnswer = (index: number) => {
@@ -90,7 +105,10 @@ export default function QuizPage() {
     setSelectedAnswer(null);
     setIsSubmitted(false);
     setIsCorrect(null);
-    // In a real app, this would load the next question
+    // Move to next question if available
+    if (currentQuestionIndex < quizData.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
   };
 
   const progressPercentage =
@@ -118,32 +136,53 @@ export default function QuizPage() {
           <div className="flex gap-6">
             {/* Left Column - Quiz Content */}
             <div className="flex-1 bg-white rounded-xl shadow-sm p-6">
-              {/* Sign Image */}
-              <div className="relative w-full max-w-lg mx-auto h-[280px] rounded-2xl overflow-hidden border border-gray-200 mb-6">
-                <Image
-                  src={currentQuestionData.image}
-                  alt="Sign language gesture"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              {/* Question Header - Sign Image or Term */}
+              {currentQuestionData.type === "text" ? (
+                /* Type 1: Show sign image for text-based options */
+                <div className="relative w-full max-w-lg mx-auto h-[280px] rounded-2xl overflow-hidden border border-gray-200 mb-6">
+                  <Image
+                    src={currentQuestionData.image || "/quizzes/hand.png"}
+                    alt="Sign language gesture"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                /* Type 2: Show question first, then term text */
+                <div className="text-center mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: "'Raleway', sans-serif" }}>
+                    {currentQuestionData.question}
+                  </h2>
+                  <h3
+                    className="text-5xl font-bold text-quinary mb-4"
+                    style={{ fontFamily: "'Raleway', sans-serif" }}
+                  >
+                    {currentQuestionData.term}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Choose the best answer from these options below
+                  </p>
+                </div>
+              )}
 
-              {/* Question */}
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Raleway', sans-serif" }}>
-                  {currentQuestionData.question}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Choose the best answer from these options below
-                </p>
-              </div>
+              {/* Question - only for text type */}
+              {currentQuestionData.type === "text" && (
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Raleway', sans-serif" }}>
+                    {currentQuestionData.question}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Choose the best answer from these options below
+                  </p>
+                </div>
+              )}
 
               {/* Feedback Banner */}
               {isSubmitted && (
                 <div
                   className={`flex items-center gap-3 p-4 rounded-xl mb-6 max-w-2xl mx-auto ${isCorrect
-                      ? "bg-teal-50 border-2 border-teal-400"
-                      : "bg-red-50 border-2 border-red-400"
+                    ? "bg-teal-50 border-2 border-teal-400"
+                    : "bg-red-50 border-2 border-red-400"
                     }`}
                 >
                   <div
@@ -167,15 +206,21 @@ export default function QuizPage() {
                       className={`text-sm ${isCorrect ? "text-teal-600" : "text-red-600"
                         }`}
                     >
-                      {isCorrect
-                        ? `Great job! ${currentQuestionData.options[
-                        currentQuestionData.correctAnswer
-                        ]
-                        } is the correct term for this sign.`
-                        : `The correct answer is ${currentQuestionData.options[
-                        currentQuestionData.correctAnswer
-                        ]
-                        }, don't give up!`}
+                      {currentQuestionData.type === "text"
+                        ? isCorrect
+                          ? `Great job! ${currentQuestionData.options[
+                          currentQuestionData.correctAnswer
+                          ]
+                          } is the correct term for this sign.`
+                          : `The correct answer is ${currentQuestionData.options[
+                          currentQuestionData.correctAnswer
+                          ]
+                          }, don't give up!`
+                        : isCorrect
+                          ? `Great job! Option ${optionLabels[currentQuestionData.correctAnswer]
+                          } is the correct sign for this term.`
+                          : `Option ${optionLabels[currentQuestionData.correctAnswer]
+                          } is the correct sign for this term, don't give up!`}
                     </p>
                   </div>
                 </div>
@@ -218,24 +263,58 @@ export default function QuizPage() {
                       key={index}
                       onClick={() => handleSelectAnswer(index)}
                       disabled={isSubmitted}
-                      className={`relative flex items-center justify-between py-4 px-4 rounded-xl border-2 transition-all ${borderColor} ${bgColor} ${!isSubmitted
+                      className={`relative rounded-xl border-2 transition-all ${borderColor} ${bgColor} ${!isSubmitted
                         ? "hover:border-teal-400 hover:bg-teal-50/50 cursor-pointer"
                         : "cursor-default"
-                        }`}
+                        } ${currentQuestionData.type === "image" ? "p-3" : "flex items-center justify-between py-4 px-4"}`}
                     >
-                      <span className={`font-semibold text-lg ${textColor}`} style={textStyle}>
-                        {optionLabels[index]}. {option}
-                      </span>
-                      {/* Show check icon for selected/correct */}
-                      {((isSelected && !isSubmitted) || showCorrectHighlight) && (
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500">
-                          <Check className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                      {/* Show X icon for wrong answer */}
-                      {showWrongHighlight && (
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500">
-                          <X className="h-4 w-4 text-white" />
+                      {currentQuestionData.type === "text" ? (
+                        /* Text option */
+                        <>
+                          <span className={`font-semibold text-lg ${textColor}`} style={textStyle}>
+                            {optionLabels[index]}. {option}
+                          </span>
+                          {/* Show check icon for selected/correct */}
+                          {((isSelected && !isSubmitted) || showCorrectHighlight) && (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500">
+                              <Check className="h-4 w-4 text-white" />
+                            </div>
+                          )}
+                          {/* Show X icon for wrong answer */}
+                          {showWrongHighlight && (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500">
+                              <X className="h-4 w-4 text-white" />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        /* Image option */
+                        <div className="flex flex-col items-start w-full">
+                          <div className="flex items-center justify-between w-full mb-2">
+                            <span className={`font-semibold text-lg ${textColor}`} style={textStyle}>
+                              {optionLabels[index]}.
+                            </span>
+                            {/* Show check icon for selected/correct */}
+                            {((isSelected && !isSubmitted) || showCorrectHighlight) && (
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            )}
+                            {/* Show X icon for wrong answer */}
+                            {showWrongHighlight && (
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500">
+                                <X className="h-4 w-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="relative w-full h-32 rounded-lg overflow-hidden bg-gray-100">
+                            <Image
+                              src={option}
+                              alt={`Option ${optionLabels[index]}`}
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
                         </div>
                       )}
                     </button>
