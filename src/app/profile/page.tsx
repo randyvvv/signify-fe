@@ -43,21 +43,21 @@ export default function ProfilePage() {
                   <Avatar className="h-24 w-24 border-4 border-white shadow-sm bg-orange-200">
                     <AvatarImage
                       src="/profile/avatar.png"
-                      alt="Randy Kirk"
-                    />Alexa Rawles
-                    <AvatarFallback className="text-2xl">AR</AvatarFallback>
+                      alt="Thea Josephine"
+                    />Thea Josephine
+                    <AvatarFallback className="text-2xl">TJ</AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="mb-2">
                   <h2 className="text-lg font-medium text-black">
-                    Alexa Rawles
+                    Thea Josephine
                   </h2>
-                  <p className="text-sm font-normal text-grey">alexa.rawles@gmail.com</p>
+                  <p className="text-sm font-normal text-grey">thea.josephine@example.com</p>
                   <div className="mt-2 flex w-fit items-center gap-1 rounded-full bg-senary px-3 py-1 text-sm font-bold text-white">
                     <span>67</span>
                     <div className="flex h-5 w-5 items-center justify-center rounded-full">
                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
-                        <img src="/profile/coins 1.png" alt="Coins" className="h-4 w-4" />
+                        <img src="/profile/coins-1.png" alt="Coins" className="h-4 w-4" />
                       </div>
                     </div>
                   </div>

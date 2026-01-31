@@ -43,12 +43,16 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="hidden items-center gap-4 md:flex">
-              <Button className="bg-white text-[#0F5A5A] hover:bg-gray-50 shadow-sm px-8 py-6">
-                LOG IN
-              </Button>
-              <Button className="bg-[#0B7077] text-white hover:bg-[#0b4545] shadow-lg shadow-[#0F5A5A]/20 px-8 py-6">
-                SIGN UP
-              </Button>
+              <Link href="/dashboard">
+                <Button className="bg-white text-[#0F5A5A] hover:bg-gray-50 shadow-sm px-8 py-6">
+                  LOG IN
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button className="bg-[#0B7077] text-white hover:bg-[#0b4545] shadow-lg shadow-[#0F5A5A]/20 px-8 py-6">
+                  SIGN UP
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Menu Toggle */}
