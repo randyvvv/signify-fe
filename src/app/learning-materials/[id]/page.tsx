@@ -225,7 +225,7 @@ export default function MaterialDetailPage() {
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="hidden lg:flex flex-col gap-4 w-72 flex-shrink-0">
+            <div className="hidden lg:flex flex-col gap-4 w-72 shrink-0">
               {/* Chat Widget */}
               <ChatWidget />
 
@@ -341,7 +341,7 @@ function ArticleLayout({ material }: { material: typeof materialsData[string] })
           alt="Link"
           width={20}
           height={20}
-          className="flex-shrink-0"
+          className="shrink-0"
         />
         <span className="text-gray-600 text-sm truncate">{material.articleUrl}</span>
       </div>
@@ -427,7 +427,7 @@ function ChatWidget() {
 
         {/* Bot message with avatar - purple bg on avatar */}
         <div className="flex items-start gap-2">
-          <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 mt-1 p-1">
+          <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center shrink-0 mt-1 p-1">
             <Image
               src="/learning-materials/chatbot.png"
               alt="Signify"
@@ -473,7 +473,7 @@ function RecommendedMaterials({ currentCategory }: { currentCategory: string }) 
       <div className="space-y-4">
         {materials.map((rec, idx) => (
           <Link key={idx} href={`/learning-materials/${rec.id}`} className="flex gap-3 group">
-            <div className="relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-900">
+            <div className="relative w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-gray-900">
               <Image
                 src={rec.thumbnail}
                 alt={rec.title}
