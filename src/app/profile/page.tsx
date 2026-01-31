@@ -57,7 +57,7 @@ export default function ProfilePage() {
                     <span>67</span>
                     <div className="flex h-5 w-5 items-center justify-center rounded-full">
                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
-                        <img src="/profile/coins 1.png" alt="Coins" className="h-4 w-4" />
+                        <img src="/profile/coins-1.png" alt="Coins" className="h-4 w-4" />
                       </div>
                     </div>
                   </div>
