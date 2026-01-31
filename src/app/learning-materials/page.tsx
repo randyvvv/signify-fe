@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MainLayout } from "@/components/layout";
-import { ChevronLeft, Search, FileText, Globe, Video, Link2 } from "lucide-react";
+import { ChevronLeft, Search, FileText, Globe, Video } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -15,7 +15,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -26,7 +26,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -37,7 +37,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -48,7 +48,7 @@ const materials = [
     pages: 11,
     type: "document",
     category: "CAREER",
-    categoryColor: "bg-teal-100 text-teal-600",
+    categoryColor: "bg-teal-100 text-teal-600 border border-teal-600",
     progressColor: "bg-emerald-400",
     progress: 50,
   },
@@ -59,7 +59,7 @@ const materials = [
     pages: 11,
     type: "document",
     category: "CAREER",
-    categoryColor: "bg-teal-100 text-teal-600",
+    categoryColor: "bg-teal-100 text-teal-600 border border-teal-600",
     progressColor: "bg-emerald-400",
     progress: 50,
   },
@@ -70,7 +70,7 @@ const materials = [
     pages: 11,
     type: "document",
     category: "CAREER",
-    categoryColor: "bg-teal-100 text-teal-600",
+    categoryColor: "bg-teal-100 text-teal-600 border border-teal-600",
     progressColor: "bg-emerald-400",
     progress: 50,
   },
@@ -81,7 +81,7 @@ const materials = [
     duration: "11 min read",
     type: "article",
     category: "K-12",
-    categoryColor: "bg-purple-100 text-purple-600",
+    categoryColor: "bg-pink-100 text-pink-600 border border-pink-600",
     progressColor: "bg-violet-400",
     progress: 50,
   },
@@ -92,7 +92,7 @@ const materials = [
     duration: "11 min read",
     type: "article",
     category: "K-12",
-    categoryColor: "bg-purple-100 text-purple-600",
+    categoryColor: "bg-pink-100 text-pink-600 border border-pink-600",
     progressColor: "bg-violet-400",
     progress: 50,
   },
@@ -103,7 +103,7 @@ const materials = [
     duration: "11 min read",
     type: "article",
     category: "K-12",
-    categoryColor: "bg-purple-100 text-purple-600",
+    categoryColor: "bg-pink-100 text-pink-600 border border-pink-600",
     progressColor: "bg-violet-400",
     progress: 50,
   },
@@ -114,7 +114,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -125,7 +125,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -136,7 +136,7 @@ const materials = [
     duration: "11 min",
     type: "video",
     category: "VOCATIONAL",
-    categoryColor: "bg-pink-100 text-pink-600",
+    categoryColor: "bg-purple-100 text-purple-600 border border-purple-600",
     progressColor: "bg-teal-400",
     progress: 50,
   },
@@ -212,10 +212,10 @@ export default function LearningMaterialsPage() {
             href="/dashboard"
             className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
           >
-            <ChevronLeft className="h-6 w-6 text-quaternary" />
+            <ChevronLeft className="h-6 w-6" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-quaternary">
+            <h1 className="text-xl font-bold">
               Learning Materials
             </h1>
             <p className="text-sm text-grey">Broaden your knowledge</p>
@@ -299,7 +299,15 @@ export default function LearningMaterialsPage() {
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${material.categoryColor}`}
                         >
-                          <Link2 className="h-3 w-3" />
+                          {material.category === "VOCATIONAL" && (
+                            <Image src="/quizzes/quill.png" alt="" width={12} height={12} />
+                          )}
+                          {material.category === "CAREER" && (
+                            <Image src="/quizzes/career-icon.png" alt="" width={12} height={12} />
+                          )}
+                          {material.category === "K-12" && (
+                            <Image src="/quizzes/pencil-ruler.png" alt="" width={12} height={12} />
+                          )}
                           {material.category}
                         </span>
                       </div>
@@ -326,7 +334,7 @@ export default function LearningMaterialsPage() {
             </div>
 
             {/* Filter Sidebar */}
-            <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="hidden lg:block w-64 shrink-0">
               <div className="rounded-xl p-4" style={{ backgroundColor: '#F8F8FF' }}>
                 <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">
                   Filter by
