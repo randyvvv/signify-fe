@@ -16,6 +16,9 @@ import {
 	Menu,
 	X,
 	ChevronRight,
+  HelpCircle,
+  Hand,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +28,7 @@ import {
 	SheetTrigger,
 	SheetClose,
 } from "@/components/ui/sheet";
+import { useSidebar } from "./SidebarContext";
 
 interface NavItem {
 	href: string;
@@ -73,7 +77,7 @@ const bottomNavItems: NavItem[] = [
 	},
 ];
 
-function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
+function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boolean; isCollapsed?: boolean }) {
 	return (
 		<Link
 			href={item.href}
@@ -82,34 +86,54 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 				isActive
 					? "bg-quinary text-white shadow-md"
 					: "text-[#818181] hover:bg-tertiary/50 hover:text-quaternary",
+				isCollapsed && "justify-center"
 			)}
+			title={isCollapsed ? item.label : undefined}
 		>
 			{item.icon}
-			{item.label}
+			{!isCollapsed && item.label}
 		</Link>
 	);
 }
 
-function SidebarContent({ pathname }: { pathname: string }) {
+function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: string; isCollapsed?: boolean; setIsCollapsed?: (value: boolean) => void }) {
 	return (
 		<div className="flex h-full flex-col py-[45px]">
 			{/* Logo Section */}
-			<div className="flex items-center justify-between px-4 mb-[30px]">
-				<div className="flex items-center gap-[10px]">
+			<div className={cn("flex items-center px-4 mb-[30px]", isCollapsed ? "justify-center" : "justify-between")}>
+				{!isCollapsed && (
+					<div className="flex items-center gap-[10px]">
+						<Image
+							src="/profile/hat.png"
+							alt="Signify"
+							width={40}
+							height={30}
+							// className="h-10 w-10"
+						/>
+						<span className="font-heading text-3xl font-bold text-black ">
+							Signify
+						</span>
+					</div>
+				)}
+				{isCollapsed && (
 					<Image
 						src="/profile/hat.png"
 						alt="Signify"
 						width={40}
 						height={30}
-						// className="h-10 w-10"
 					/>
-					<span className="font-heading text-3xl font-bold text-black ">
-						Signify
-					</span>
-				</div>
-				<button className="flex h-8 w-8 items-center justify-center rounded-lg bg-quinary text-white hover:bg-quinary/90 transition-colors">
-					<ChevronLeft className="h-4 w-4" />
-				</button>
+				)}
+				{setIsCollapsed && (
+					<button
+						onClick={() => setIsCollapsed(!isCollapsed)}
+						className={cn(
+							"flex h-8 w-8 items-center justify-center rounded-lg bg-quinary text-white hover:bg-quinary/90 transition-colors cursor-pointer",
+							isCollapsed && "bg-transparent hover:bg-transparent text-black hover:text-quaternary"
+						)}
+					>
+						{isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+					</button>
+				)}
 			</div>
 
 			{/* Main Navigation */}
@@ -119,6 +143,7 @@ function SidebarContent({ pathname }: { pathname: string }) {
 						key={item.href}
 						item={item}
 						isActive={pathname === item.href}
+						isCollapsed={isCollapsed}
 					/>
 				))}
 			</nav>
@@ -127,46 +152,67 @@ function SidebarContent({ pathname }: { pathname: string }) {
 			<div className="flex-1" />
 
 			{/* User Profile Card */}
-			<div className="px-4 pb-6">
-				<Link
-					href="/profile"
-					className="group flex items-center justify-between rounded-[12px] border border-[#B4ADAE] bg-[#F2F8F8] p-3 transition-all duration-200 hover:shadow-md"
-				>
-					<div className="flex items-center gap-3">
-						<div className="relative">
-							<div className="size-[62px] overflow-hidden rounded-full border-[3px] border-[#D4D4FF] p-[7px]">
-								<Image
-									src="/profile/avatar.png"
-									alt="Thea Josephine"
-									width={56}
-									height={56}
-									className="h-full w-full object-cover"
-								/>
-							</div>
-						</div>
-						<div className="flex flex-col gap-1">
-							<span className="text-xs  text-black">
-								Thea Josephine
-							</span>
-							<div className="flex w-fit items-center gap-2 rounded-full bg-senary  p-1 pl-3">
-								<span className="text-sm font-bold text-white">
-									602
-								</span>
-								<div className="bg-white p-[3px] rounded-full flex  items-center justify-center">
+			{!isCollapsed && (
+				<div className="px-4 pb-6">
+					<Link
+						href="/profile"
+						className="group flex items-center justify-between rounded-[12px] border border-[#B4ADAE] bg-[#F2F8F8] p-3 transition-all duration-200 hover:shadow-md"
+					>
+						<div className="flex items-center gap-3">
+							<div className="relative">
+								<div className="size-[62px] overflow-hidden rounded-full border-[3px] border-[#D4D4FF] p-[7px]">
 									<Image
-										src="/profile/coins-1.png"
-										alt="coins"
-										width={20}
-										height={20}
-										className="h-5 w-5"
+										src="/profile/avatar.png"
+										alt="Thea Josephine"
+										width={56}
+										height={56}
+										className="h-full w-full object-cover"
 									/>
 								</div>
 							</div>
+							<div className="flex flex-col gap-1">
+								<span className="text-xs  text-black">
+									Thea Josephine
+								</span>
+								<div className="flex w-fit items-center gap-2 rounded-full bg-senary  p-1 pl-3">
+									<span className="text-sm font-bold text-white">
+										602
+									</span>
+									<div className="bg-white p-[3px] rounded-full flex  items-center justify-center">
+										<Image
+											src="/profile/coins-1.png"
+											alt="coins"
+											width={20}
+											height={20}
+											className="h-5 w-5"
+										/>
+									</div>
+								</div>
+							</div>
 						</div>
-					</div>
-					<ChevronRight className="mr-1 h-6 w-6 stroke-[3px] text-black" />
-				</Link>
-			</div>
+						<ChevronRight className="mr-1 h-6 w-6 stroke-[3px] text-black" />
+					</Link>
+				</div>
+			)}
+			{isCollapsed && (
+				<div className="px-4 pb-6 flex justify-center">
+					<Link
+						href="/profile"
+						className="flex items-center justify-center"
+						title="Profile"
+					>
+						<div className="size-[62px] overflow-hidden rounded-full border-[3px] border-[#D4D4FF] p-[7px] hover:opacity-80 transition-opacity">
+							<Image
+								src="/profile/avatar.png"
+								alt="Thea Josephine"
+								width={56}
+								height={56}
+								className="h-full w-full object-cover"
+							/>
+						</div>
+					</Link>
+				</div>
+			)}
 
 			{/* Bottom Navigation */}
 			<nav className="flex flex-col gap-1 px-3 pb-2">
@@ -175,11 +221,18 @@ function SidebarContent({ pathname }: { pathname: string }) {
 						key={item.href}
 						item={item}
 						isActive={pathname === item.href}
+						isCollapsed={isCollapsed}
 					/>
 				))}
-				<button className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary transition-all duration-200 hover:bg-primary/10">
+				<button
+					className={cn(
+						"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary transition-all duration-200 hover:bg-primary/10",
+						isCollapsed && "justify-center"
+					)}
+					title={isCollapsed ? "Logout" : undefined}
+				>
 					<LogOut className="h-5 w-5" />
-					Logout
+					{!isCollapsed && "Logout"}
 				</button>
 			</nav>
 		</div>
@@ -188,12 +241,16 @@ function SidebarContent({ pathname }: { pathname: string }) {
 
 export function Sidebar() {
 	const pathname = usePathname();
+	const { isCollapsed, setIsCollapsed } = useSidebar();
 
 	return (
 		<>
 			{/* Desktop Sidebar */}
-			<aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-64 lg:flex-col border-r border-border bg-white">
-				<SidebarContent pathname={pathname} />
+			<aside className={cn(
+				"hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:flex-col border-r border-border bg-white transition-all duration-300",
+				isCollapsed ? "lg:w-20" : "lg:w-64"
+			)}>
+				<SidebarContent pathname={pathname} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 			</aside>
 
 			{/* Mobile Sidebar */}

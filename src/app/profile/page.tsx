@@ -44,7 +44,7 @@ export default function ProfilePage() {
                     <AvatarImage
                       src="/profile/avatar.png"
                       alt="Thea Josephine"
-                    />Thea Josephine
+                    />
                     <AvatarFallback className="text-2xl">TJ</AvatarFallback>
                   </Avatar>
                 </div>

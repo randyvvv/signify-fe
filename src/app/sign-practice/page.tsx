@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import { toast } from "sonner";
 
 const categories = [
 	{ name: "Sign Language Basics", icon: Hand },
@@ -63,9 +64,12 @@ export default function SignPracticePage() {
 			});
 			setStream(mediaStream);
 			setIsPracticeActive(true);
+			toast.success("Camera started successfully!");
 		} catch (err) {
 			console.error("Error accessing camera:", err);
-			alert("Could not access camera. Please allow permissions.");
+			toast.error("Could not access camera", {
+				description: "Please allow camera permissions in your browser settings."
+			});
 		}
 	};
 
