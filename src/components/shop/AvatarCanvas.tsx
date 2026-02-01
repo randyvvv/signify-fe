@@ -158,11 +158,6 @@ export default function AvatarCanvas({ equippedItems }: AvatarCanvasProps) {
             />
         </Suspense>
       </Canvas>
-       
-       {/* 3D Label Badge */}
-       <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
-         Interactive 3D Preview
-       </div>
     </div>
   );
 }
