@@ -133,7 +133,7 @@ function PlaceholderAvatar({ equippedItems }: { equippedItems: Record<string, Sh
 }
 
 export default function AvatarCanvas({ equippedItems }: AvatarCanvasProps) {
-  // Parsing background color or default
+  // Parsing background color or default    
   const bgColor = equippedItems["Background"]?.color || "#eef2ff";
 
   return (

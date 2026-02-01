@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AvatarCanvas from "./AvatarCanvas";
 import { SHOP_ITEMS, ShopItem, ShopCategory } from "./data";
+import { toast } from "sonner";
 
 export default function ShopUI() {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("Hair");
@@ -33,12 +34,18 @@ export default function ShopUI() {
         setItems(prev => prev.map(i => i.id === item.id ? { ...i, isOwned: true } : i));
         // Then equip
         setEquippedItems(prev => ({ ...prev, [item.category]: item }));
+        toast.success(`${item.name} purchased and equipped!`, {
+          description: `${item.price} coins deducted from your balance.`
+        });
       } else {
-        alert("Not enough coins!");
+        toast.error("Not enough coins!", {
+          description: `You need ${item.price - userBalance} more coins to purchase this item.`
+        });
       }
     } else {
       // Just equip
       setEquippedItems(prev => ({ ...prev, [item.category]: item }));
+      toast.success(`${item.name} equipped!`);
     }
   };
 
