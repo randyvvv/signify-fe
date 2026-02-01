@@ -11,6 +11,7 @@ import { SHOP_ITEMS, ShopItem, ShopCategory } from "./data";
 
 export default function ShopUI() {
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("Hair");
+  const [searchQuery, setSearchQuery] = useState("");
   const [userBalance, setUserBalance] = useState(602); // Mock balance
   
   // Initialize equipped items (mocking what comes from DB)
@@ -94,6 +95,8 @@ export default function ShopUI() {
               <input 
                  type="text" 
                  placeholder="Search items" 
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:target focus:border-transparent transition-all"
               />
            </div>
@@ -103,7 +106,10 @@ export default function ShopUI() {
               {categories.map(cat => (
                 <button
                    key={cat}
-                   onClick={() => setActiveCategory(cat)}
+                   onClick={() => {
+                     setActiveCategory(cat);
+                     setSearchQuery("");
+                   }}
                    className={cn(
                      "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
                      activeCategory === cat 
@@ -121,7 +127,7 @@ export default function ShopUI() {
         <ScrollArea className="flex-1 p-6">
            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {items
-                .filter(item => item.category === activeCategory)
+                .filter(item => item.category === activeCategory && item.name.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map(item => {
                    const isEquipped = equippedItems[activeCategory]?.id === item.id;
                    
