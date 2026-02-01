@@ -9,19 +9,19 @@ export default function ShopPage() {
   return (
     <MainLayout>
       <div className="flex h-full flex-col gap-6">
-        {/* Page Header */}
-        <div className="flex flex-col">
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/dashboard" 
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
-            >
-               <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800 leading-none">Shop</h1>
-              <p className="text-sm text-gray-500 mt-1">Customize your avatar</p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm">
+          <Link
+            href="/dashboard"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+          >
+            <ChevronLeft className="h-6 w-6 text-black" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-black">
+              Shop
+            </h1>
+            <p className="text-sm text-grey">Customize your avatar</p>
           </div>
         </div>
 
