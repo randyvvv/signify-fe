@@ -75,10 +75,10 @@ export default function ShopUI() {
         
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button variant="outline" className="flex-1 py-6 rounded-xl border-primary text-primary hover:bg-primary/5" onClick={resetToDefault}>
+          <Button variant="outline" className="flex-1 py-6 rounded-xl border-quinary text-quinary hover:bg-quinary/5 hover:text-quinary" onClick={resetToDefault}>
             Reset to default
           </Button>
-          <Button className="flex-1 py-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold">
+          <Button className="flex-1 py-6 rounded-xl bg-quinary hover:bg-quinary/90 text-white font-semibold">
             Save Changes
           </Button>
         </div>
@@ -113,8 +113,8 @@ export default function ShopUI() {
                    className={cn(
                      "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
                      activeCategory === cat 
-                       ? "bg-white shadow-sm text-primary" 
-                       : "text-gray-500 hover:text-gray-700"
+                       ? "bg-gradient-to-r from-[#C5FBF9] via-[#FDF5BF] to-[#FAEEEF] shadow-sm text-black" 
+                       : "text-black hover:text-gray-700"
                    )}
                 >
                   {cat}
