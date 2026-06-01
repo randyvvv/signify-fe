@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Raleway, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth-context";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -31,7 +32,7 @@ export default function RootLayout({
       <body
         className={`${raleway.variable} ${dmSans.variable} font-body antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster />
       </body>
     </html>

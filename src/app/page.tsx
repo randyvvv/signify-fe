@@ -43,12 +43,12 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="hidden items-center gap-4 md:flex">
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button className="bg-white text-[#0F5A5A] hover:bg-gray-50 shadow-sm px-8 py-6">
                   LOG IN
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Button className="bg-[#0B7077] text-white hover:bg-[#0b4545] shadow-lg shadow-[#0F5A5A]/20 px-8 py-6">
                   SIGN UP
                 </Button>
@@ -68,12 +68,16 @@ export default function LandingPage() {
                     <Link href="#" className="font-medium text-[#FF7D50] text-lg py-2">Home</Link>
                     <Link href="#" className="font-medium text-gray-600 text-lg py-2">Quiz</Link>
                     <div className="flex flex-col gap-4 mt-2">
-                        <Button className="w-full bg-white text-[#0F5A5A] border border-[#0F5A5A]/20 hover:bg-gray-50 py-6">
-                            LOG IN
-                        </Button>
-                        <Button className="w-full bg-[#0B7077] text-white hover:bg-[#0b4545] py-6">
-                            SIGN UP
-                        </Button>
+                        <Link href="/login">
+                            <Button className="w-full bg-white text-[#0F5A5A] border border-[#0F5A5A]/20 hover:bg-gray-50 py-6">
+                                LOG IN
+                            </Button>
+                        </Link>
+                        <Link href="/register">
+                            <Button className="w-full bg-[#0B7077] text-white hover:bg-[#0b4545] py-6">
+                                SIGN UP
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -94,7 +98,7 @@ export default function LandingPage() {
             </h1>
 
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Button size="lg" className="h-14 rounded-xl bg-[#FD661F] px-8 text-lg text-white hover:bg-[#ff6b3d] hover:scale-105 transition-transform">
                   START LEARNING FREE
                 </Button>
@@ -311,7 +315,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <Link href="/dashboard">
+                    <Link href="/register">
                         <Button className="h-14 rounded-xl bg-white px-8 text-lg text-[#0B7077] hover:bg-gray-50 shadow-lg">
                             GET STARTED NOW
                         </Button>
