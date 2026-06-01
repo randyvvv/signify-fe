@@ -1,39 +1,49 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout";
 import { OnboardingFlow } from "@/components/dashboard/OnboardingFlow";
 import { MainDashboard } from "@/components/dashboard/MainDashboard";
+import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
+
+function Loading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">
+      Loading...
+    </div>
+  );
+}
 
 export default function DashboardPage() {
-  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState<boolean | null>(null);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
 
+  // Guard: belum login -> /login.
   useEffect(() => {
-    // Check local storage on client mount
-    const completed = localStorage.getItem("hasCompletedOnboarding");
-    setIsOnboardingCompleted(completed === "true");
-  }, []);
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
 
-  const handleOnboardingComplete = () => {
-    localStorage.setItem("hasCompletedOnboarding", "true");
-    setIsOnboardingCompleted(true);
-  };
+  // Cek status onboarding dari preferences.
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get<{ onboardingCompleted: boolean }>("/api/me/preferences")
+      .then((p) => setOnboarded(p.onboardingCompleted))
+      .catch(() => setOnboarded(true)); // jangan blokir kalau gagal
+  }, [user]);
 
-  // Prevent flash of content while checking local storage
-  if (isOnboardingCompleted === null) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading...</div>;
+  if (loading || !user || onboarded === null) return <Loading />;
+
+  if (!onboarded) {
+    return <OnboardingFlow onComplete={() => setOnboarded(true)} />;
   }
 
-  // Tactical Dashboard (First Time)
-  if (!isOnboardingCompleted) {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-  }
-
-  // Real Dashboard (Returning User)
   return (
     <MainLayout>
       <MainDashboard />
     </MainLayout>
   );
 }
-
