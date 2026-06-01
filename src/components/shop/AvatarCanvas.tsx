@@ -3,16 +3,18 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei";
 import { Suspense } from "react";
-import { ShopItem } from "./data";
+
+// Hanya butuh name + color untuk render placeholder avatar.
+export type EquipItem = { name?: string; color?: string | null };
 
 interface AvatarCanvasProps {
-  equippedItems: Record<string, ShopItem | null>;
+  equippedItems: Record<string, EquipItem | null>;
 }
 
 // TODO: Replace this placeholder component with actual GLTF model loading using useGLTF
 // Example: const { nodes, materials } = useGLTF('/models/avatar.glb')
 // Ensure you have valid .glb/.gltf models in your public folder to load them.
-function PlaceholderAvatar({ equippedItems }: { equippedItems: Record<string, ShopItem | null> }) {
+function PlaceholderAvatar({ equippedItems }: { equippedItems: Record<string, EquipItem | null> }) {
   const eyeColor = equippedItems["Eye Color"]?.color || "#000000";
   const hairType = equippedItems["Hair"]?.name;
   const accessory = equippedItems["Accessories"]?.name;
