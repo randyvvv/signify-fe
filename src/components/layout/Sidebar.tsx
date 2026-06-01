@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import {
 	LayoutDashboard,
 	Languages,
@@ -97,6 +98,14 @@ function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boo
 }
 
 function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: string; isCollapsed?: boolean; setIsCollapsed?: (value: boolean) => void }) {
+	const { user, logout } = useAuth();
+	const router = useRouter();
+
+	const handleLogout = () => {
+		logout();
+		router.replace("/login");
+	};
+
 	return (
 		<div className="flex h-full flex-col py-[45px]">
 			{/* Logo Section */}
@@ -172,11 +181,11 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 							</div>
 							<div className="flex flex-col gap-1">
 								<span className="text-xs  text-black">
-									Thea Josephine
+									{user?.fullName ?? "User"}
 								</span>
 								<div className="flex w-fit items-center gap-2 rounded-full bg-senary  p-1 pl-3">
 									<span className="text-sm font-bold text-white">
-										602
+										{user?.coins ?? 0}
 									</span>
 									<div className="bg-white p-[3px] rounded-full flex  items-center justify-center">
 										<Image
@@ -225,8 +234,9 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 					/>
 				))}
 				<button
+					onClick={handleLogout}
 					className={cn(
-						"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary transition-all duration-200 hover:bg-primary/10",
+						"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary transition-all duration-200 hover:bg-primary/10 cursor-pointer",
 						isCollapsed && "justify-center"
 					)}
 					title={isCollapsed ? "Logout" : undefined}

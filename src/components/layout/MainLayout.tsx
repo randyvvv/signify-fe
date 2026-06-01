@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
@@ -28,6 +31,24 @@ function MainLayoutContent({ children }: MainLayoutProps) {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Lindungi semua halaman aplikasi: belum login -> ke /login.
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) return null; // sedang redirect ke /login
+
   return (
     <SidebarProvider>
       <MainLayoutContent>{children}</MainLayoutContent>
