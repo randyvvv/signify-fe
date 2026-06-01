@@ -17,6 +17,16 @@ import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+
+interface PracticeProgress {
+	avgAccuracy: number;
+	totalCompleted: number;
+	sessions: number;
+}
+
+// di luar komponen supaya tidak kena aturan purity React (dipakai di event handler)
+const nowMs = () => Date.now();
 
 const categories = [
 	{ name: "Sign Language Basics", icon: Hand },
@@ -38,6 +48,21 @@ export default function SignPracticePage() {
 	const [detectedHands, setDetectedHands] = useState<
 		{ x: number; y: number; width: number; height: number; label: string }[]
 	>([]);
+
+	// Progres latihan (agregat dari API) + waktu mulai sesi.
+	const practiceStartRef = useRef<number>(0);
+	const [progress, setProgress] = useState<PracticeProgress | null>(null);
+
+	const loadProgress = () => {
+		api
+			.get<PracticeProgress>("/api/sign-practice")
+			.then(setProgress)
+			.catch(() => {});
+	};
+
+	useEffect(() => {
+		loadProgress();
+	}, []);
 
 	useEffect(() => {
 		const initMediaPipe = async () => {
@@ -64,6 +89,7 @@ export default function SignPracticePage() {
 			});
 			setStream(mediaStream);
 			setIsPracticeActive(true);
+			practiceStartRef.current = nowMs();
 			toast.success("Camera started successfully!");
 		} catch (err) {
 			console.error("Error accessing camera:", err);
@@ -79,6 +105,25 @@ export default function SignPracticePage() {
 			setStream(null);
 		}
 		setIsPracticeActive(false);
+
+		// Simpan hasil sesi (placeholder skor — scoring real menyusul).
+		const durationSeconds = practiceStartRef.current
+			? Math.round((nowMs() - practiceStartRef.current) / 1000)
+			: 0;
+		api
+			.post("/api/sign-practice/sessions", {
+				category: selectedCategory,
+				goalWord: "WELCOME",
+				completedCount: 1,
+				totalCount: 1,
+				accuracy: 80,
+				durationSeconds,
+			})
+			.then(() => {
+				toast.success("Practice session saved");
+				loadProgress();
+			})
+			.catch(() => {});
 	};
 
 	useEffect(() => {
@@ -358,14 +403,19 @@ export default function SignPracticePage() {
 								<div className="space-y-2">
 									<div className="flex items-baseline gap-2">
 										<span className="text-2xl font-bold text-quaternary">
-											7/10
+											{progress?.totalCompleted ?? 0}
 										</span>
 										<span className="text-sm font-medium text-quaternary/60">
-											Complete
+											Completed
 										</span>
 									</div>
 									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-										<div className="h-full bg-tertiary w-[70%] rounded-full" />
+										<div
+											className="h-full bg-tertiary rounded-full"
+											style={{
+												width: `${Math.min(100, (progress?.totalCompleted ?? 0) * 10)}%`,
+											}}
+										/>
 									</div>
 								</div>
 
@@ -373,14 +423,17 @@ export default function SignPracticePage() {
 								<div className="space-y-2">
 									<div className="flex items-baseline gap-2">
 										<span className="text-2xl font-bold text-quaternary">
-											78%
+											{progress?.avgAccuracy ?? 0}%
 										</span>
 										<span className="text-sm font-medium text-quaternary/60">
 											Accuracy
 										</span>
 									</div>
 									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-										<div className="h-full bg-orange-400 w-[78%] rounded-full" />
+										<div
+											className="h-full bg-orange-400 rounded-full"
+											style={{ width: `${progress?.avgAccuracy ?? 0}%` }}
+										/>
 									</div>
 								</div>
 							</div>

@@ -156,7 +156,7 @@ export default function MaterialDetailPage() {
 
             {/* Right Column - Sidebar */}
             <div className="hidden lg:flex flex-col gap-4 w-72 shrink-0">
-              <ChatWidget />
+              <ChatWidget materialId={material.id} />
               <RecommendedMaterials recs={recs} />
             </div>
           </div>
@@ -286,8 +286,35 @@ function ArticleLayout({ material }: { material: Material }) {
   );
 }
 
-// AI chatbot — wired in PR#7 (currently a static placeholder).
-function ChatWidget() {
+// AI chatbot — POST /api/chat. Handles 503 (model not ready) gracefully.
+function ChatWidget({ materialId }: { materialId: string }) {
+  const [messages, setMessages] = useState<{ role: "user" | "bot"; text: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || sending) return;
+    setMessages((m) => [...m, { role: "user", text: msg }]);
+    setInput("");
+    setSending(true);
+    try {
+      const res = await api.post<{ reply: string }>("/api/chat", {
+        materialId,
+        message: msg,
+      });
+      setMessages((m) => [...m, { role: "bot", text: res.reply }]);
+    } catch (err) {
+      const text =
+        err instanceof ApiError && err.status === 503
+          ? "AI assistant is coming soon — the model is still in development."
+          : "Sorry, something went wrong. Please try again.";
+      setMessages((m) => [...m, { role: "bot", text }]);
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
       <div
@@ -305,8 +332,42 @@ function ChatWidget() {
           <span className="font-semibold text-gray-800">Signify</span>
         </div>
       </div>
-      <div className="p-6 text-center text-sm text-gray-400">
-        AI assistant coming soon.
+
+      <div className="p-3 space-y-3 h-[280px] overflow-y-auto">
+        {messages.length === 0 && (
+          <p className="text-center text-xs text-gray-400 pt-8">
+            Ask Signify anything about this material.
+          </p>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`rounded-2xl px-4 py-2.5 text-sm max-w-[85%] ${
+                m.role === "user" ? "text-white" : "bg-gray-100 text-gray-700"
+              }`}
+              style={m.role === "user" ? { backgroundColor: "#2DA5A2" } : undefined}
+            >
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {sending && <p className="text-xs text-gray-400">Signify is typing…</p>}
+      </div>
+
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-2 border border-gray-200 rounded-full px-4 py-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Type your message here..."
+            className="flex-1 text-sm border-none bg-transparent focus:outline-none text-gray-600"
+          />
+          <button onClick={send} disabled={sending} className="hover:opacity-80 transition-opacity">
+            <Image src="/learning-materials/send.png" alt="Send" width={20} height={20} />
+          </button>
+        </div>
       </div>
     </div>
   );
