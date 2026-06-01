@@ -14,7 +14,7 @@ For now the API is **local**: `NEXT_PUBLIC_API_URL=http://localhost:8787`
 
 ## PR sequence
 
-### PR#1 — API client + auth foundation ✅ (this PR)
+### PR#1 — API client + auth foundation ✅
 - `src/lib/api.ts` — fetch wrapper (base URL from env, Bearer token, `ApiError`).
 - `src/lib/auth-context.tsx` — `AuthProvider` + `useAuth` (login/register/logout/refresh,
   token persistence, loads `/api/me` on boot).
@@ -24,23 +24,23 @@ For now the API is **local**: `NEXT_PUBLIC_API_URL=http://localhost:8787`
 - Sidebar shows the real user (name + coins) and the logout button works.
 - `.env.example` with `NEXT_PUBLIC_API_URL`.
 
-### PR#2 — Profile & Settings
+### PR#2 — Profile & Settings ✅
 - Profile page: `GET /api/me` + `PATCH /api/me`; show coins/streak.
 - Change password: `POST /api/me/password`.
 - Settings toggles + language → `GET/PUT /api/me/preferences`.
 
-### PR#3 — Onboarding & Dashboard
+### PR#3 — Onboarding & Dashboard ✅
 - Onboarding flow saves to `PUT /api/me/preferences` (drop the `localStorage`
   `hasCompletedOnboarding`; use `preferences.onboardingCompleted`).
 - Dashboard reads `GET /api/dashboard` (streak, rank, daily goal, recommended,
   recent activity, daily quiz).
 
-### PR#4 — Learning materials
+### PR#4 — Learning materials ✅
 - List + search/filter via `GET /api/materials` (+ `categories` / `languages` facets).
 - Detail via `GET /api/materials/:id` (+ `recommended`); update progress with
   `PUT /api/materials/:id/progress`.
 
-### PR#5 — Quizzes
+### PR#5 — Quizzes ✅ (this PR)
 - List/popular/filters via `GET /api/quizzes`.
 - Detail + questions via `GET /api/quizzes/:id`; submit with
   `POST /api/quizzes/:id/attempts`; render the returned review payload; like/unlike.
