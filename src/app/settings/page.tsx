@@ -4,12 +4,106 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+
+interface Preferences {
+  notifications: boolean;
+  soundEffects: boolean;
+  autoplay: boolean;
+  language: string;
+}
+
+const LANGUAGES: { value: string; label: string }[] = [
+  { value: "en", label: "English" },
+  { value: "id", label: "Bahasa Indonesia" },
+  { value: "ja", label: "Japanese" },
+  { value: "ko", label: "Korean" },
+  { value: "zh", label: "Chinese" },
+];
+
+function Toggle({
+  enabled,
+  onClick,
+}: {
+  enabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative h-6 w-11 rounded-full transition-colors ${
+        enabled ? "bg-quinary" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+          enabled ? "translate-x-5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
+}
 
 export default function SettingsPage() {
-  const [notifications, setNotifications] = useState(true);
-  const [soundEffects, setSoundEffects] = useState(true);
-  const [autoplay, setAutoplay] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const [prefs, setPrefs] = useState<Preferences | null>(null);
+
+  // change-password form
+  const [showPwd, setShowPwd] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPwd, setSavingPwd] = useState(false);
+
+  useEffect(() => {
+    api
+      .get<Preferences>("/api/me/preferences")
+      .then(setPrefs)
+      .catch(() => toast.error("Gagal memuat preferensi"));
+  }, []);
+
+  const updatePref = async (patch: Partial<Preferences>) => {
+    if (!prefs) return;
+    const prev = prefs;
+    const next = { ...prefs, ...patch };
+    setPrefs(next); // optimistic
+    try {
+      await api.put("/api/me/preferences", patch);
+    } catch {
+      setPrefs(prev); // revert
+      toast.error("Gagal menyimpan preferensi");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Password baru minimal 6 karakter");
+      return;
+    }
+    setSavingPwd(true);
+    try {
+      await api.post("/api/me/password", { currentPassword, newPassword });
+      toast.success("Password berhasil diubah");
+      setShowPwd(false);
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Gagal mengubah password";
+      toast.error("Gagal mengubah password", { description: msg });
+    } finally {
+      setSavingPwd(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   return (
     <MainLayout>
@@ -34,29 +128,19 @@ export default function SettingsPage() {
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-bold text-black">General</h2>
             <div className="space-y-4">
-              {/* Notifications Toggle */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-black">Notifications</p>
-                  <p className="text-sm text-grey">
-                    Receive updates and reminders
-                  </p>
+                  <p className="text-sm text-grey">Receive updates and reminders</p>
                 </div>
-                <button
-                  onClick={() => setNotifications(!notifications)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${
-                    notifications ? "bg-quinary" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                      notifications ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                <Toggle
+                  enabled={prefs?.notifications ?? false}
+                  onClick={() =>
+                    updatePref({ notifications: !prefs?.notifications })
+                  }
+                />
               </div>
 
-              {/* Sound Effects Toggle */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-black">Sound Effects</p>
@@ -64,21 +148,14 @@ export default function SettingsPage() {
                     Play sounds for actions and feedback
                   </p>
                 </div>
-                <button
-                  onClick={() => setSoundEffects(!soundEffects)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${
-                    soundEffects ? "bg-quinary" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                      soundEffects ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                <Toggle
+                  enabled={prefs?.soundEffects ?? false}
+                  onClick={() =>
+                    updatePref({ soundEffects: !prefs?.soundEffects })
+                  }
+                />
               </div>
 
-              {/* Autoplay Toggle */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-black">Autoplay Videos</p>
@@ -86,18 +163,10 @@ export default function SettingsPage() {
                     Automatically play learning videos
                   </p>
                 </div>
-                <button
-                  onClick={() => setAutoplay(!autoplay)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${
-                    autoplay ? "bg-quinary" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                      autoplay ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                <Toggle
+                  enabled={prefs?.autoplay ?? false}
+                  onClick={() => updatePref({ autoplay: !prefs?.autoplay })}
+                />
               </div>
             </div>
           </div>
@@ -113,17 +182,56 @@ export default function SettingsPage() {
                 <span className="font-medium text-black">Edit Profile</span>
                 <ChevronRight className="h-5 w-5 text-grey" />
               </Link>
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
+
+              <button
+                onClick={() => setShowPwd((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50"
+              >
                 <span className="font-medium text-black">Change Password</span>
-                <ChevronRight className="h-5 w-5 text-grey" />
+                <ChevronRight
+                  className={`h-5 w-5 text-grey transition-transform ${showPwd ? "rotate-90" : ""}`}
+                />
               </button>
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
-                <span className="font-medium text-black">Language</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-grey">English</span>
-                  <ChevronRight className="h-5 w-5 text-grey" />
+              {showPwd && (
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+                  <input
+                    type="password"
+                    placeholder="Current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-quinary/20"
+                  />
+                  <input
+                    type="password"
+                    placeholder="New password (min 6 chars)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-quinary/20"
+                  />
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={savingPwd}
+                    className="bg-quinary text-white hover:bg-quinary/90"
+                  >
+                    {savingPwd ? "Saving..." : "Update Password"}
+                  </Button>
                 </div>
-              </button>
+              )}
+
+              <div className="flex w-full items-center justify-between rounded-lg p-3">
+                <span className="font-medium text-black">Language</span>
+                <select
+                  value={prefs?.language ?? "en"}
+                  onChange={(e) => updatePref({ language: e.target.value })}
+                  className="rounded-lg border border-gray-200 bg-white p-2 text-sm text-grey focus:outline-none focus:ring-2 focus:ring-quinary/20"
+                >
+                  {LANGUAGES.map((l) => (
+                    <option key={l.value} value={l.value}>
+                      {l.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -138,9 +246,7 @@ export default function SettingsPage() {
                 <ChevronRight className="h-5 w-5 text-grey" />
               </button>
               <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
-                <span className="font-medium text-black">
-                  Terms of Service
-                </span>
+                <span className="font-medium text-black">Terms of Service</span>
                 <ChevronRight className="h-5 w-5 text-grey" />
               </button>
               <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
@@ -171,6 +277,7 @@ export default function SettingsPage() {
           {/* Logout Button */}
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <Button
+              onClick={handleLogout}
               variant="outline"
               className="w-full border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
             >
