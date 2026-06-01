@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, GraduationCap, Briefcase, School, Globe, Users, ChevronRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api, ApiError } from "@/lib/api";
+import { toast } from "sonner";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -40,10 +42,25 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleConfirm = () => {
-    // TODO: Save questionnaire data to backend or user profile service
-    // console.log("User selections:", selections);
-    onComplete();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    setSubmitting(true);
+    try {
+      await api.put("/api/me/preferences", {
+        goals: selections.goals,
+        masterFocus: selections.master,
+        frequency: selections.frequency,
+        onboardingCompleted: true,
+      });
+      onComplete();
+    } catch (err) {
+      const msg =
+        err instanceof ApiError ? err.message : "Gagal menyimpan jawaban";
+      toast.error("Gagal menyimpan", { description: msg });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -227,14 +244,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     Confirm <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
             ) : (
-                <Button 
-                    variant="default" 
-                    size="lg" 
+                <Button
+                    variant="default"
+                    size="lg"
                     onClick={handleConfirm}
                     className="bg-teal-600 hover:bg-teal-700 w-40"
-                    disabled={!selections.frequency}
+                    disabled={!selections.frequency || submitting}
                 >
-                    Start learning <ChevronRight className="ml-2 h-4 w-4" />
+                    {submitting ? "Saving..." : "Start learning"} <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
         </div>
