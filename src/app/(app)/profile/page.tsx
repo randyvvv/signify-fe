@@ -1,6 +1,5 @@
 "use client";
 
-import { MainLayout } from "@/components/layout/MainLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -61,7 +60,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm">
@@ -219,6 +218,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MainLayout } from "@/components/layout";
 import { ChevronLeft, Search, FileText, Globe, Video } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -87,7 +86,7 @@ export default function LearningMaterialsPage() {
     setSelectedLanguage((prev) => (prev === name ? null : name));
 
   return (
-    <MainLayout>
+    <>
       <div className="flex flex-col gap-6">
         {/* Hero Section */}
         <div className="flex items-center gap-4 bg-white p-4 shadow-sm">
@@ -279,6 +278,6 @@ export default function LearningMaterialsPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

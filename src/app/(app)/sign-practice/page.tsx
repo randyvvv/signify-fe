@@ -1,6 +1,5 @@
 "use client";
 
-import { MainLayout } from "@/components/layout";
 import {
 	ChevronLeft,
 	Maximize2,
@@ -202,7 +201,7 @@ export default function SignPracticePage() {
 	);
 
 	return (
-		<MainLayout>
+		<>
 			<div className="flex flex-col gap-4">
 				{/* Header */}
 				<div className="flex items-center gap-4 bg-white p-4 shadow-sm">
@@ -465,6 +464,6 @@ export default function SignPracticePage() {
 					</div>
 				</div>
 			</div>
-		</MainLayout>
+		</>
 	);
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Link as LinkIcon, Play, Video, Hand } from "lucide-react";
 import Link from "next/link";
@@ -57,7 +56,7 @@ export default function LiveTranslatorPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <div className="flex flex-col gap-[30px]">
         {/* Header */}
         <div className="flex items-center gap-6 bg-white px-[50px] p-4">
@@ -192,6 +191,6 @@ export default function LiveTranslatorPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

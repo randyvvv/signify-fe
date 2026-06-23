@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MainLayout } from "@/components/layout";
 import {
   ChevronLeft,
   Check,
@@ -101,20 +100,20 @@ export default function QuizPage() {
 
   if (loading) {
     return (
-      <MainLayout>
+      <>
         <div className="flex min-h-[50vh] items-center justify-center text-gray-400">
           Loading...
         </div>
-      </MainLayout>
+      </>
     );
   }
   if (notFound || !quiz) {
     return (
-      <MainLayout>
+      <>
         <div className="flex min-h-[50vh] items-center justify-center text-gray-500">
           Quiz not found
         </div>
-      </MainLayout>
+      </>
     );
   }
 
@@ -182,7 +181,7 @@ export default function QuizPage() {
     const offset = circumference - (result.accuracy / 100) * circumference;
 
     return (
-      <MainLayout>
+      <>
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-4 bg-white p-4 shadow-sm">
             <Link
@@ -324,7 +323,7 @@ export default function QuizPage() {
             </div>
           </div>
         </div>
-      </MainLayout>
+      </>
     );
   }
 
@@ -332,7 +331,7 @@ export default function QuizPage() {
   const progressPct = ((index + (selected !== null ? 1 : 0)) / questions.length) * 100;
 
   return (
-    <MainLayout>
+    <>
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4 bg-white p-4 shadow-sm">
           <Link
@@ -494,6 +493,6 @@ export default function QuizPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

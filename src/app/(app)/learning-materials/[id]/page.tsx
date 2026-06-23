@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MainLayout } from "@/components/layout";
 import { ChevronLeft, FileText, Link2, Clock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -81,26 +80,26 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <MainLayout>
+      <>
         <div className="flex items-center justify-center min-h-[50vh] text-gray-400">
           Loading...
         </div>
-      </MainLayout>
+      </>
     );
   }
 
   if (notFound || !material) {
     return (
-      <MainLayout>
+      <>
         <div className="flex items-center justify-center min-h-[50vh]">
           <p className="text-gray-500">Material not found</p>
         </div>
-      </MainLayout>
+      </>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <div className="flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-4 bg-white p-4 shadow-sm mb-4">
@@ -162,7 +161,7 @@ export default function MaterialDetailPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }
 

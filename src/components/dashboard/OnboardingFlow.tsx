@@ -65,8 +65,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     // <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-cyan-50 via-white to-amber-50">
-    <div 
-      className="min-h-screen flex flex-col items-center justify-center p-6"
+    <div
+      className="fixed inset-0 z-[60] min-h-screen overflow-y-auto flex flex-col items-center justify-center p-6"
       style={{ background: 'linear-gradient(112.27deg, #C5FBF9 0%, #FFFFFF 77.41%, #FDF5BF 100%)' }}
     >
       {/* Top Progress Bar */}

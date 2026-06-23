@@ -1,13 +1,12 @@
 "use client";
 
-import { MainLayout } from "@/components/layout";
 import ShopUI from "@/components/shop/ShopUI";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function ShopPage() {
   return (
-    <MainLayout>
+    <>
       <div className="flex h-full flex-col gap-6">
         {/* Header */}
         <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm">
@@ -28,6 +27,6 @@ export default function ShopPage() {
         {/* Content */}
         <ShopUI />
       </div>
-    </MainLayout>
+    </>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MainLayout } from "@/components/layout";
 import { OnboardingFlow } from "@/components/dashboard/OnboardingFlow";
 import { MainDashboard } from "@/components/dashboard/MainDashboard";
 import { useAuth } from "@/lib/auth-context";
@@ -42,8 +41,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <MainLayout>
+    <>
       <MainDashboard />
-    </MainLayout>
+    </>
   );
 }
