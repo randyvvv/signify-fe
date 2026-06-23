@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Link as LinkIcon, Play, Video, User } from "lucide-react";
+import { ChevronLeft, Link as LinkIcon, Play, Video, Hand } from "lucide-react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
+import { SignPoseViewer } from "@/components/shared";
 
 interface TranslatorSession {
   id: string;
@@ -19,6 +20,19 @@ export default function LiveTranslatorPage() {
   const [url, setUrl] = useState("");
   const [starting, setStarting] = useState(false);
   const [session, setSession] = useState<TranslatorSession | null>(null);
+
+  // Teks -> animasi pose isyarat (SignGPT). `signText` = isi input,
+  // `committedSign` = teks yang sedang dirender oleh avatar.
+  const [signText, setSignText] = useState("");
+  const [committedSign, setCommittedSign] = useState("");
+
+  const handleSign = () => {
+    if (!signText.trim()) {
+      toast.error("Masukkan teks untuk diterjemahkan");
+      return;
+    }
+    setCommittedSign(signText.trim());
+  };
 
   const handleStart = async () => {
     if (!url.trim()) {
@@ -126,15 +140,30 @@ export default function LiveTranslatorPage() {
               <h3 className="font-heading text-2xl font-bold text-black">
                 Translator Avatar
               </h3>
-              <div className="bg-senary/30 rounded-[10px] py-[45px] px-[30px] flex flex-col items-center justify-center text-center gap-6 shadow-sm aspect-video lg:aspect-square">
-                <div className="w-32 h-32 relative">
-                  <div className="w-full h-full rounded-full bg-white/50 flex items-center justify-center">
-                    <User className="w-16 h-16 text-black" />
-                  </div>
-                </div>
-                <p className="text-grey font-medium leading-relaxed">
-                  Avatar will translate to sign language
-                </p>
+              <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-video lg:aspect-square">
+                <SignPoseViewer
+                  text={committedSign}
+                  className="w-full h-full"
+                  placeholder="Ketik teks lalu tekan Translate untuk melihat bahasa isyarat"
+                />
+              </div>
+
+              {/* Input teks -> bahasa isyarat */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={signText}
+                  onChange={(e) => setSignText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSign()}
+                  placeholder="e.g. HELLO"
+                  className="flex-1 h-11 rounded-[10px] border border-gray-300 px-4 focus:outline-none focus:ring-2 focus:ring-quinary/50"
+                />
+                <Button
+                  onClick={handleSign}
+                  className="h-11 bg-quinary hover:bg-quinary/90 text-white px-5 rounded-[10px] font-semibold flex items-center gap-2"
+                >
+                  <Hand className="w-4 h-4" /> Sign
+                </Button>
               </div>
             </div>
 

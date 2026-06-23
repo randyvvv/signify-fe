@@ -18,12 +18,16 @@ import { useState, useRef, useEffect } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { SignPoseViewer } from "@/components/shared";
 
 interface PracticeProgress {
 	avgAccuracy: number;
 	totalCompleted: number;
 	sessions: number;
 }
+
+// Kata target yang harus diperagakan user pada sesi latihan.
+const GOAL_WORD = "WELCOME";
 
 // di luar komponen supaya tidak kena aturan purity React (dipakai di event handler)
 const nowMs = () => Date.now();
@@ -113,7 +117,7 @@ export default function SignPracticePage() {
 		api
 			.post("/api/sign-practice/sessions", {
 				category: selectedCategory,
-				goalWord: "WELCOME",
+				goalWord: GOAL_WORD,
 				completedCount: 1,
 				totalCount: 1,
 				accuracy: 80,
@@ -258,7 +262,7 @@ export default function SignPracticePage() {
 								{/* Top Right - Goal Badge */}
 								<div className="absolute top-12 right-6 bg-tertiary px-6 py-3 rounded-xl shadow-sm z-10 animate-fade-in">
 									<span className="font-heading font-bold text-quaternary text-lg tracking-wide">
-										GOAL : WELCOME
+										GOAL : {GOAL_WORD}
 									</span>
 								</div>
 
@@ -389,6 +393,26 @@ export default function SignPracticePage() {
 										</button>
 									);
 								})}
+							</div>
+						</div>
+
+						{/* Reference Sign Card */}
+						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
+							<h3 className="font-heading font-bold text-lg mb-1 text-quaternary">
+								Reference Sign
+							</h3>
+							<p className="text-sm text-grey mb-4">
+								Watch how to sign{" "}
+								<span className="font-bold text-quaternary">
+									{GOAL_WORD}
+								</span>
+							</p>
+							<div className="aspect-square w-full rounded-xl bg-senary/30 overflow-hidden">
+								<SignPoseViewer
+									text={GOAL_WORD}
+									className="w-full h-full"
+									placeholder={`Sign for "${GOAL_WORD}"`}
+								/>
 							</div>
 						</div>
 
