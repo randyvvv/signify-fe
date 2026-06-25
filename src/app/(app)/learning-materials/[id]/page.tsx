@@ -291,6 +291,23 @@ function ChatWidget({ materialId }: { materialId: string }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
 
+  useEffect(() => {
+    api
+      .get<{
+        sessionId: string | null;
+        messages: { role: "user" | "assistant"; content: string }[];
+      }>(`/api/chat?materialId=${materialId}`)
+      .then((res) => {
+        setMessages(
+          res.messages.map((m) => ({
+            role: m.role === "user" ? "user" : "bot",
+            text: m.content,
+          })),
+        );
+      })
+      .catch(() => {});
+  }, [materialId]);
+
   const send = async () => {
     const msg = input.trim();
     if (!msg || sending) return;
@@ -298,10 +315,11 @@ function ChatWidget({ materialId }: { materialId: string }) {
     setInput("");
     setSending(true);
     try {
-      const res = await api.post<{ reply: string }>("/api/chat", {
-        materialId,
-        message: msg,
-      });
+      const res = await api.post<{
+        reply: string;
+        model: string;
+        sessionId: string;
+      }>("/api/chat", { materialId, message: msg });
       setMessages((m) => [...m, { role: "bot", text: res.reply }]);
     } catch (err) {
       const text =
