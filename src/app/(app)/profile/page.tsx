@@ -90,7 +90,7 @@ export default function ProfilePage() {
                   <div className="relative">
                     <Avatar className="h-24 w-24 border-4 border-white shadow-sm bg-orange-200">
                       <AvatarImage
-                        src={user?.avatarUrl ?? undefined}
+                        src={user?.avatarUrl || "/profile/avatar.png"}
                         alt={user?.fullName ?? "User"}
                       />
                       <AvatarFallback className="text-2xl">
