@@ -6,7 +6,7 @@ import { ChevronLeft, Link as LinkIcon, Play, Video, Hand } from "lucide-react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
-import { SignPoseViewer } from "@/components/shared";
+import { SignAvatarViewer } from "@/components/shared";
 
 interface TranslatorSession {
   id: string;
@@ -140,10 +140,10 @@ export default function LiveTranslatorPage() {
                 Translator Avatar
               </h3>
               <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-video lg:aspect-square">
-                <SignPoseViewer
+                <SignAvatarViewer
                   text={committedSign}
                   className="w-full h-full"
-                  placeholder="Ketik teks lalu tekan Translate untuk melihat bahasa isyarat"
+                  placeholder="Ketik teks lalu tekan Sign untuk melihat avatar berisyarat"
                 />
               </div>
 
