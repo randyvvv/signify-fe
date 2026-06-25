@@ -367,7 +367,7 @@ export default function LiveTranslatorPage() {
               <h3 className="font-heading text-2xl font-bold text-black">
                 Translator Avatar
               </h3>
-              <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-video lg:aspect-square">
+              <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-square w-full">
                 {videoActive ? (
                   <SignAvatarViewer
                     frames={activeClip ? activeClip.frames : null}

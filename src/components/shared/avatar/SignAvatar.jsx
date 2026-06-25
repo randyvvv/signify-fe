@@ -147,11 +147,17 @@ export default function SignAvatar({
       renderer.setSize(w, h);
     };
     window.addEventListener("resize", onResize);
+    // Ikuti perubahan ukuran container (layout responsif, rotasi HP, dll.),
+    // bukan cuma resize window. Observer langsung memicu sekali -> koreksi
+    // ukuran awal kalau container belum ter-layout saat mount.
+    const ro = new ResizeObserver(onResize);
+    ro.observe(mount);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      ro.disconnect();
       controls.dispose();
       if (vrmRef.current) {
         scene.remove(vrmRef.current.scene);
