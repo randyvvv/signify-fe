@@ -18,6 +18,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
+const CARD_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
+
 interface DashboardData {
   user: { id: string; fullName: string | null; avatarUrl: string | null; coins: number };
   stats: {
@@ -208,11 +210,12 @@ export function MainDashboard() {
                 <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full">
                   <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative mb-3">
                     <Image
-                      src={course.thumbnailUrl || "/learning-materials/vocational.png"}
+                      src={course.thumbnailUrl || CARD_IMAGE_FALLBACK}
                       alt={course.title}
                       fill
                       className="object-cover"
                     />
+                    <div className="pointer-events-none absolute inset-0 z-10 rounded-lg shadow-[inset_0_0_8px_rgba(0,0,0,0.25)]" />
                   </div>
                   <div className="flex flex-col flex-1 space-y-2">
                     <div className="flex gap-2 items-center text-xs text-slate-500">

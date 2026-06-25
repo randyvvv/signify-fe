@@ -142,15 +142,20 @@ export default function LearningMaterialsPage() {
                       className="group rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 shadow-sm"
                       style={{ backgroundColor: "#F8F8FF" }}
                     >
-                      <div className="p-3 pb-2">
-                        <div className="relative h-[120px] w-full overflow-hidden rounded-xl">
+            <div className="p-3 pb-2">
+                      <div className="relative h-[120px] w-full overflow-hidden rounded-xl">
                           <Image
-                            src={material.thumbnailUrl || "/learning-materials/vocational.png"}
-                            alt={material.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          src={
+                              material.thumbnailUrl ||
+                              "/learning-materials/image-not-found.png"
+                          }
+                          alt={material.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
-                        </div>
+  
+                          <div className="pointer-events-none absolute inset-0 z-10 rounded-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.25)]" />
+                      </div>
                       </div>
 
                       <div className="p-3 pt-2">

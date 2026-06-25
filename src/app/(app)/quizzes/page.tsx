@@ -20,6 +20,7 @@ const LEVELS = ["BEGINNER", "INTERMEDIATE", "EXPERT"] as const;
 
 const LEVEL_STYLE = "bg-yellow-100 text-yellow-700 border border-yellow-600";
 const CATEGORY_STYLE = "bg-purple-100 text-purple-600 border border-purple-600";
+const CARD_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
 
 function QuizCard({ quiz }: { quiz: Quiz }) {
   return (
@@ -30,11 +31,12 @@ function QuizCard({ quiz }: { quiz: Quiz }) {
       <div className="p-3 pb-2">
         <div className="relative h-[120px] w-full overflow-hidden rounded-xl">
           <Image
-            src={quiz.thumbnailUrl || "/learning-materials/vocational.png"}
+            src={quiz.thumbnailUrl || CARD_IMAGE_FALLBACK}
             alt={quiz.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          <div className="pointer-events-none absolute inset-0 z-10 rounded-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.25)]" />
         </div>
       </div>
 
