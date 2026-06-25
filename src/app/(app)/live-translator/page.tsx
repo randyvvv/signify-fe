@@ -420,21 +420,15 @@ export default function LiveTranslatorPage() {
               <div className="bg-white border-x border-b border-gray-100 rounded-b-[10px] py-[30px] px-[24px] shadow-sm max-h-[320px] overflow-y-auto">
                 <div className="flex flex-col gap-2 text-sm text-grey leading-relaxed">
                   {ready && cues ? (
-                    cues.map((c, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => playerRef.current?.seekTo(c.start, true)}
-                        className={
-                          "text-left rounded-md px-2 py-1 transition-colors " +
-                          (i === activeIdx
-                            ? "bg-quinary/10 font-semibold text-black"
-                            : "hover:bg-gray-50")
-                        }
-                      >
-                        {c.text}
-                      </button>
-                    ))
+                    activeIdx >= 0 ? (
+                      <p className="text-base font-medium leading-relaxed text-black">
+                        {cues[activeIdx].text}
+                      </p>
+                    ) : (
+                      <p className="text-center text-grey/70">
+                        Play the video to follow the transcript.
+                      </p>
+                    )
                   ) : preparing ? (
                     <p className="text-center text-grey/70">
                       {prepLabel} {cues ? `(${percent}%)` : ""}
