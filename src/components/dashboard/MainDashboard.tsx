@@ -244,39 +244,41 @@ export function MainDashboard() {
       </div>
 
       {/* Bottom Section: Activity & Quiz */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-stretch">
         {/* Recent Activity */}
-        <Card className="lg:col-span-2 border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-10">
+        <Card className="lg:col-span-2 border-slate-200 shadow-sm h-auto max-h-[400px] lg:h-[360px]">
+          <CardContent className="p-6 h-full flex flex-col">
+            <div className="flex justify-between items-center gap-4 mb-8 shrink-0">
               <h3 className="font-semibold text-lg text-slate-900">Recent Activity</h3>
-              <Button variant="outline" size="sm" className="gap-2 text-slate-600">
+              <Button variant="outline" size="sm" className="gap-2 text-slate-600 shrink-0">
                 <Calendar className="h-4 w-4" /> Last 30 days
               </Button>
             </div>
 
             {recentActivity.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-slate-400 space-y-2 py-12">
+              <div className="flex flex-1 flex-col items-center justify-center text-slate-400 space-y-2 py-12">
                 <BookOpen className="h-16 w-16 opacity-20" />
                 <p>No activity yet</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="flex-1 min-h-0 space-y-3 overflow-y-auto pr-1">
                 {recentActivity.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 p-3"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 p-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-teal-50 flex items-center justify-center text-teal-600">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="h-9 w-9 shrink-0 rounded-full bg-teal-50 flex items-center justify-center text-teal-600">
                         <BookOpen className="h-4 w-4" />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">{a.title}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800 line-clamp-1">
+                          {a.title}
+                        </p>
                         <p className="text-xs text-slate-400 capitalize">{a.type}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">
+                    <span className="shrink-0 text-xs text-slate-400">
                       {new Date(a.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -287,7 +289,7 @@ export function MainDashboard() {
         </Card>
 
         {/* Daily Quiz */}
-        <Card className="relative overflow-hidden bg-yellow-100 border-yellow-200 shadow-sm">
+        <Card className="relative overflow-hidden bg-yellow-100 border-yellow-200 shadow-sm h-auto min-h-[360px] lg:h-[360px]">
           <div
             className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-500 via-transparent to-transparent"
             style={{ backgroundSize: "20px 20px" }}
