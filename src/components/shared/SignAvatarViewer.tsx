@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { parsePoseFile } from "./avatar/posefile";
+import { translateToPose, type PoseMeta } from "./avatar/translate";
 
 // Komponen three.js / WebGL hanya untuk browser (tanpa SSR).
 const SignAvatar = dynamic(() => import("./avatar/SignAvatar"), { ssr: false });
@@ -14,94 +14,103 @@ const SignAvatar = dynamic(() => import("./avatar/SignAvatar"), { ssr: false });
 const DEFAULT_VRM =
   "https://cdn.jsdelivr.net/gh/pixiv/three-vrm@dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm";
 
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-interface PoseMeta {
-  width: number;
-  height: number;
-  fps: number;
-}
+const DEFAULT_META: PoseMeta = { width: 512, height: 512, fps: 25 };
 
 interface SignAvatarViewerProps {
-  /** Teks yang diterjemahkan ke animasi pose. Kosong = avatar diam. */
-  text: string;
+  /**
+   * Mode TEKS: teks yang diterjemahkan otomatis ke animasi pose.
+   * Diabaikan bila `frames` disuplai (mode controlled).
+   */
+  text?: string;
+  /**
+   * Mode CONTROLLED: frames pose yang sudah di-parse di luar (mis. hasil
+   * pre-translate transcript). Bila prop ini ada (termasuk null), komponen
+   * tidak menerjemahkan sendiri dan langsung memutar frames ini.
+   */
+  frames?: unknown[] | null;
+  meta?: PoseMeta;
+  /** Indikator loading eksternal (mode controlled). */
+  loading?: boolean;
+  /** Jalankan/bekukan animasi. false = avatar berhenti di frame terakhir. */
+  playing?: boolean;
   signedLanguage?: string;
   spokenLanguage?: string;
   className?: string;
   /** Sumber model VRM. Default memakai sample VRM dari CDN pixiv/three-vrm. */
   vrmUrl?: string;
-  /** Pesan placeholder saat belum ada teks. */
+  /** Pesan placeholder saat belum ada pose. */
   placeholder?: string;
 }
 
 /**
- * Menerjemahkan teks -> .pose lewat /api/translate-pose (proxy SignGPT),
- * lalu menganimasikan model VRM 3D (three.js + @pixiv/three-vrm) dengan
- * mengarahkan tulang lengan & jari ke landmark pose tiap frame.
- * Auto-translate setiap kali `text` berubah.
+ * Menganimasikan model VRM 3D (three.js + @pixiv/three-vrm) untuk bahasa isyarat.
+ * - Mode teks: terjemahkan `text` -> pose lewat /api/translate-pose otomatis.
+ * - Mode controlled: putar `frames` yang disuplai dari luar (untuk sinkron video).
  */
 export function SignAvatarViewer({
-  text,
+  text = "",
+  frames: controlledFrames,
+  meta: controlledMeta,
+  loading: controlledLoading,
+  playing = true,
   signedLanguage = "ase",
   spokenLanguage = "en",
   className,
   vrmUrl = DEFAULT_VRM,
   placeholder = "Ketik teks lalu tekan Sign untuk melihat avatar berisyarat",
 }: SignAvatarViewerProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [avatarReady, setAvatarReady] = useState(false);
+  const controlled = controlledFrames !== undefined;
 
-  // Data pose terurai untuk dianimasikan avatar.
-  const [frames, setFrames] = useState<unknown[] | null>(null);
-  const [meta, setMeta] = useState<PoseMeta>({ width: 512, height: 512, fps: 25 });
+  const [avatarReady, setAvatarReady] = useState(false);
+  const [error, setError] = useState("");
   const [frameIndex, setFrameIndex] = useState(0);
 
-  // Terjemahkan setiap kali teks / bahasa berubah.
+  // State mode teks (tidak dipakai saat controlled).
+  const [textLoading, setTextLoading] = useState(false);
+  const [textFrames, setTextFrames] = useState<unknown[] | null>(null);
+  const [textMeta, setTextMeta] = useState<PoseMeta>(DEFAULT_META);
+
+  // Terjemahkan setiap kali teks / bahasa berubah (hanya mode teks).
   useEffect(() => {
+    if (controlled) return;
     const query = text.trim();
     if (!query) {
-      setFrames(null);
+      setTextFrames(null);
       setError("");
       return;
     }
 
     let cancelled = false;
-    setLoading(true);
+    setTextLoading(true);
     setError("");
 
-    fetch("/api/translate-pose", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: query, signedLanguage, spokenLanguage }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Gagal menerjemahkan");
-        if (!data.pose) throw new Error("Respons tidak berisi data pose");
+    translateToPose(query, signedLanguage, spokenLanguage)
+      .then((clip) => {
         if (cancelled) return;
-        const bytes = base64ToUint8Array(data.pose);
-        const parsed = parsePoseFile(bytes.buffer);
-        setMeta({ width: parsed.width, height: parsed.height, fps: parsed.fps });
-        setFrames(parsed.frames);
+        setTextMeta(clip.meta);
+        setTextFrames(clip.frames);
         setFrameIndex(0);
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setTextLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [text, signedLanguage, spokenLanguage]);
+  }, [controlled, text, signedLanguage, spokenLanguage]);
+
+  // Reset index frame saat sumber pose controlled berganti.
+  useEffect(() => {
+    if (controlled) setFrameIndex(0);
+  }, [controlled, controlledFrames]);
+
+  const frames = controlled ? controlledFrames ?? null : textFrames;
+  const meta = controlled ? controlledMeta ?? DEFAULT_META : textMeta;
+  const loading = controlled ? !!controlledLoading : textLoading;
 
   return (
     <div
@@ -115,7 +124,7 @@ export function SignAvatarViewer({
         vrmUrl={vrmUrl}
         frames={frames}
         meta={meta}
-        playing
+        playing={playing}
         frameIndex={frameIndex}
         mirror={false}
         swap={false}
