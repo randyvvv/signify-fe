@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import AvatarCanvas from "./AvatarCanvas";
+import { SignAvatarViewer } from "@/components/shared";
+import { FALLBACK_VRM } from "@/components/shared/avatar/useEquippedAvatar";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ interface ShopItem {
   equipped: boolean;
 }
 
-const CATEGORIES = ["Hair", "Eye Color", "Accessories", "Background"];
+const CATEGORIES = ["Avatar", "Hair", "Eye Color", "Accessories", "Background"];
 
 type EquippedMap = Record<string, ShopItem | null>;
 
@@ -42,7 +43,7 @@ export default function ShopUI() {
   const { user, refresh } = useAuth();
   const [items, setItems] = useState<ShopItem[]>([]);
   const [equipped, setEquipped] = useState<EquippedMap>({});
-  const [activeCategory, setActiveCategory] = useState<string>("Hair");
+  const [activeCategory, setActiveCategory] = useState<string>("Avatar");
   const [searchQuery, setSearchQuery] = useState("");
   const [balance, setBalance] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -130,7 +131,16 @@ export default function ShopUI() {
               </div>
             </Badge>
           </div>
-          <AvatarCanvas equippedItems={equipped} />
+          <div
+            className="h-[500px] lg:h-full w-full rounded-2xl overflow-hidden transition-colors duration-500"
+            style={{ backgroundColor: equipped["Background"]?.color || "#eef2ff" }}
+          >
+            <SignAvatarViewer
+              vrmUrl={equipped["Avatar"]?.imageUrl || FALLBACK_VRM}
+              className="w-full h-full"
+              placeholder=""
+            />
+          </div>
         </div>
 
         <div className="flex gap-3">
@@ -213,11 +223,13 @@ export default function ShopUI() {
                       />
                     ) : (
                       <div className="text-4xl text-gray-300">
-                        {activeCategory === "Hair"
-                          ? "💇‍♀️"
-                          : activeCategory === "Accessories"
-                            ? "👓"
-                            : "📦"}
+                        {activeCategory === "Avatar"
+                          ? "🧍"
+                          : activeCategory === "Hair"
+                            ? "💇‍♀️"
+                            : activeCategory === "Accessories"
+                              ? "👓"
+                              : "📦"}
                       </div>
                     )}
                   </div>

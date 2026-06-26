@@ -7,6 +7,7 @@ import { ChevronLeft, Link as LinkIcon, Play, Video, Hand, Loader2 } from "lucid
 import Link from "next/link";
 import { toast } from "sonner";
 import { SignAvatarViewer } from "@/components/shared";
+import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
 
 // react-youtube pakai window -> klien saja.
@@ -92,6 +93,7 @@ export default function LiveTranslatorPage() {
   const [committedSign, setCommittedSign] = useState("");
 
   const videoActive = !!videoId;
+  const avatarVrm = useEquippedAvatar();
 
   const handleSign = () => {
     if (!signText.trim()) {
@@ -370,6 +372,7 @@ export default function LiveTranslatorPage() {
               <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-square w-full">
                 {videoActive ? (
                   <SignAvatarViewer
+                    vrmUrl={avatarVrm}
                     frames={activeClip ? activeClip.frames : null}
                     meta={activeClip?.meta}
                     loading={preparing}
@@ -379,6 +382,7 @@ export default function LiveTranslatorPage() {
                   />
                 ) : (
                   <SignAvatarViewer
+                    vrmUrl={avatarVrm}
                     text={committedSign}
                     className="w-full h-full"
                     placeholder="Type text then press Sign to see the avatar signing"

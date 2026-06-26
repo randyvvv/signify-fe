@@ -9,10 +9,9 @@ import { translateToPose, type PoseMeta } from "./avatar/translate";
 // Komponen three.js / WebGL hanya untuk browser (tanpa SSR).
 const SignAvatar = dynamic(() => import("./avatar/SignAvatar"), { ssr: false });
 
-// Model VRM bawaan (avatar 3D). Bisa di-override lewat prop `vrmUrl`,
-// atau letakkan file .vrm di /public lalu pakai path lokal (mis. "/avatar.vrm").
-const DEFAULT_VRM =
-  "https://cdn.jsdelivr.net/gh/pixiv/three-vrm@dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm";
+// Model VRM bawaan (avatar 3D). Bisa di-override lewat prop `vrmUrl`.
+// Sampel VRoid CC0 di public/avatar.vrm.
+const DEFAULT_VRM = "/avatar-c.vrm";
 
 const DEFAULT_META: PoseMeta = { width: 512, height: 512, fps: 25 };
 
