@@ -20,14 +20,23 @@ import { api } from "@/lib/api";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 
-interface PracticeProgress {
-	avgAccuracy: number;
-	totalCompleted: number;
-	sessions: number;
-}
+// Kata-kata yang diperagakan avatar per kategori (FE-only, untuk demo).
+const WORDS: Record<string, string[]> = {
+	"Sign Language Basics": ["HELLO", "THANK YOU", "YES", "NO", "PLEASE", "SORRY", "GOOD", "LOVE"],
+	"School Presentations": ["HELLO", "TODAY", "LEARN", "QUESTION", "THANK YOU", "FINISH"],
+	"Job Interview": ["HELLO", "NAME", "WORK", "EXPERIENCE", "THANK YOU", "YES"],
+	"Bussiness Pitching": ["HELLO", "MONEY", "IDEA", "GROW", "TEAM", "THANK YOU"],
+};
 
-// Kata target yang harus diperagakan user pada sesi latihan.
-const GOAL_WORD = "WELCOME";
+// Acak urutan kata (Fisher–Yates).
+function shuffle<T>(arr: T[]): T[] {
+	const a = [...arr];
+	for (let i = a.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[a[i], a[j]] = [a[j], a[i]];
+	}
+	return a;
+}
 
 // di luar komponen supaya tidak kena aturan purity React (dipakai di event handler)
 const nowMs = () => Date.now();
@@ -53,23 +62,11 @@ export default function SignPracticePage() {
 		{ x: number; y: number; width: number; height: number; label: string }[]
 	>([]);
 
-	// Progres latihan (agregat dari API) + waktu mulai sesi.
+	// Waktu mulai sesi (untuk durasi).
 	const practiceStartRef = useRef<number>(0);
-	const [progress, setProgress] = useState<PracticeProgress | null>(null);
 
 	// Avatar VRM + kustomisasi user (sama dengan shop & live-translator).
 	const avatar = useEquippedAvatar();
-
-	const loadProgress = () => {
-		api
-			.get<PracticeProgress>("/api/sign-practice")
-			.then(setProgress)
-			.catch(() => {});
-	};
-
-	useEffect(() => {
-		loadProgress();
-	}, []);
 
 	useEffect(() => {
 		const initMediaPipe = async () => {
@@ -120,15 +117,14 @@ export default function SignPracticePage() {
 		api
 			.post("/api/sign-practice/sessions", {
 				category: selectedCategory,
-				goalWord: GOAL_WORD,
-				completedCount: 1,
-				totalCount: 1,
-				accuracy: 80,
+				goalWord: currentWord,
+				completedCount: doneCount,
+				totalCount: practiceWords.length,
+				accuracy,
 				durationSeconds,
 			})
 			.then(() => {
 				toast.success("Practice session saved");
-				loadProgress();
 			})
 			.catch(() => {});
 	};
@@ -204,6 +200,28 @@ export default function SignPracticePage() {
 		categories[0].name,
 	);
 
+	// Daftar kata latihan (diacak) untuk kategori terpilih + indeks kata aktif.
+	const [practiceWords, setPracticeWords] = useState<string[]>(
+		WORDS[categories[0].name] ?? ["HELLO"],
+	);
+	const [wordIndex, setWordIndex] = useState(0);
+	const currentWord = practiceWords[wordIndex] ?? "HELLO";
+
+	// Progres sesi (FE-only): skor demo per kata yang sudah dilewati.
+	const [done, setDone] = useState<Record<number, number>>({});
+	const doneCount = Object.keys(done).length;
+	const accuracy = doneCount
+		? Math.round(
+				Object.values(done).reduce((a, b) => a + b, 0) / doneCount,
+			)
+		: 0;
+
+	useEffect(() => {
+		setPracticeWords(shuffle(WORDS[selectedCategory] ?? ["HELLO"]));
+		setWordIndex(0);
+		setDone({});
+	}, [selectedCategory]);
+
 	return (
 		<>
 			<div className="flex flex-col gap-4">
@@ -267,7 +285,7 @@ export default function SignPracticePage() {
 									{/* Top Right - Goal Badge */}
 									<div className="absolute top-12 right-6 bg-tertiary px-6 py-3 rounded-xl shadow-sm z-10 animate-fade-in">
 										<span className="font-heading font-bold text-quaternary text-lg tracking-wide">
-											GOAL : {GOAL_WORD}
+											GOAL : {currentWord}
 										</span>
 									</div>
 
@@ -292,27 +310,6 @@ export default function SignPracticePage() {
 										</div>
 									))}
 
-									{/* Bottom - Feedback Card */}
-									<div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white w-[80%] rounded-xl p-4 shadow-lg flex items-center justify-between z-10">
-										<div className="flex items-center gap-4">
-											<div className="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center">
-												<span className="text-xl">✏️</span>
-											</div>
-											<div>
-												<h4 className="font-bold text-quaternary">
-													Improving...
-												</h4>
-												<p className="text-sm text-grey">
-													Adjust your left and right hand
-													to be slightly higher
-												</p>
-											</div>
-										</div>
-										<div className="h-6 w-11 bg-quaternary rounded-full relative cursor-pointer">
-											<div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full"></div>
-										</div>
-									</div>
-
 									{/* End Button */}
 									<button
 										onClick={stopCamera}
@@ -336,7 +333,7 @@ export default function SignPracticePage() {
 								<div className="space-y-2 flex-1">
 									<div className="flex items-baseline gap-2">
 										<span className="text-2xl font-bold text-quaternary">
-											{progress?.totalCompleted ?? 0}
+											{doneCount}
 										</span>
 										<span className="text-sm font-medium text-quaternary/60">
 											Completed
@@ -346,7 +343,7 @@ export default function SignPracticePage() {
 										<div
 											className="h-full bg-tertiary rounded-full"
 											style={{
-												width: `${Math.min(100, (progress?.totalCompleted ?? 0) * 10)}%`,
+												width: `${(doneCount / practiceWords.length) * 100}%`,
 											}}
 										/>
 									</div>
@@ -356,7 +353,7 @@ export default function SignPracticePage() {
 								<div className="space-y-2 flex-1">
 									<div className="flex items-baseline gap-2">
 										<span className="text-2xl font-bold text-quaternary">
-											{progress?.avgAccuracy ?? 0}%
+											{accuracy}%
 										</span>
 										<span className="text-sm font-medium text-quaternary/60">
 											Accuracy
@@ -365,7 +362,7 @@ export default function SignPracticePage() {
 									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
 										<div
 											className="h-full bg-orange-400 rounded-full"
-											style={{ width: `${progress?.avgAccuracy ?? 0}%` }}
+											style={{ width: `${accuracy}%` }}
 										/>
 									</div>
 								</div>
@@ -457,19 +454,61 @@ export default function SignPracticePage() {
 							<p className="text-sm text-grey mb-4">
 								Watch how to sign{" "}
 								<span className="font-bold text-quaternary">
-									{GOAL_WORD}
+									{currentWord}
 								</span>
 							</p>
 							<div className="aspect-square w-full rounded-xl bg-senary/30 overflow-hidden">
 								<SignAvatarViewer
-									text={GOAL_WORD}
+									text={currentWord}
 									vrmUrl={avatar.vrmUrl}
 									hairColor={avatar.hairColor}
 									eyeColor={avatar.eyeColor}
 									accessory={avatar.accessory}
 									className="w-full h-full"
-									placeholder={`Sign for "${GOAL_WORD}"`}
+									placeholder={`Sign for "${currentWord}"`}
 								/>
+							</div>
+
+							{/* Navigasi kata latihan */}
+							<div className="mt-4 flex items-center justify-between gap-3">
+								<span className="text-sm font-medium text-grey">
+									Word {wordIndex + 1} / {practiceWords.length}
+								</span>
+								<div className="flex gap-2">
+									<Button
+										variant="outline"
+										onClick={() =>
+											setWordIndex(
+												(i) =>
+													(i - 1 + practiceWords.length) %
+													practiceWords.length,
+											)
+										}
+										className="h-9 px-3 rounded-lg"
+									>
+										Prev
+									</Button>
+									<Button
+										onClick={() => {
+											setDone((d) =>
+												d[wordIndex] != null
+													? d
+													: {
+															...d,
+															[wordIndex]:
+																80 +
+																Math.floor(Math.random() * 21),
+														},
+											);
+											setWordIndex(
+												(i) => (i + 1) % practiceWords.length,
+											);
+										}}
+										className="h-9 px-4 rounded-lg bg-quinary hover:bg-quinary/90 text-white"
+									>
+										Next word
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>
