@@ -34,13 +34,13 @@ function Toggle({
   return (
     <button
       onClick={onClick}
-      className={`relative h-6 w-11 rounded-full transition-colors ${
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
         enabled ? "bg-quinary" : "bg-gray-300"
       }`}
     >
       <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-          enabled ? "translate-x-5" : "translate-x-0.5"
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+          enabled ? "translate-x-[22px]" : "translate-x-0.5"
         }`}
       />
     </button>
@@ -240,18 +240,20 @@ export default function SettingsPage() {
               Privacy & Security
             </h2>
             <div className="space-y-3">
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
+              <Link
+                href="/privacy-policy"
+                className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50"
+              >
                 <span className="font-medium text-black">Privacy Policy</span>
                 <ChevronRight className="h-5 w-5 text-grey" />
-              </button>
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
+              </Link>
+              <Link
+                href="/terms-of-service"
+                className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50"
+              >
                 <span className="font-medium text-black">Terms of Service</span>
                 <ChevronRight className="h-5 w-5 text-grey" />
-              </button>
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
-                <span className="font-medium text-black">Data Management</span>
-                <ChevronRight className="h-5 w-5 text-grey" />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -259,14 +261,13 @@ export default function SettingsPage() {
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-bold text-black">About</h2>
             <div className="space-y-3">
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
-                <span className="font-medium text-black">Help & Support</span>
-                <ChevronRight className="h-5 w-5 text-grey" />
-              </button>
-              <button className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50">
+              <Link
+                href="/about"
+                className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-50"
+              >
                 <span className="font-medium text-black">About Signify</span>
                 <ChevronRight className="h-5 w-5 text-grey" />
-              </button>
+              </Link>
               <div className="rounded-lg p-3">
                 <span className="text-sm text-grey">Version 1.0.0</span>
               </div>
