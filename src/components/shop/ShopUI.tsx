@@ -137,6 +137,9 @@ export default function ShopUI() {
           >
             <SignAvatarViewer
               vrmUrl={equipped["Avatar"]?.imageUrl || FALLBACK_VRM}
+              hairColor={equipped["Hair"]?.color ?? null}
+              eyeColor={equipped["Eye Color"]?.color ?? null}
+              accessory={equipped["Accessories"]?.name ?? null}
               className="w-full h-full"
               placeholder=""
             />

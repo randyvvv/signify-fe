@@ -93,7 +93,7 @@ export default function LiveTranslatorPage() {
   const [committedSign, setCommittedSign] = useState("");
 
   const videoActive = !!videoId;
-  const avatarVrm = useEquippedAvatar();
+  const avatar = useEquippedAvatar();
 
   const handleSign = () => {
     if (!signText.trim()) {
@@ -372,7 +372,10 @@ export default function LiveTranslatorPage() {
               <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-square w-full">
                 {videoActive ? (
                   <SignAvatarViewer
-                    vrmUrl={avatarVrm}
+                    vrmUrl={avatar.vrmUrl}
+                    hairColor={avatar.hairColor}
+                    eyeColor={avatar.eyeColor}
+                    accessory={avatar.accessory}
                     frames={activeClip ? activeClip.frames : null}
                     meta={activeClip?.meta}
                     loading={preparing}
@@ -382,7 +385,10 @@ export default function LiveTranslatorPage() {
                   />
                 ) : (
                   <SignAvatarViewer
-                    vrmUrl={avatarVrm}
+                    vrmUrl={avatar.vrmUrl}
+                    hairColor={avatar.hairColor}
+                    eyeColor={avatar.eyeColor}
+                    accessory={avatar.accessory}
                     text={committedSign}
                     className="w-full h-full"
                     placeholder="Type text then press Sign to see the avatar signing"

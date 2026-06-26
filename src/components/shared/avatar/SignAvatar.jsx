@@ -6,6 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { buildBind, applyPose } from "./frontalRig";
+import { applyCustomization } from "./customize";
 
 /**
  * Props:
@@ -13,6 +14,7 @@ import { buildBind, applyPose } from "./frontalRig";
  *  - frames: object[]          array person (hasil parse .pose)
  *  - meta: {width,height,fps}
  *  - playing, frameIndex, mirror, swap, lerp, depth, onFrame, onLoaded, onError
+ *  - hairColor, eyeColor, accessory  kustomisasi penampilan (shop)
  */
 export default function SignAvatar({
   vrmUrl,
@@ -24,6 +26,9 @@ export default function SignAvatar({
   swap,
   lerp,
   depth,
+  hairColor,
+  eyeColor,
+  accessory,
   onFrame,
   onLoaded,
   onError,
@@ -33,7 +38,14 @@ export default function SignAvatar({
   const boundRef = useRef(null);
   // Semua kontrol disimpan di ref supaya loop animasi tak perlu re-create.
   const stateRef = useRef({});
-  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame };
+  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory };
+
+  // Terapkan ulang kustomisasi saat pilihan berubah (tanpa reload VRM).
+  useEffect(() => {
+    if (vrmRef.current) {
+      applyCustomization(vrmRef.current, { hairColor, eyeColor, accessory });
+    }
+  }, [hairColor, eyeColor, accessory]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -77,6 +89,13 @@ export default function SignAvatar({
         scene.add(vrm.scene);
         vrmRef.current = vrm;
         boundRef.current = buildBind(vrm); // tangkap sumbu-istirahat tulang
+        // Terapkan kustomisasi awal sesuai nilai prop saat ini.
+        const c = stateRef.current;
+        applyCustomization(vrm, {
+          hairColor: c.hairColor,
+          eyeColor: c.eyeColor,
+          accessory: c.accessory,
+        });
         onLoaded?.();
       },
       undefined,
