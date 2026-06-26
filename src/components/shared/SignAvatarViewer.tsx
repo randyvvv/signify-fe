@@ -9,10 +9,9 @@ import { translateToPose, type PoseMeta } from "./avatar/translate";
 // Komponen three.js / WebGL hanya untuk browser (tanpa SSR).
 const SignAvatar = dynamic(() => import("./avatar/SignAvatar"), { ssr: false });
 
-// Model VRM bawaan (avatar 3D). Bisa di-override lewat prop `vrmUrl`,
-// atau letakkan file .vrm di /public lalu pakai path lokal (mis. "/avatar.vrm").
-const DEFAULT_VRM =
-  "https://cdn.jsdelivr.net/gh/pixiv/three-vrm@dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm";
+// Model VRM bawaan (avatar 3D). Bisa di-override lewat prop `vrmUrl`.
+// Sampel VRoid CC0 di public/avatar.vrm.
+const DEFAULT_VRM = "/avatar.vrm";
 
 const DEFAULT_META: PoseMeta = { width: 512, height: 512, fps: 25 };
 
@@ -38,6 +37,12 @@ interface SignAvatarViewerProps {
   className?: string;
   /** Sumber model VRM. Default memakai sample VRM dari CDN pixiv/three-vrm. */
   vrmUrl?: string;
+  /** Warna rambut (hex). null/undefined = warna asli model. */
+  hairColor?: string | null;
+  /** Warna iris mata (hex). null/undefined = warna asli model. */
+  eyeColor?: string | null;
+  /** Aksesoris kepala: "Glasses"/"Hat" (cocok longgar). null = tanpa aksesoris. */
+  accessory?: string | null;
   /** Pesan placeholder saat belum ada pose. */
   placeholder?: string;
 }
@@ -57,6 +62,9 @@ export function SignAvatarViewer({
   spokenLanguage = "en",
   className,
   vrmUrl = DEFAULT_VRM,
+  hairColor,
+  eyeColor,
+  accessory,
   placeholder = "Ketik teks lalu tekan Sign untuk melihat avatar berisyarat",
 }: SignAvatarViewerProps) {
   const controlled = controlledFrames !== undefined;
@@ -130,6 +138,9 @@ export function SignAvatarViewer({
         swap={false}
         lerp={0.5}
         depth={1.0}
+        hairColor={hairColor}
+        eyeColor={eyeColor}
+        accessory={accessory}
         onFrame={setFrameIndex}
         onLoaded={() => setAvatarReady(true)}
         onError={(e: string) => setError("Gagal memuat avatar: " + e)}

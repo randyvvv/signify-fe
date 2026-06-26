@@ -6,6 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { buildBind, applyPose } from "./frontalRig";
+import { applyCustomization } from "./customize";
 
 /**
  * Props:
@@ -13,6 +14,7 @@ import { buildBind, applyPose } from "./frontalRig";
  *  - frames: object[]          array person (hasil parse .pose)
  *  - meta: {width,height,fps}
  *  - playing, frameIndex, mirror, swap, lerp, depth, onFrame, onLoaded, onError
+ *  - hairColor, eyeColor, accessory  kustomisasi penampilan (shop)
  */
 export default function SignAvatar({
   vrmUrl,
@@ -24,6 +26,9 @@ export default function SignAvatar({
   swap,
   lerp,
   depth,
+  hairColor,
+  eyeColor,
+  accessory,
   onFrame,
   onLoaded,
   onError,
@@ -33,7 +38,14 @@ export default function SignAvatar({
   const boundRef = useRef(null);
   // Semua kontrol disimpan di ref supaya loop animasi tak perlu re-create.
   const stateRef = useRef({});
-  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame };
+  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory };
+
+  // Terapkan ulang kustomisasi saat pilihan berubah (tanpa reload VRM).
+  useEffect(() => {
+    if (vrmRef.current) {
+      applyCustomization(vrmRef.current, { hairColor, eyeColor, accessory });
+    }
+  }, [hairColor, eyeColor, accessory]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -77,6 +89,13 @@ export default function SignAvatar({
         scene.add(vrm.scene);
         vrmRef.current = vrm;
         boundRef.current = buildBind(vrm); // tangkap sumbu-istirahat tulang
+        // Terapkan kustomisasi awal sesuai nilai prop saat ini.
+        const c = stateRef.current;
+        applyCustomization(vrm, {
+          hairColor: c.hairColor,
+          eyeColor: c.eyeColor,
+          accessory: c.accessory,
+        });
         onLoaded?.();
       },
       undefined,
@@ -98,17 +117,32 @@ export default function SignAvatar({
       });
     }
 
-    // Idle pose: turunkan lengan ke samping (bukan T-pose) saat belum ada animasi.
-    const _zAxis = new THREE.Vector3(0, 0, 1);
-    const idleQL = new THREE.Quaternion().setFromAxisAngle(_zAxis, -1.3); // lengan kiri (+X) -> bawah
-    const idleQR = new THREE.Quaternion().setFromAxisAngle(_zAxis, 1.3); // lengan kanan (-X) -> bawah
+    // Idle pose: arahkan lengan MENGGANTUNG KE BAWAH saat belum ada animasi.
+    // Sumbu-rest tiap tulang (dari buildBind) berbeda antar-model VRM, jadi kita
+    // tak boleh memakai rotasi sumbu tetap. Sebaliknya: aim sumbu-rest tulang ke
+    // arah bawah di world-space — sama persis dengan cara rig memutar pose.
+    // Sedikit +Z (maju) supaya lengan tak menembus torso.
+    const _idleDirUpper = new THREE.Vector3(0, -1, 0.12).normalize();
+    const _idleDirLower = new THREE.Vector3(0, -1, 0.18).normalize();
+    const _idleParentQ = new THREE.Quaternion();
+    const _idleDesired = new THREE.Quaternion();
+    const _idleTargetLocal = new THREE.Vector3();
+    function aimIdle(boneName, worldDir, lerp) {
+      const bound = boundRef.current;
+      const b = bound?.bind[boneName];
+      if (!b) return;
+      b.node.parent.getWorldQuaternion(_idleParentQ);
+      _idleTargetLocal.copy(worldDir).applyQuaternion(_idleParentQ.invert()).normalize();
+      _idleDesired.setFromUnitVectors(b.localAxis, _idleTargetLocal);
+      b.node.quaternion.slerp(_idleDesired, lerp);
+      b.node.updateWorldMatrix(false, false); // anak (lengan bawah) baca parent baru
+    }
     function applyIdle() {
-      const vrm = vrmRef.current;
-      if (!vrm) return;
-      const la = vrm.humanoid.getNormalizedBoneNode("leftUpperArm");
-      const ra = vrm.humanoid.getNormalizedBoneNode("rightUpperArm");
-      if (la) la.quaternion.slerp(idleQL, 0.2);
-      if (ra) ra.quaternion.slerp(idleQR, 0.2);
+      if (!vrmRef.current || !boundRef.current) return;
+      aimIdle("leftUpperArm", _idleDirUpper, 0.3);
+      aimIdle("rightUpperArm", _idleDirUpper, 0.3);
+      aimIdle("leftLowerArm", _idleDirLower, 0.3);
+      aimIdle("rightLowerArm", _idleDirLower, 0.3);
     }
 
     const animate = () => {
