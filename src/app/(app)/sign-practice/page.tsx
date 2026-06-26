@@ -17,7 +17,8 @@ import { useState, useRef, useEffect } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { SignPoseViewer } from "@/components/shared";
+import { SignAvatarViewer } from "@/components/shared";
+import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 
 interface PracticeProgress {
 	avgAccuracy: number;
@@ -55,6 +56,9 @@ export default function SignPracticePage() {
 	// Progres latihan (agregat dari API) + waktu mulai sesi.
 	const practiceStartRef = useRef<number>(0);
 	const [progress, setProgress] = useState<PracticeProgress | null>(null);
+
+	// Avatar VRM + kustomisasi user (sama dengan shop & live-translator).
+	const avatar = useEquippedAvatar();
 
 	const loadProgress = () => {
 		api
@@ -223,100 +227,150 @@ export default function SignPracticePage() {
 
 				{/* Content */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-[25px]">
-					{/* Left Section - Practice Area */}
-					<div className="lg:col-span-2 relative aspect-[3/2] rounded-[20px] bg-senary/30 flex items-center justify-center group overflow-hidden">
-						{!isPracticeActive ? (
-							<>
-								<Button
-									onClick={startCamera}
-									className="bg-quinary hover:bg-quinary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold shadow-lg transition-transform hover:scale-105"
-								>
-									Start Sign Practice
-								</Button>
-
-								<button className="absolute bottom-6 right-6 p-2 rounded-lg hover:bg-black/5 transition-colors text-grey hover:text-quaternary">
-									<Maximize2 className="w-6 h-6" />
-								</button>
-							</>
-						) : (
-							<div className="relative w-full h-full">
-								{/* Video Feed */}
-								<video
-									ref={videoRef}
-									autoPlay
-									playsInline
-									muted
-									className="w-full h-full object-cover transform -scale-x-100"
-								/>
-
-								{/* Overlays */}
-								{/* Top Left - Category Badge */}
-								<div className="absolute top-6 left-6 flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg shadow-sm z-10">
-									<Hand className="w-4 h-4 text-quaternary" />
-									<span className="font-bold text-quaternary">
-										{selectedCategory}
-									</span>
-								</div>
-
-								{/* Top Right - Goal Badge */}
-								<div className="absolute top-12 right-6 bg-tertiary px-6 py-3 rounded-xl shadow-sm z-10 animate-fade-in">
-									<span className="font-heading font-bold text-quaternary text-lg tracking-wide">
-										GOAL : {GOAL_WORD}
-									</span>
-								</div>
-
-								{/* Dynamic Hand Boxes */}
-								{detectedHands.map((hand, index) => (
-									<div
-										key={index}
-										className="absolute border-2 border-red-400 rounded-lg bg-transparent z-10 transition-all duration-75 ease-linear"
-										style={{
-											left: `${(1 - hand.x - hand.width) * 100}%`,
-											top: `${hand.y * 100}%`,
-											width: `${hand.width * 100}%`,
-											height: `${hand.height * 100}%`,
-										}}
+					{/* Left Section */}
+					<div className="lg:col-span-2 flex flex-col gap-[25px]">
+						{/* Practice Area */}
+						<div className="relative aspect-[3/2] rounded-[20px] bg-senary/30 flex items-center justify-center group overflow-hidden">
+							{!isPracticeActive ? (
+								<>
+									<Button
+										onClick={startCamera}
+										className="bg-quinary hover:bg-quinary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold shadow-lg transition-transform hover:scale-105"
 									>
-										<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
-											<Hand className="w-4 h-4 text-grey" />
-											<span className="text-sm font-medium text-grey">
-												{hand.label} Hand
-											</span>
-										</div>
-									</div>
-								))}
+										Start Sign Practice
+									</Button>
 
-								{/* Bottom - Feedback Card */}
-								<div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white w-[80%] rounded-xl p-4 shadow-lg flex items-center justify-between z-10">
-									<div className="flex items-center gap-4">
-										<div className="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center">
-											<span className="text-xl">✏️</span>
+									<button className="absolute bottom-6 right-6 p-2 rounded-lg hover:bg-black/5 transition-colors text-grey hover:text-quaternary">
+										<Maximize2 className="w-6 h-6" />
+									</button>
+								</>
+							) : (
+								<div className="relative w-full h-full">
+									{/* Video Feed */}
+									<video
+										ref={videoRef}
+										autoPlay
+										playsInline
+										muted
+										className="w-full h-full object-cover transform -scale-x-100"
+									/>
+
+									{/* Overlays */}
+									{/* Top Left - Category Badge */}
+									<div className="absolute top-6 left-6 flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg shadow-sm z-10">
+										<Hand className="w-4 h-4 text-quaternary" />
+										<span className="font-bold text-quaternary">
+											{selectedCategory}
+										</span>
+									</div>
+
+									{/* Top Right - Goal Badge */}
+									<div className="absolute top-12 right-6 bg-tertiary px-6 py-3 rounded-xl shadow-sm z-10 animate-fade-in">
+										<span className="font-heading font-bold text-quaternary text-lg tracking-wide">
+											GOAL : {GOAL_WORD}
+										</span>
+									</div>
+
+									{/* Dynamic Hand Boxes */}
+									{detectedHands.map((hand, index) => (
+										<div
+											key={index}
+											className="absolute border-2 border-red-400 rounded-lg bg-transparent z-10 transition-all duration-75 ease-linear"
+											style={{
+												left: `${(1 - hand.x - hand.width) * 100}%`,
+												top: `${hand.y * 100}%`,
+												width: `${hand.width * 100}%`,
+												height: `${hand.height * 100}%`,
+											}}
+										>
+											<div className="absolute -top-10 left-0 bg-white px-3 py-1 rounded-md shadow-sm flex items-center gap-2">
+												<Hand className="w-4 h-4 text-grey" />
+												<span className="text-sm font-medium text-grey">
+													{hand.label} Hand
+												</span>
+											</div>
 										</div>
-										<div>
-											<h4 className="font-bold text-quaternary">
-												Improving...
-											</h4>
-											<p className="text-sm text-grey">
-												Adjust your left and right hand
-												to be slightly higher
-											</p>
+									))}
+
+									{/* Bottom - Feedback Card */}
+									<div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white w-[80%] rounded-xl p-4 shadow-lg flex items-center justify-between z-10">
+										<div className="flex items-center gap-4">
+											<div className="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center">
+												<span className="text-xl">✏️</span>
+											</div>
+											<div>
+												<h4 className="font-bold text-quaternary">
+													Improving...
+												</h4>
+												<p className="text-sm text-grey">
+													Adjust your left and right hand
+													to be slightly higher
+												</p>
+											</div>
+										</div>
+										<div className="h-6 w-11 bg-quaternary rounded-full relative cursor-pointer">
+											<div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full"></div>
 										</div>
 									</div>
-									<div className="h-6 w-11 bg-quaternary rounded-full relative cursor-pointer">
-										<div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full"></div>
+
+									{/* End Button */}
+									<button
+										onClick={stopCamera}
+										className="absolute bottom-6 left-6 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium shadow-lg z-20 flex items-center gap-2"
+									>
+										<span>End</span>
+										<XCircle className="w-5 h-5" />
+									</button>
+								</div>
+							)}
+						</div>
+
+						{/* Progress Card (di bawah video) */}
+						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
+							<h3 className="font-heading font-bold text-lg mb-6 text-quaternary">
+								Progress
+							</h3>
+
+							<div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
+								{/* Completion Progress */}
+								<div className="space-y-2 flex-1">
+									<div className="flex items-baseline gap-2">
+										<span className="text-2xl font-bold text-quaternary">
+											{progress?.totalCompleted ?? 0}
+										</span>
+										<span className="text-sm font-medium text-quaternary/60">
+											Completed
+										</span>
+									</div>
+									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+										<div
+											className="h-full bg-tertiary rounded-full"
+											style={{
+												width: `${Math.min(100, (progress?.totalCompleted ?? 0) * 10)}%`,
+											}}
+										/>
 									</div>
 								</div>
 
-								{/* End Button */}
-								<button
-									onClick={stopCamera}
-									className="absolute bottom-6 left-6 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium shadow-lg z-20 flex items-center gap-2"
-								>
-									<span>End</span>
-									<XCircle className="w-5 h-5" />
-								</button>
+								{/* Accuracy Progress */}
+								<div className="space-y-2 flex-1">
+									<div className="flex items-baseline gap-2">
+										<span className="text-2xl font-bold text-quaternary">
+											{progress?.avgAccuracy ?? 0}%
+										</span>
+										<span className="text-sm font-medium text-quaternary/60">
+											Accuracy
+										</span>
+									</div>
+									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+										<div
+											className="h-full bg-orange-400 rounded-full"
+											style={{ width: `${progress?.avgAccuracy ?? 0}%` }}
+										/>
+									</div>
+								</div>
 							</div>
-						)}
+						</div>
 					</div>
 
 					{/* Right Section - Sidebar */}
@@ -396,7 +450,7 @@ export default function SignPracticePage() {
 						</div>
 
 						{/* Reference Sign Card */}
-						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
+						<div className="order-first bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
 							<h3 className="font-heading font-bold text-lg mb-1 text-quaternary">
 								Reference Sign
 							</h3>
@@ -407,58 +461,15 @@ export default function SignPracticePage() {
 								</span>
 							</p>
 							<div className="aspect-square w-full rounded-xl bg-senary/30 overflow-hidden">
-								<SignPoseViewer
+								<SignAvatarViewer
 									text={GOAL_WORD}
+									vrmUrl={avatar.vrmUrl}
+									hairColor={avatar.hairColor}
+									eyeColor={avatar.eyeColor}
+									accessory={avatar.accessory}
 									className="w-full h-full"
 									placeholder={`Sign for "${GOAL_WORD}"`}
 								/>
-							</div>
-						</div>
-
-						{/* Progress Card */}
-						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
-							<h3 className="font-heading font-bold text-lg mb-6 text-quaternary">
-								Progress
-							</h3>
-
-							<div className="flex flex-col gap-6">
-								{/* Completion Progress */}
-								<div className="space-y-2">
-									<div className="flex items-baseline gap-2">
-										<span className="text-2xl font-bold text-quaternary">
-											{progress?.totalCompleted ?? 0}
-										</span>
-										<span className="text-sm font-medium text-quaternary/60">
-											Completed
-										</span>
-									</div>
-									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-										<div
-											className="h-full bg-tertiary rounded-full"
-											style={{
-												width: `${Math.min(100, (progress?.totalCompleted ?? 0) * 10)}%`,
-											}}
-										/>
-									</div>
-								</div>
-
-								{/* Accuracy Progress */}
-								<div className="space-y-2">
-									<div className="flex items-baseline gap-2">
-										<span className="text-2xl font-bold text-quaternary">
-											{progress?.avgAccuracy ?? 0}%
-										</span>
-										<span className="text-sm font-medium text-quaternary/60">
-											Accuracy
-										</span>
-									</div>
-									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-										<div
-											className="h-full bg-orange-400 rounded-full"
-											style={{ width: `${progress?.avgAccuracy ?? 0}%` }}
-										/>
-									</div>
-								</div>
 							</div>
 						</div>
 					</div>
