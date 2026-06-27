@@ -8,8 +8,10 @@ import {
   Timer,
   CheckSquare,
   Coins,
+  CircleDollarSign,
   CheckCircle,
   XCircle,
+  X,
   Heart,
 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +28,7 @@ interface Question {
   promptImageUrl: string | null;
   term: string | null;
   options: string[];
+  correctIndex: number;
 }
 
 interface QuizDetail {
@@ -75,13 +78,12 @@ export default function QuizPage() {
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isCurrentSubmitted, setIsCurrentSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<AttemptResult | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<"All" | "Correct" | "Wrong">("All");
   const startRef = useRef<number>(Date.now());
-
-  // like (optimistic toggle)
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -89,7 +91,6 @@ export default function QuizPage() {
       .get<QuizDetail>(`/api/quizzes/${id}`)
       .then((q) => {
         setQuiz(q);
-        setLikes(q.likesCount);
         startRef.current = Date.now();
       })
       .catch((err) => {
@@ -119,38 +120,29 @@ export default function QuizPage() {
 
   const questions = quiz.questions;
   const current = questions[index];
-  const selected = current ? answers[current.id] ?? null : null;
   const isLast = index === questions.length - 1;
 
-  const toggleLike = async () => {
-    const next = !liked;
-    setLiked(next);
-    setLikes((n) => n + (next ? 1 : -1));
-    try {
-      if (next) await api.post(`/api/quizzes/${id}/like`);
-      else await api.del(`/api/quizzes/${id}/like`);
-    } catch {
-      setLiked(!next);
-      setLikes((n) => n + (next ? -1 : 1));
-      toast.error("Gagal memperbarui like");
-    }
-  };
-
   const select = (i: number) => {
-    if (!current) return;
-    setAnswers((prev) => ({ ...prev, [current.id]: i }));
+    if (!current || isCurrentSubmitted) return;
+    setSelectedOption(i);
   };
 
   const clear = () => {
-    if (!current) return;
-    setAnswers((prev) => {
-      const next = { ...prev };
-      delete next[current.id];
-      return next;
-    });
+    if (!current || isCurrentSubmitted) return;
+    setSelectedOption(null);
   };
 
-  const next = () => setIndex((i) => i + 1);
+  const next = () => {
+    setIndex((i) => i + 1);
+    setSelectedOption(null);
+    setIsCurrentSubmitted(false);
+  };
+
+  const submitLocal = () => {
+    if (selectedOption === null || !current) return;
+    setAnswers((prev) => ({ ...prev, [current.id]: selectedOption }));
+    setIsCurrentSubmitted(true);
+  };
 
   const submit = async () => {
     setSubmitting(true);
@@ -273,52 +265,87 @@ export default function QuizPage() {
 
             {/* Review */}
             <div>
-              <h3 className="text-lg font-bold mb-4 mt-8">Question Review</h3>
-              <div className="space-y-4">
-                {result.results.map((ans, idx) => (
-                  <div
-                    key={idx}
-                    className={`border rounded-xl p-4 flex items-center justify-between bg-white ${
-                      ans.isCorrect ? "border-quinary" : "border-red-500"
-                    }`}
+              <div className="flex items-center justify-between mb-4 mt-8">
+                <h3 className="text-lg font-bold">Question Review</h3>
+                <div className="relative">
+                  <select
+                    value={reviewFilter}
+                    onChange={(e) => setReviewFilter(e.target.value as any)}
+                    className="appearance-none bg-[#F8F8FF] border border-teal-200 text-gray-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-quinary/20 cursor-pointer"
                   >
-                    <div className="flex items-center gap-6">
-                      <div className="w-32 h-20 relative rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
-                        {ans.type === "text" ? (
-                          <Image src="/quizzes/hand.png" alt="Quiz" fill className="object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-quinary font-bold text-xl">
-                            {ans.term}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 mb-2 text-lg">{ans.question}</h4>
-                        <p className="text-sm">
-                          <span className="text-gray-500">Your Answer: </span>
-                          <span className={ans.isCorrect ? "text-teal-600 font-bold" : "text-red-600 font-bold"}>
-                            {LABELS[ans.selectedIndex]}
-                          </span>
-                          {!ans.isCorrect && (
-                            <>
-                              <span className="text-gray-500"> · Correct: </span>
-                              <span className="text-teal-600 font-bold">
-                                {LABELS[ans.correctIndex]}
-                              </span>
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pr-4">
-                      {ans.isCorrect ? (
-                        <CheckCircle className="w-8 h-8 text-white fill-quinary" />
-                      ) : (
-                        <XCircle className="w-8 h-8 text-white fill-red-500" />
-                      )}
-                    </div>
+                    <option value="All">Filter</option>
+                    <option value="Correct">Correct</option>
+                    <option value="Wrong">Wrong</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
                   </div>
-                ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                {result.results
+                  .filter((ans) => {
+                    if (reviewFilter === "Correct") return ans.isCorrect;
+                    if (reviewFilter === "Wrong") return !ans.isCorrect;
+                    return true;
+                  })
+                  .map((ans, idx) => {
+                    const originalQuestion = quiz.questions.find((q) => q.id === ans.questionId);
+                    const selectedOptionString = originalQuestion?.options[ans.selectedIndex];
+                    const correctOptionString = originalQuestion?.options[ans.correctIndex];
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`border rounded-xl p-4 flex items-center justify-between bg-white ${
+                          ans.isCorrect ? "border-teal-400" : "border-rose-400"
+                        }`}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-32 h-20 relative rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                            {ans.type === "text" ? (
+                              <Image src={originalQuestion?.promptImageUrl || "/quizzes/hand.png"} alt="Quiz" fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-quinary font-bold text-xl">
+                                {ans.term}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 mb-2 text-lg">{ans.question}</h4>
+                            <p className="text-sm mt-1">
+                              <span className="text-gray-500 mr-2">Your Answer:</span>
+                              <span className={ans.isCorrect ? "text-teal-600 font-medium" : "text-rose-600 font-medium"}>
+                                {ans.type === "text" ? selectedOptionString : LABELS[ans.selectedIndex]}
+                              </span>
+                              {!ans.isCorrect && (
+                                <>
+                                  <span className="text-gray-300 mx-2">|</span>
+                                  <span className="text-gray-500 mr-1">Correct Answer:</span>
+                                  <span className="text-teal-600 font-medium">
+                                    {ans.type === "text" ? correctOptionString : LABELS[ans.correctIndex]}
+                                  </span>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="pr-4">
+                          {ans.isCorrect ? (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500 shrink-0">
+                              <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 shrink-0">
+                              <X className="h-4 w-4 text-white" strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -328,7 +355,15 @@ export default function QuizPage() {
   }
 
   /* ---------------- Quiz screen ---------------- */
-  const progressPct = ((index + (selected !== null ? 1 : 0)) / questions.length) * 100;
+  const submittedQuestionsCount = Object.keys(answers).length;
+  let correctAnswersCount = 0;
+  for (const [qId, selIdx] of Object.entries(answers)) {
+    const q = questions.find((q) => q.id === qId);
+    if (q && q.correctIndex === selIdx) correctAnswersCount++;
+  }
+  const accuracy = submittedQuestionsCount === 0 ? 0 : Math.round((correctAnswersCount / submittedQuestionsCount) * 100);
+
+  const progressPct = ((index + (isCurrentSubmitted ? 1 : 0)) / questions.length) * 100;
 
   return (
     <>
@@ -360,7 +395,9 @@ export default function QuizPage() {
                         src={current.promptImageUrl || "/quizzes/hand.png"}
                         alt="Sign language gesture"
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        unoptimized={true}
+                        quality={100}
                       />
                     </div>
                   ) : (
@@ -379,41 +416,105 @@ export default function QuizPage() {
                     </div>
                   )}
 
+                  {isCurrentSubmitted && (
+                    <div className={`max-w-2xl mx-auto mb-6 p-4 rounded-xl border-2 flex gap-3 ${
+                      selectedOption === current.correctIndex 
+                        ? "bg-teal-50 border-teal-500 text-teal-700" 
+                        : "bg-rose-50 border-rose-500 text-rose-700"
+                    }`}>
+                      <div className="shrink-0 flex items-center justify-center pt-1">
+                        {selectedOption === current.correctIndex 
+                          ? (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500 shrink-0">
+                              <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                            </div>
+                          )
+                          : (
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 shrink-0">
+                              <X className="h-4 w-4 text-white" strokeWidth={3} />
+                            </div>
+                          )
+                        }
+                      </div>
+                      <div>
+                        <h4 className="font-bold mb-1 text-base">
+                          {selectedOption === current.correctIndex ? "Correct Answer!" : "Wrong Answer"}
+                        </h4>
+                        <p className="text-sm opacity-90">
+                          {selectedOption === current.correctIndex 
+                            ? `Great job! Option ${LABELS[current.correctIndex]} is the correct answer.`
+                            : `The correct answer is Option ${LABELS[current.correctIndex]}, don't give up!`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Options */}
                   <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
                     {current.options.map((option, i) => {
-                      const isSelected = selected === i;
+                      const isSelected = selectedOption === i;
+                      const isCorrect = current.correctIndex === i;
+                      
+                      let buttonClass = "border-gray-200 bg-white hover:border-teal-400 hover:bg-teal-50/50";
+                      let icon = null;
+
+                      const checkIcon = (
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500 shrink-0">
+                          <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                        </div>
+                      );
+
+                      const xIcon = (
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 shrink-0">
+                          <X className="h-4 w-4 text-white" strokeWidth={3} />
+                        </div>
+                      );
+
+                      if (isCurrentSubmitted) {
+                        if (isSelected && isCorrect) {
+                          buttonClass = "border-teal-500 bg-teal-50 text-teal-800";
+                          icon = checkIcon;
+                        } else if (isSelected && !isCorrect) {
+                          buttonClass = "border-rose-500 bg-rose-50 text-rose-800";
+                          icon = xIcon;
+                        } else if (isCorrect) {
+                          buttonClass = "border-teal-500 bg-teal-50 text-teal-800";
+                          icon = checkIcon;
+                        } else {
+                          buttonClass = "border-gray-200 bg-white opacity-50 cursor-not-allowed";
+                        }
+                      } else {
+                        if (isSelected) {
+                          buttonClass = "border-teal-500 bg-teal-50 text-teal-800";
+                          icon = checkIcon;
+                        }
+                      }
+
                       return (
                         <button
                           key={i}
                           onClick={() => select(i)}
-                          className={`relative rounded-xl border-2 transition-all ${
-                            isSelected ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-teal-400 hover:bg-teal-50/50"
-                          } ${current.type === "image" ? "p-3" : "flex items-center justify-between py-4 px-4"} cursor-pointer`}
+                          disabled={isCurrentSubmitted}
+                          className={`relative rounded-xl border-2 transition-all ${buttonClass} ${
+                            current.type === "image" ? "p-3" : "flex items-center justify-between py-4 px-4"
+                          } cursor-pointer`}
                         >
                           {current.type === "text" ? (
                             <>
-                              <span className="font-semibold text-lg text-gray-700">
+                              <span className="font-semibold text-lg">
                                 {LABELS[i]}. {option}
                               </span>
-                              {isSelected && (
-                                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500">
-                                  <Check className="h-4 w-4 text-white" />
-                                </div>
-                              )}
+                              {icon}
                             </>
                           ) : (
                             <div className="flex flex-col items-start w-full">
                               <div className="flex items-center justify-between w-full mb-2">
-                                <span className="font-semibold text-lg text-gray-700">{LABELS[i]}.</span>
-                                {isSelected && (
-                                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-500">
-                                    <Check className="h-4 w-4 text-white" />
-                                  </div>
-                                )}
+                                <span className="font-semibold text-lg">{LABELS[i]}.</span>
+                                {icon}
                               </div>
                               <div className="relative w-full h-32 rounded-lg overflow-hidden bg-gray-100">
-                                <Image src={option} alt={`Option ${LABELS[i]}`} fill className="object-contain" />
+                                <Image src={option} alt={`Option ${LABELS[i]}`} fill className="object-contain" unoptimized={true} quality={100} />
                               </div>
                             </div>
                           )}
@@ -426,31 +527,35 @@ export default function QuizPage() {
                   <div className="flex items-center justify-between max-w-2xl mx-auto mt-10">
                     <button
                       onClick={clear}
-                      className="w-32 py-3 rounded-xl border-2 border-quinary text-quinary font-medium hover:bg-teal-50"
+                      disabled={isCurrentSubmitted}
+                      className={`w-32 py-3 rounded-xl border-2 font-medium ${isCurrentSubmitted ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-quinary text-quinary hover:bg-teal-50'}`}
                     >
                       Clear
                     </button>
-                    {isLast ? (
+                    {!isCurrentSubmitted ? (
                       <button
-                        onClick={submit}
-                        disabled={selected === null || submitting}
+                        onClick={submitLocal}
+                        disabled={selectedOption === null}
                         className={`w-48 py-3 rounded-xl font-medium transition-colors ${
-                          selected !== null && !submitting
+                          selectedOption !== null
                             ? "bg-quinary text-white hover:opacity-90"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
                       >
-                        {submitting ? "Submitting..." : "Submit Quiz"}
+                        Submit Answer
+                      </button>
+                    ) : isLast ? (
+                      <button
+                        onClick={submit}
+                        disabled={submitting}
+                        className={`w-48 py-3 rounded-xl font-medium transition-colors bg-quinary text-white hover:opacity-90`}
+                      >
+                        {submitting ? "Submitting..." : "Finish Quiz"}
                       </button>
                     ) : (
                       <button
                         onClick={next}
-                        disabled={selected === null}
-                        className={`w-48 py-3 rounded-xl font-medium transition-colors ${
-                          selected !== null
-                            ? "bg-quinary text-white hover:opacity-90"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`w-48 py-3 rounded-xl font-medium transition-colors bg-quinary text-white hover:opacity-90`}
                       >
                         Next Question
                       </button>
@@ -464,13 +569,6 @@ export default function QuizPage() {
             <div className="hidden lg:flex flex-col w-72 shrink-0 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
                 <h2 className="text-2xl font-bold mb-2">{quiz.title}</h2>
-                <button
-                  onClick={toggleLike}
-                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-rose-500"
-                >
-                  <Heart className={`h-5 w-5 ${liked ? "fill-rose-500 text-rose-500" : ""}`} />
-                  {likes}
-                </button>
               </div>
               <p className="text-sm text-gray-500 mb-4">{quiz.description}</p>
 
@@ -478,14 +576,24 @@ export default function QuizPage() {
                 <h3 className="font-semibold text-gray-900 mb-3">Progress</h3>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-2xl font-bold" style={{ color: "#2B3674" }}>
-                    {index + 1}/{questions.length}
+                    {index + (isCurrentSubmitted ? 1 : 0)}/{questions.length}
                   </span>
                   <span className="text-sm text-gray-500">questions</span>
                 </div>
-                <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: "#EFF4FB" }}>
+                <div className="h-2 w-full rounded-full overflow-hidden mb-6" style={{ backgroundColor: "#EFF4FB" }}>
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${progressPct}%`, backgroundColor: "#F1C9FF" }}
+                  />
+                </div>
+                
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  <span className="text-2xl font-bold" style={{ color: "#2B3674" }}>{accuracy}%</span> Accuracy
+                </h3>
+                <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: "#EFF4FB" }}>
+                  <div
+                    className="h-full rounded-full bg-amber-400"
+                    style={{ width: `${accuracy}%` }}
                   />
                 </div>
               </div>
