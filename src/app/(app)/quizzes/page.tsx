@@ -18,6 +18,11 @@ interface Quiz {
 
 const LEVELS = ["BEGINNER", "INTERMEDIATE", "EXPERT"] as const;
 
+interface QuizMeta {
+  byCategory: Record<string, number>;
+  byLevel: Record<string, number>;
+}
+
 const LEVEL_STYLE = "bg-yellow-100 text-yellow-700 border border-yellow-600";
 const CATEGORY_STYLE = "bg-purple-100 text-purple-600 border border-purple-600";
 const CARD_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
@@ -82,13 +87,16 @@ function QuizCard({ quiz }: { quiz: Quiz }) {
 export default function QuizzesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [popular, setPopular] = useState<Quiz[]>([]);
+  const [meta, setMeta] = useState<QuizMeta>({ byCategory: {}, byLevel: {} });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get<Quiz[]>("/api/quizzes/popular").then(setPopular).catch(() => {});
+    api.get<QuizMeta>("/api/quizzes/meta").then(setMeta).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -97,6 +105,7 @@ export default function QuizzesPage() {
       const params = new URLSearchParams();
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
       if (selectedLevel) params.set("level", selectedLevel);
+      if (selectedCategory) params.set("category", selectedCategory);
       api
         .get<Quiz[]>(`/api/quizzes?${params.toString()}`)
         .then(setQuizzes)
@@ -104,7 +113,7 @@ export default function QuizzesPage() {
         .finally(() => setLoading(false));
     }, 300);
     return () => clearTimeout(t);
-  }, [searchQuery, selectedLevel]);
+  }, [searchQuery, selectedLevel, selectedCategory]);
 
   const toggleLevel = (level: string) =>
     setSelectedLevel((prev) => (prev === level ? null : level));
@@ -130,7 +139,7 @@ export default function QuizzesPage() {
 
         <div className="bg-white shadow-sm flex flex-col min-h-[calc(100vh-180px)]">
           {/* Search Bar */}
-          <div className="sticky top-0 z-10 bg-white p-6 pb-4 rounded-t-xl">
+          <div className="sticky top-0 z-40 bg-white p-6 pb-4 rounded-t-xl">
             <div className="relative">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -148,7 +157,7 @@ export default function QuizzesPage() {
           <div className="flex gap-6 px-6 pb-6">
             <div className="flex-1">
               {/* Popular */}
-              {popular.length > 0 && (
+              {popular.length > 0 && searchQuery.trim() === "" && (
                 <>
                   <h2 className="font-heading text-lg font-semibold text-gray-900 mb-4">
                     Popular Quizzes
@@ -187,6 +196,31 @@ export default function QuizzesPage() {
                 <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">
                   Filter by
                 </h3>
+                
+                <div className="rounded-lg p-3 mb-4" style={{ backgroundColor: "#F0F1FF" }}>
+                  <h4 className="font-heading text-sm font-semibold text-gray-900 mb-3">
+                    Subject
+                  </h4>
+                  <div className="space-y-2">
+                    {Object.keys(meta.byCategory).sort().map((cat) => (
+                      <label
+                        key={cat}
+                        className="flex items-center gap-2 cursor-pointer group"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedCategory === cat}
+                          onChange={() => setSelectedCategory((prev) => (prev === cat ? null : cat))}
+                          className="h-4 w-4 rounded border-gray-300 text-quinary focus:ring-quinary/50"
+                        />
+                        <span className="text-sm text-gray-700 group-hover:text-quaternary transition-colors">
+                          {cat} <span className="text-gray-500">({meta.byCategory[cat] || 0})</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="rounded-lg p-3" style={{ backgroundColor: "#F0F1FF" }}>
                   <h4 className="font-heading text-sm font-semibold text-gray-900 mb-3">
                     Level
@@ -204,7 +238,7 @@ export default function QuizzesPage() {
                           className="h-4 w-4 rounded border-gray-300 text-quinary focus:ring-quinary/50"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-quaternary transition-colors capitalize">
-                          {level.toLowerCase()}
+                          {level.toLowerCase()} <span className="text-gray-500">({meta.byLevel[level] || 0})</span>
                         </span>
                       </label>
                     ))}
