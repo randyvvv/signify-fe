@@ -43,10 +43,16 @@ export default function ShopUI() {
   const { user, refresh } = useAuth();
   const [items, setItems] = useState<ShopItem[]>([]);
   const [equipped, setEquipped] = useState<EquippedMap>({});
+  // Try-on: item yang sedang dipratinjau di avatar (per kategori). Bisa berisi
+  // item yang BELUM dibeli — supaya user bisa lihat dulu sebelum beli.
+  const [preview, setPreview] = useState<EquippedMap>({});
+  // Item yang terakhir diklik -> menentukan tombol aksi (Buy/Equip).
+  const [selected, setSelected] = useState<ShopItem | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("Avatar");
   const [searchQuery, setSearchQuery] = useState("");
   const [balance, setBalance] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [buying, setBuying] = useState(false);
 
   useEffect(() => {
     setBalance(user?.coins ?? 0);
@@ -57,32 +63,48 @@ export default function ShopUI() {
       .get<ShopItem[]>("/api/shop/items")
       .then((list) => {
         setItems(list);
-        setEquipped(buildEquipped(list));
+        const map = buildEquipped(list);
+        setEquipped(map);
+        setPreview(map);
       })
       .catch(() => toast.error("Gagal memuat shop"));
   }, []);
 
-  const handleEquip = async (item: ShopItem) => {
-    if (!item.isOwned) {
-      try {
-        const res = await api.post<{ balance: number }>(
-          `/api/shop/items/${item.id}/purchase`,
-        );
-        setItems((prev) =>
-          prev.map((i) => (i.id === item.id ? { ...i, isOwned: true } : i)),
-        );
-        setBalance(res.balance);
-        refresh();
-        setEquipped((prev) => ({ ...prev, [item.category]: { ...item, isOwned: true } }));
-        toast.success(`${item.name} purchased & equipped!`, {
-          description: `${item.price} coins deducted.`,
-        });
-      } catch (err) {
-        const msg = err instanceof ApiError ? err.message : "Gagal membeli item";
-        toast.error("Gagal membeli", { description: msg });
-      }
-    } else {
-      setEquipped((prev) => ({ ...prev, [item.category]: item }));
+  // Klik kartu item: pratinjau di avatar + jadikan item terpilih (belum membeli).
+  const selectItem = (item: ShopItem) => {
+    setSelected(item);
+    setPreview((p) => ({ ...p, [item.category]: item }));
+  };
+
+  // Pasang item yang sudah dimiliki ke avatar (commit ke equipped).
+  const equipItem = (item: ShopItem) => {
+    setEquipped((prev) => ({ ...prev, [item.category]: item }));
+    setPreview((prev) => ({ ...prev, [item.category]: item }));
+    setSelected(item);
+  };
+
+  // Beli item terpilih, lalu langsung dipasang.
+  const buyItem = async (item: ShopItem) => {
+    setBuying(true);
+    try {
+      const res = await api.post<{ balance: number }>(
+        `/api/shop/items/${item.id}/purchase`,
+      );
+      const owned = { ...item, isOwned: true };
+      setItems((prev) => prev.map((i) => (i.id === item.id ? owned : i)));
+      setBalance(res.balance);
+      refresh();
+      setEquipped((prev) => ({ ...prev, [item.category]: owned }));
+      setPreview((prev) => ({ ...prev, [item.category]: owned }));
+      setSelected(owned);
+      toast.success(`${item.name} purchased & equipped!`, {
+        description: `${item.price} coins deducted.`,
+      });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Gagal membeli item";
+      toast.error("Gagal membeli", { description: msg });
+    } finally {
+      setBuying(false);
     }
   };
 
@@ -92,6 +114,8 @@ export default function ShopUI() {
       def[c] = items.find((i) => i.category === c && i.isDefault) ?? null;
     }
     setEquipped(def);
+    setPreview(def);
+    setSelected(null);
   };
 
   const saveChanges = async () => {
@@ -100,6 +124,8 @@ export default function ShopUI() {
       const map: Record<string, string | null> = {};
       for (const c of CATEGORIES) map[c] = equipped[c]?.id ?? null;
       await api.put("/api/shop/avatar", { equipped: map });
+      // Pratinjau yang belum dibeli/dipasang dibuang -> avatar = yang tersimpan.
+      setPreview(equipped);
       toast.success("Avatar saved!");
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Gagal menyimpan avatar";
@@ -108,6 +134,11 @@ export default function ShopUI() {
       setSaving(false);
     }
   };
+
+  // Status item terpilih untuk menentukan tombol aksi.
+  const selCategory = selected?.category ?? "";
+  const selEquipped =
+    !!selected && equipped[selCategory]?.id === selected.id;
 
   const visible = items.filter(
     (item) =>
@@ -133,18 +164,59 @@ export default function ShopUI() {
           </div>
           <div
             className="h-[500px] lg:h-full w-full rounded-2xl overflow-hidden transition-colors duration-500"
-            style={{ backgroundColor: equipped["Background"]?.color || "#eef2ff" }}
+            style={{ backgroundColor: preview["Background"]?.color || "#eef2ff" }}
           >
             <SignAvatarViewer
-              vrmUrl={equipped["Avatar"]?.imageUrl || FALLBACK_VRM}
-              hairColor={equipped["Hair"]?.color ?? null}
-              eyeColor={equipped["Eye Color"]?.color ?? null}
-              accessory={equipped["Accessories"]?.name ?? null}
+              vrmUrl={preview["Avatar"]?.imageUrl || FALLBACK_VRM}
+              hairColor={preview["Hair"]?.color ?? null}
+              eyeColor={preview["Eye Color"]?.color ?? null}
+              accessory={preview["Accessories"]?.name ?? null}
               className="w-full h-full"
               placeholder=""
             />
           </div>
         </div>
+
+        {/* Aksi item terpilih: pratinjau dulu, lalu Buy/Equip. */}
+        {selected && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-100 bg-white px-4 py-3 shadow-sm">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-gray-400">
+                Previewing · {selected.category}
+              </p>
+              <p className="truncate font-semibold text-gray-800">
+                {selected.name}
+              </p>
+            </div>
+            {!selected.isOwned ? (
+              <Button
+                onClick={() => buyItem(selected)}
+                disabled={buying}
+                className="shrink-0 rounded-xl bg-quinary px-5 hover:bg-quinary/90 text-white font-semibold"
+              >
+                {buying ? "Buying..." : (
+                  <span className="flex items-center gap-1">
+                    Buy · {selected.price} <span className="text-[11px]">©</span>
+                  </span>
+                )}
+              </Button>
+            ) : selEquipped ? (
+              <Button
+                disabled
+                className="shrink-0 rounded-xl bg-primary px-5 text-white font-semibold disabled:opacity-100"
+              >
+                <CheckCircle className="mr-1 h-4 w-4" /> Equipped
+              </Button>
+            ) : (
+              <Button
+                onClick={() => equipItem(selected)}
+                className="shrink-0 rounded-xl bg-quinary px-5 hover:bg-quinary/90 text-white font-semibold"
+              >
+                Equip
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button
@@ -203,14 +275,19 @@ export default function ShopUI() {
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {visible.map((item) => {
               const isEquipped = equipped[activeCategory]?.id === item.id;
+              const isPreviewing = preview[activeCategory]?.id === item.id;
               return (
                 <div
                   key={item.id}
                   className={cn(
                     "group relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all cursor-pointer hover:border-primary/50",
-                    isEquipped ? "border-primary bg-primary/5" : "border-gray-100 bg-white",
+                    isPreviewing
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                      : isEquipped
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-gray-100 bg-white",
                   )}
-                  onClick={() => handleEquip(item)}
+                  onClick={() => selectItem(item)}
                 >
                   {isEquipped && (
                     <div className="absolute top-3 right-3 text-primary">
@@ -239,17 +316,16 @@ export default function ShopUI() {
 
                   <h3 className="font-semibold text-gray-800 mb-2">{item.name}</h3>
 
-                  {item.isOwned ? (
+                  {isEquipped ? (
+                    <Badge className="px-4 py-1 rounded-full bg-primary hover:bg-primary">
+                      Equipped
+                    </Badge>
+                  ) : item.isOwned ? (
                     <Badge
-                      variant={isEquipped ? "default" : "secondary"}
-                      className={cn(
-                        "px-4 py-1 rounded-full",
-                        isEquipped
-                          ? "bg-primary hover:bg-primary"
-                          : "bg-green-100 text-green-700 hover:bg-green-200",
-                      )}
+                      variant="secondary"
+                      className="px-4 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200"
                     >
-                      {isEquipped ? "Equipped" : "Equip"}
+                      Owned
                     </Badge>
                   ) : (
                     <Badge
