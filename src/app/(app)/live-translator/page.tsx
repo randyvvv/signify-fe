@@ -290,7 +290,7 @@ export default function LiveTranslatorPage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleStart()}
-                placeholder="https://youtu.be/..."
+                placeholder="https://www.youtube.com/watch?..."
                 className="w-full h-12 rounded-[10px] border border-gray-300 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-quinary/50"
               />
             </div>
