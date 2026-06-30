@@ -172,6 +172,8 @@ export default function SignPracticePage() {
 						},
 					);
 					setDetectedHands(newHands);
+					// Tandai kata aktif "diperagakan" begitu ada tangan terdeteksi.
+					if (newHands.length > 0) handSeenRef.current = true;
 				}
 			}
 			if (isPracticeActive) {
@@ -207,20 +209,30 @@ export default function SignPracticePage() {
 	const [wordIndex, setWordIndex] = useState(0);
 	const currentWord = practiceWords[wordIndex] ?? "HELLO";
 
-	// Progres sesi (FE-only): skor demo per kata yang sudah dilewati.
-	const [done, setDone] = useState<Record<number, number>>({});
+	// Progres sesi (FE-only): hasil Good/Bad per kata yang sudah dilewati.
+	// Good/Bad ditentukan dari apakah tangan user terdeteksi saat memperagakan
+	// kata (placeholder klasifikasi isyarat) — bukan angka acak seperti dulu.
+	const [done, setDone] = useState<Record<number, "good" | "bad">>({});
 	const doneCount = Object.keys(done).length;
-	const accuracy = doneCount
-		? Math.round(
-				Object.values(done).reduce((a, b) => a + b, 0) / doneCount,
-			)
-		: 0;
+	const goodCount = Object.values(done).filter((v) => v === "good").length;
+	const badCount = doneCount - goodCount;
+	// Disimpan ke API (kontrak lama pakai angka): persen Good yang nyata.
+	const accuracy = doneCount ? Math.round((goodCount / doneCount) * 100) : 0;
+
+	// Apakah tangan terdeteksi untuk kata yang sedang aktif? Direset tiap ganti kata.
+	const handSeenRef = useRef(false);
 
 	useEffect(() => {
 		setPracticeWords(shuffle(WORDS[selectedCategory] ?? ["HELLO"]));
 		setWordIndex(0);
 		setDone({});
+		handSeenRef.current = false;
 	}, [selectedCategory]);
+
+	// Reset deteksi tangan tiap pindah kata.
+	useEffect(() => {
+		handSeenRef.current = false;
+	}, [wordIndex]);
 
 	return (
 		<>
@@ -349,20 +361,34 @@ export default function SignPracticePage() {
 									</div>
 								</div>
 
-								{/* Accuracy Progress */}
+								{/* Good / Bad tally */}
 								<div className="space-y-2 flex-1">
 									<div className="flex items-baseline gap-2">
-										<span className="text-2xl font-bold text-quaternary">
-											{accuracy}%
+										<span className="text-2xl font-bold text-green-500">
+											{goodCount}
 										</span>
 										<span className="text-sm font-medium text-quaternary/60">
-											Accuracy
+											Good
+										</span>
+										<span className="ml-auto text-2xl font-bold text-red-400">
+											{badCount}
+										</span>
+										<span className="text-sm font-medium text-quaternary/60">
+											Bad
 										</span>
 									</div>
-									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
 										<div
-											className="h-full bg-orange-400 rounded-full"
-											style={{ width: `${accuracy}%` }}
+											className="h-full bg-green-400"
+											style={{
+												width: `${doneCount ? (goodCount / doneCount) * 100 : 0}%`,
+											}}
+										/>
+										<div
+											className="h-full bg-red-300"
+											style={{
+												width: `${doneCount ? (badCount / doneCount) * 100 : 0}%`,
+											}}
 										/>
 									</div>
 								</div>
@@ -471,9 +497,23 @@ export default function SignPracticePage() {
 
 							{/* Navigasi kata latihan */}
 							<div className="mt-4 flex items-center justify-between gap-3">
-								<span className="text-sm font-medium text-grey">
-									Word {wordIndex + 1} / {practiceWords.length}
-								</span>
+								<div className="flex items-center gap-2">
+									<span className="text-sm font-medium text-grey">
+										Word {wordIndex + 1} / {practiceWords.length}
+									</span>
+									{done[wordIndex] && (
+										<span
+											className={cn(
+												"px-2 py-0.5 rounded-full text-xs font-bold",
+												done[wordIndex] === "good"
+													? "bg-green-100 text-green-600"
+													: "bg-red-100 text-red-500",
+											)}
+										>
+											{done[wordIndex] === "good" ? "Good" : "Bad"}
+										</span>
+									)}
+								</div>
 								<div className="flex gap-2">
 									<Button
 										variant="outline"
@@ -490,16 +530,22 @@ export default function SignPracticePage() {
 									</Button>
 									<Button
 										onClick={() => {
-											setDone((d) =>
-												d[wordIndex] != null
-													? d
-													: {
-															...d,
-															[wordIndex]:
-																80 +
-																Math.floor(Math.random() * 21),
-														},
-											);
+											// Good bila tangan terdeteksi saat kata ini aktif, Bad bila tidak.
+											if (done[wordIndex] == null) {
+												const result = handSeenRef.current
+													? "good"
+													: "bad";
+												setDone((d) => ({
+													...d,
+													[wordIndex]: result,
+												}));
+												if (result === "good")
+													toast.success("Good sign! 👍");
+												else
+													toast.error(
+														"No hand detected — try the sign 👋",
+													);
+											}
 											setWordIndex(
 												(i) => (i + 1) % practiceWords.length,
 											);
