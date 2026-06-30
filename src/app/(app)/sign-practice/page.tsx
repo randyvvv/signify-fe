@@ -80,6 +80,9 @@ export default function SignPracticePage() {
 	// Waktu mulai sesi (untuk durasi).
 	const practiceStartRef = useRef<number>(0);
 
+	// Apakah tangan terdeteksi untuk kata yang sedang aktif? Direset tiap ganti kata.
+	const handSeenRef = useRef(false);
+
 	// Avatar VRM + kustomisasi user (sama dengan shop & live-translator).
 	const avatar = useEquippedAvatar();
 
@@ -142,6 +145,15 @@ export default function SignPracticePage() {
 				toast.success("Practice session saved");
 			})
 			.catch(() => {});
+	};
+
+	// Buka modul: siapkan daftar kata (diacak) lalu masuk ke layar latihan.
+	const openModule = (name: string) => {
+		handSeenRef.current = false;
+		setPracticeWords(shuffle(WORDS[name] ?? ["HELLO"]));
+		setWordIndex(0);
+		setDone({});
+		setSelectedCategory(name);
 	};
 
 	// Kembali ke layar pilih modul (hentikan kamera jika sedang aktif).
@@ -237,16 +249,6 @@ export default function SignPracticePage() {
 	// Disimpan ke API (kontrak lama pakai angka): persen Good yang nyata.
 	const accuracy = doneCount ? Math.round((goodCount / doneCount) * 100) : 0;
 
-	// Apakah tangan terdeteksi untuk kata yang sedang aktif? Direset tiap ganti kata.
-	const handSeenRef = useRef(false);
-
-	useEffect(() => {
-		if (!selectedCategory) return;
-		setPracticeWords(shuffle(WORDS[selectedCategory] ?? ["HELLO"]));
-		setWordIndex(0);
-		setDone({});
-	}, [selectedCategory]);
-
 
 	return (
 		<>
@@ -286,10 +288,7 @@ export default function SignPracticePage() {
 						{categories.map((category) => (
 							<button
 								key={category.name}
-								onClick={() => {
-									handSeenRef.current = false;
-									setSelectedCategory(category.name);
-								}}
+								onClick={() => openModule(category.name)}
 								className="group flex flex-col gap-4 bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 text-left transition-all hover:border-quinary/40 hover:shadow-md hover:-translate-y-0.5"
 							>
 								<div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center text-quaternary">
