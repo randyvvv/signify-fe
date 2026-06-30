@@ -301,15 +301,22 @@ export default function ShopUI() {
                         className="w-16 h-16 rounded-full shadow-inner"
                         style={{ backgroundColor: item.color }}
                       />
+                    ) : activeCategory === "Avatar" && item.imageUrl ? (
+                      // Preview VRM asli tiap model -> beda jelas antar avatar.
+                      <SignAvatarViewer
+                        vrmUrl={item.imageUrl}
+                        className="w-full h-full pointer-events-none"
+                        placeholder=""
+                      />
                     ) : (
                       <div className="text-4xl text-gray-300">
-                        {activeCategory === "Avatar"
-                          ? "🧍"
-                          : activeCategory === "Hair"
-                            ? "💇‍♀️"
-                            : activeCategory === "Accessories"
-                              ? "👓"
-                              : "📦"}
+                        {activeCategory === "Hair"
+                          ? "💇‍♀️"
+                          : activeCategory === "Accessories"
+                            ? item.name.toLowerCase().includes("hat")
+                              ? "🎩"
+                              : "👓"
+                            : "📦"}
                       </div>
                     )}
                   </div>
