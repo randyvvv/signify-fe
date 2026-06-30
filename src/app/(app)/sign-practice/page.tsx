@@ -7,7 +7,6 @@ import {
 	Presentation,
 	Briefcase,
 	Building2,
-	X,
 	XCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -42,10 +41,26 @@ function shuffle<T>(arr: T[]): T[] {
 const nowMs = () => Date.now();
 
 const categories = [
-	{ name: "Sign Language Basics", icon: Hand },
-	{ name: "School Presentations", icon: Presentation },
-	{ name: "Job Interview", icon: Briefcase },
-	{ name: "Bussiness Pitching", icon: Building2 },
+	{
+		name: "Sign Language Basics",
+		icon: Hand,
+		description: "Everyday greetings & essential words",
+	},
+	{
+		name: "School Presentations",
+		icon: Presentation,
+		description: "Phrases for presenting in class",
+	},
+	{
+		name: "Job Interview",
+		icon: Briefcase,
+		description: "Introduce yourself & answer questions",
+	},
+	{
+		name: "Bussiness Pitching",
+		icon: Building2,
+		description: "Pitch your idea with confidence",
+	},
 ];
 
 export default function SignPracticePage() {
@@ -129,6 +144,12 @@ export default function SignPracticePage() {
 			.catch(() => {});
 	};
 
+	// Kembali ke layar pilih modul (hentikan kamera jika sedang aktif).
+	const backToModules = () => {
+		if (isPracticeActive) stopCamera();
+		setSelectedCategory(null);
+	};
+
 	useEffect(() => {
 		if (isPracticeActive && stream && videoRef.current) {
 			videoRef.current.srcObject = stream;
@@ -197,15 +218,12 @@ export default function SignPracticePage() {
 			}
 		};
 	}, [stream]);
-	const [showTutorial, setShowTutorial] = useState(true);
-	const [selectedCategory, setSelectedCategory] = useState(
-		categories[0].name,
-	);
+	// Modul aktif. null = tampilkan layar pilih modul (4 kategori) dulu;
+	// setelah diklik barulah masuk ke layar latihan untuk topik tsb.
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	// Daftar kata latihan (diacak) untuk kategori terpilih + indeks kata aktif.
-	const [practiceWords, setPracticeWords] = useState<string[]>(
-		WORDS[categories[0].name] ?? ["HELLO"],
-	);
+	const [practiceWords, setPracticeWords] = useState<string[]>([]);
 	const [wordIndex, setWordIndex] = useState(0);
 	const currentWord = practiceWords[wordIndex] ?? "HELLO";
 
@@ -223,39 +241,82 @@ export default function SignPracticePage() {
 	const handSeenRef = useRef(false);
 
 	useEffect(() => {
+		if (!selectedCategory) return;
 		setPracticeWords(shuffle(WORDS[selectedCategory] ?? ["HELLO"]));
 		setWordIndex(0);
 		setDone({});
-		handSeenRef.current = false;
 	}, [selectedCategory]);
 
-	// Reset deteksi tangan tiap pindah kata.
-	useEffect(() => {
-		handSeenRef.current = false;
-	}, [wordIndex]);
 
 	return (
 		<>
 			<div className="flex flex-col gap-4">
 				{/* Header */}
 				<div className="flex items-center gap-4 bg-white p-4 shadow-sm">
-					<Link
-						href="/dashboard"
-						className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
-					>
-						<ChevronLeft className="h-6 w-6 text-black" />
-					</Link>
+					{selectedCategory ? (
+						<button
+							onClick={backToModules}
+							className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+						>
+							<ChevronLeft className="h-6 w-6 text-black" />
+						</button>
+					) : (
+						<Link
+							href="/dashboard"
+							className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+						>
+							<ChevronLeft className="h-6 w-6 text-black" />
+						</Link>
+					)}
 					<div>
 						<h1 className="text-xl font-bold text-black">
-							Sign Practice
+							{selectedCategory ?? "Sign Practice"}
 						</h1>
 						<p className="text-sm text-grey">
-							Practice with real time AI feedback{" "}
+							{selectedCategory
+								? "Practice with real time AI feedback"
+								: "Choose a topic to start practicing"}
 						</p>
 					</div>
 				</div>
 
-				{/* Content */}
+				{!selectedCategory ? (
+					/* ===== Layar pilih modul: 4 kategori sebagai kartu ===== */
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
+						{categories.map((category) => (
+							<button
+								key={category.name}
+								onClick={() => {
+									handSeenRef.current = false;
+									setSelectedCategory(category.name);
+								}}
+								className="group flex flex-col gap-4 bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 text-left transition-all hover:border-quinary/40 hover:shadow-md hover:-translate-y-0.5"
+							>
+								<div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center text-quaternary">
+									<category.icon className="w-7 h-7" />
+								</div>
+								<div className="flex flex-col gap-1">
+									<h3 className="font-heading font-bold text-lg text-quaternary">
+										{category.name}
+									</h3>
+									<p className="text-sm text-grey leading-relaxed">
+										{category.description}
+									</p>
+								</div>
+								<div className="mt-auto flex items-center justify-between pt-2">
+									<span className="text-xs font-medium text-grey">
+										{(WORDS[category.name] ?? []).length} signs
+									</span>
+									<span className="inline-flex items-center gap-1 text-sm font-semibold text-quinary cursor-pointer">
+										Start practice
+										<ChevronLeft className="w-4 h-4 rotate-180 transition-transform group-hover:translate-x-1" />
+									</span>
+								</div>
+							</button>
+						))}
+					</div>
+				) : (
+				/* ===== Layar latihan untuk modul terpilih ===== */
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-[25px]">
 					{/* Left Section */}
 					<div className="lg:col-span-2 flex flex-col gap-[25px]">
@@ -398,82 +459,8 @@ export default function SignPracticePage() {
 
 					{/* Right Section - Sidebar */}
 					<div className="flex flex-col gap-[25px]">
-						{/* Select Category Card */}
-						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 mt-2 relative">
-							{/* Tutorial Overlay */}
-							{showTutorial && (
-								<div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full -mt-4 w-max z-50 animate-bounce-slow">
-									<div className="bg-tertiary px-[12px] py-[6px] rounded-[6.3px] shadow-lg relative max-w-[370px]">
-										<p className="text-sm font-medium text-quaternary text-center leading-relaxed">
-											Select a scenario to practice
-											real-life sign language
-											conversations.
-										</p>
-										{/* Arrow */}
-										<div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-tertiary rotate-45"></div>
-
-										<button
-											onClick={() =>
-												setShowTutorial(false)
-											}
-											className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm hover:bg-slate-50"
-										>
-											<X className="w-3 h-3 text-quaternary" />
-										</button>
-									</div>
-								</div>
-							)}
-
-							<h3 className="font-heading font-bold text-lg mb-4 text-quaternary">
-								Select Category
-							</h3>
-							<div className="flex flex-col gap-3">
-								{categories.map((category) => {
-									const isActive =
-										selectedCategory === category.name;
-									return (
-										<button
-											key={category.name}
-											onClick={() =>
-												setSelectedCategory(
-													category.name,
-												)
-											}
-											className={cn(
-												"flex items-center gap-3 p-3 rounded-xl transition-all text-left w-full border",
-												isActive
-													? "bg-secondary border-secondary shadow-sm"
-													: "bg-white border-transparent hover:bg-slate-50 hover:border-slate-100",
-											)}
-										>
-											<div
-												className={cn(
-													"w-10 h-10 rounded-lg flex items-center justify-center",
-													isActive
-														? "text-quaternary bg-white/50"
-														: "text-grey bg-slate-100",
-												)}
-											>
-												<category.icon className="w-5 h-5" />
-											</div>
-											<span
-												className={cn(
-													"font-medium",
-													isActive
-														? "text-quaternary font-bold"
-														: "text-grey",
-												)}
-											>
-												{category.name}
-											</span>
-										</button>
-									);
-								})}
-							</div>
-						</div>
-
 						{/* Reference Sign Card */}
-						<div className="order-first bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
+						<div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
 							<h3 className="font-heading font-bold text-lg mb-1 text-quaternary">
 								Reference Sign
 							</h3>
@@ -517,13 +504,14 @@ export default function SignPracticePage() {
 								<div className="flex gap-2">
 									<Button
 										variant="outline"
-										onClick={() =>
+										onClick={() => {
+											handSeenRef.current = false;
 											setWordIndex(
 												(i) =>
 													(i - 1 + practiceWords.length) %
 													practiceWords.length,
-											)
-										}
+											);
+										}}
 										className="h-9 px-3 rounded-lg"
 									>
 										Prev
@@ -546,6 +534,7 @@ export default function SignPracticePage() {
 														"No hand detected — try the sign 👋",
 													);
 											}
+											handSeenRef.current = false;
 											setWordIndex(
 												(i) => (i + 1) % practiceWords.length,
 											);
@@ -559,6 +548,7 @@ export default function SignPracticePage() {
 						</div>
 					</div>
 				</div>
+				)}
 			</div>
 		</>
 	);
