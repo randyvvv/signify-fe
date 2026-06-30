@@ -29,6 +29,7 @@ export default function SignAvatar({
   hairColor,
   eyeColor,
   accessory,
+  randomMotion,
   onFrame,
   onLoaded,
   onError,
@@ -38,7 +39,7 @@ export default function SignAvatar({
   const boundRef = useRef(null);
   // Semua kontrol disimpan di ref supaya loop animasi tak perlu re-create.
   const stateRef = useRef({});
-  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory };
+  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory, randomMotion };
 
   // Terapkan ulang kustomisasi saat pilihan berubah (tanpa reload VRM).
   useEffect(() => {
@@ -145,6 +146,61 @@ export default function SignAvatar({
       aimIdle("rightLowerArm", _idleDirLower, 0.3);
     }
 
+    // Gerak acak prosedural (tanpa data .pose / jaringan): lengan, kepala, dan
+    // dada bergoyang halus dengan banyak gelombang sinus berbeda fase/frekuensi
+    // supaya tampak hidup & tak berulang. Dipakai saat video diputar.
+    let motionT = 0;
+    const _motDir = new THREE.Vector3();
+    const _motEuler = new THREE.Euler();
+    const _motQ = new THREE.Quaternion();
+    function aimMotion(boneName, x, y, z, lerp) {
+      _motDir.set(x, y, z).normalize();
+      aimIdle(boneName, _motDir, lerp);
+    }
+    function swaySpine(boneName, ry, rz, lerp) {
+      const node = vrmRef.current?.humanoid?.getNormalizedBoneNode(boneName);
+      if (!node) return;
+      _motEuler.set(0, ry, rz, "XYZ");
+      _motQ.setFromEuler(_motEuler);
+      node.quaternion.slerp(_motQ, lerp);
+    }
+    function applyRandomMotion(t) {
+      if (!vrmRef.current || !boundRef.current) return;
+      // Lengan atas: ayun keluar-masuk & maju-mundur, kiri/kanan beda fase.
+      aimMotion(
+        "leftUpperArm",
+        -0.28 + 0.16 * Math.sin(t * 0.9),
+        -1,
+        0.22 + 0.12 * Math.sin(t * 0.7 + 1.3),
+        0.12,
+      );
+      aimMotion(
+        "rightUpperArm",
+        0.28 + 0.16 * Math.sin(t * 0.8 + 2.1),
+        -1,
+        0.22 + 0.12 * Math.sin(t * 1.1 + 0.5),
+        0.12,
+      );
+      // Lengan bawah: tekuk naik-turun (dari menggantung ke agak maju).
+      aimMotion(
+        "leftLowerArm",
+        -0.12,
+        -0.7 + 0.45 * Math.sin(t * 1.3 + 0.8),
+        0.45 + 0.4 * Math.sin(t * 1.05),
+        0.12,
+      );
+      aimMotion(
+        "rightLowerArm",
+        0.12,
+        -0.7 + 0.45 * Math.sin(t * 1.15 + 2.4),
+        0.45 + 0.4 * Math.sin(t * 1.25 + 1.7),
+        0.12,
+      );
+      // Kepala & dada: goyangan kecil supaya postur tidak kaku.
+      swaySpine("head", 0.13 * Math.sin(t * 0.6 + 0.4), 0.05 * Math.sin(t * 0.9), 0.1);
+      swaySpine("chest", 0.06 * Math.sin(t * 0.5), 0.04 * Math.sin(t * 0.45 + 1.1), 0.1);
+    }
+
     const animate = () => {
       raf = requestAnimationFrame(animate);
       const delta = clock.getDelta();
@@ -163,8 +219,11 @@ export default function SignAvatar({
           playAccumFrame = idx;
         }
         applyFrame(s.frames[idx]);
+      } else if (vrm && s.randomMotion && s.playing) {
+        motionT += delta;
+        applyRandomMotion(motionT); // tak ada pose, video jalan -> gerak acak
       } else if (vrm) {
-        applyIdle(); // belum ada pose -> lengan turun ke samping
+        applyIdle(); // diam: lengan turun ke samping (mis. video pause)
       }
 
       if (vrm) vrm.update(delta);

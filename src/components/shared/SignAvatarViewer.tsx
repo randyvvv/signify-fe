@@ -43,6 +43,11 @@ interface SignAvatarViewerProps {
   eyeColor?: string | null;
   /** Aksesoris kepala: "Glasses"/"Hat" (cocok longgar). null = tanpa aksesoris. */
   accessory?: string | null;
+  /**
+   * Gerak acak prosedural saat `playing` & belum ada pose: avatar bergoyang
+   * sendiri (tanpa jaringan). Berhenti otomatis saat `playing` false.
+   */
+  randomMotion?: boolean;
   /** Pesan placeholder saat belum ada pose. */
   placeholder?: string;
 }
@@ -65,6 +70,7 @@ export function SignAvatarViewer({
   hairColor,
   eyeColor,
   accessory,
+  randomMotion = false,
   placeholder = "Ketik teks lalu tekan Sign untuk melihat avatar berisyarat",
 }: SignAvatarViewerProps) {
   const controlled = controlledFrames !== undefined;
@@ -141,6 +147,7 @@ export function SignAvatarViewer({
         hairColor={hairColor}
         eyeColor={eyeColor}
         accessory={accessory}
+        randomMotion={randomMotion}
         onFrame={setFrameIndex}
         onLoaded={() => setAvatarReady(true)}
         onError={(e: string) => setError("Gagal memuat avatar: " + e)}

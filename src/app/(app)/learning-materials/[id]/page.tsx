@@ -15,6 +15,27 @@ import Draggable from "react-draggable";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import { SignAvatarViewer } from "@/components/shared";
+import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
+import { useTranscriptSign } from "@/components/shared/avatar/useTranscriptSign";
+
+// react-youtube pakai window -> klien saja (untuk deteksi play/pause video).
+const YouTube = dynamic(() => import("react-youtube"), { ssr: false });
+
+// Ekstrak videoId YouTube dari URL embed/watch/youtu.be.
+function parseYouTubeId(input: string): string | null {
+	try {
+		const u = new URL(input);
+		if (u.hostname === "youtu.be") return u.pathname.slice(1) || null;
+		const v = u.searchParams.get("v");
+		if (v) return v;
+		const m = u.pathname.match(/\/(embed|live|shorts|v)\/([^/?]+)/);
+		return m ? (m[2] ?? null) : null;
+	} catch {
+		return /^[\w-]{11}$/.test(input) ? input : null;
+	}
+}
 
 interface Material {
 	id: string;
@@ -194,8 +215,14 @@ export default function MaterialDetailPage() {
 
 function VideoLayout({ material }: { material: Material }) {
 	const nodeRef = useRef<HTMLDivElement>(null);
-	const src =
+	const avatar = useEquippedAvatar();
+	const rawSrc =
 		material.videoUrl || "https://www.youtube.com/embed/v1desDduz5M";
+	const videoId = parseYouTubeId(rawSrc);
+
+	// Avatar berisyarat mengikuti transcript video; jika video tak punya caption,
+	// fallback ke gerak acak. Keduanya berhenti saat video di-pause.
+	const sign = useTranscriptSign(videoId ? rawSrc : null);
 
 	return (
 		<div className="space-y-4">
@@ -204,13 +231,28 @@ function VideoLayout({ material }: { material: Material }) {
 			</h2>
 
 			<div className="relative rounded-2xl overflow-hidden aspect-video shadow-lg">
-				<iframe
-					src={src}
-					title={material.title}
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-					allowFullScreen
-					className="w-full h-full"
-				/>
+				{videoId ? (
+					<YouTube
+						videoId={videoId}
+						className="w-full h-full"
+						iframeClassName="w-full h-full"
+						opts={{
+							width: "100%",
+							height: "100%",
+							playerVars: { autoplay: 0 },
+						}}
+						onReady={sign.onReady}
+						onStateChange={sign.onStateChange}
+					/>
+				) : (
+					<iframe
+						src={rawSrc}
+						title={material.title}
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+						allowFullScreen
+						className="w-full h-full"
+					/>
+				)}
 				<Draggable
 					bounds="parent"
 					defaultPosition={{ x: 0, y: 0 }}
@@ -218,13 +260,21 @@ function VideoLayout({ material }: { material: Material }) {
 				>
 					<div
 						ref={nodeRef}
-						className="absolute top-4 right-4 w-36 h-44 rounded-xl overflow-hidden shadow-lg bg-gray-100 cursor-move z-10 border-2 border-white/50"
+						className="absolute top-4 right-4 w-36 h-44 rounded-xl overflow-hidden shadow-lg bg-senary/30 cursor-move z-10 border-2 border-white/50"
 					>
-						<Image
-							src="/learning-materials/avatar.png"
-							alt="Sign Language Interpreter"
-							fill
-							className="object-cover pointer-events-none"
+						{/* Avatar VRM: berisyarat mengikuti transcript video; bila video
+						    tak punya caption -> gerak acak. Diam saat video di-pause. */}
+						<SignAvatarViewer
+							vrmUrl={avatar.vrmUrl}
+							hairColor={avatar.hairColor}
+							eyeColor={avatar.eyeColor}
+							accessory={avatar.accessory}
+							frames={sign.unavailable ? null : sign.activeClip?.frames ?? null}
+							meta={sign.activeClip?.meta}
+							playing={sign.videoPlaying}
+							randomMotion={sign.unavailable}
+							className="w-full h-full pointer-events-none"
+							placeholder=""
 						/>
 					</div>
 				</Draggable>
