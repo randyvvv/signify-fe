@@ -104,7 +104,7 @@ export default function LearningMaterialsPage() {
 
         <div className="bg-white shadow-sm flex flex-col min-h-[calc(100vh-180px)]">
           {/* Search Bar */}
-          <div className="sticky top-0 z-10 bg-white p-6 pb-4 rounded-t-xl">
+          <div className="sticky top-0 z-40 bg-white p-6 pb-4 rounded-t-xl">
             <div className="relative">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
