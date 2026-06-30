@@ -280,26 +280,43 @@ function VideoLayout({ material }: { material: Material }) {
 				</Draggable>
 			</div>
 
-			{material.transcript && material.transcript.length > 0 && (
-				<div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-					<div
-						className="flex items-center justify-between px-5 py-4"
-						style={{
-							background:
-								"linear-gradient(90deg, #C5FBF9 0%, #FDF5BF 100%)",
-						}}
-					>
-						<h3 className="font-semibold text-gray-800">
-							Video Transcript
-						</h3>
-					</div>
-					<div className="px-6 py-4 space-y-4 text-gray-700 leading-relaxed">
-						{material.transcript.map((text, idx) => (
-							<p key={idx}>{text}</p>
-						))}
-					</div>
+			<div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+				<div
+					className="flex items-center justify-between px-5 py-4"
+					style={{
+						background:
+							"linear-gradient(90deg, #C5FBF9 0%, #FDF5BF 100%)",
+					}}
+				>
+					<h3 className="font-semibold text-gray-800">
+						Video Transcript
+					</h3>
+					{sign.preparing && (
+						<span className="text-xs font-medium text-gray-500">
+							Loading…
+						</span>
+					)}
 				</div>
-			)}
+				<div className="px-6 py-6 text-gray-700 leading-relaxed">
+					{sign.cues && sign.cues.length > 0 ? (
+						sign.activeIdx >= 0 ? (
+							<p className="text-lg font-medium text-black">
+								{sign.cues[sign.activeIdx]?.text}
+							</p>
+						) : (
+							<p className="text-center text-gray-400">
+								Play the video to follow the transcript.
+							</p>
+						)
+					) : sign.preparing ? (
+						<p className="text-gray-400">Loading transcript…</p>
+					) : (
+						<p className="text-gray-400">
+							Transcript is not available for this video.
+						</p>
+					)}
+				</div>
+			</div>
 		</div>
 	);
 }

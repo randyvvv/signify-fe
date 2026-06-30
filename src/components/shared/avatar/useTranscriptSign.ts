@@ -19,7 +19,7 @@ interface RawCue {
   duration: number;
 }
 // Cue ter-normalisasi (detik).
-interface Cue {
+export interface Cue {
   start: number;
   end: number;
   text: string;
@@ -62,6 +62,10 @@ export interface TranscriptSign {
   unavailable: boolean;
   /** Progres pre-translate (untuk UI loading opsional). */
   progress: { done: number; total: number };
+  /** Transcript ter-normalisasi (untuk ditampilkan di panel). null = belum ada. */
+  cues: Cue[] | null;
+  /** Indeks cue yang sedang aktif (sinkron video), -1 bila tak ada. */
+  activeIdx: number;
 }
 
 /**
@@ -212,5 +216,7 @@ export function useTranscriptSign(videoUrl: string | null): TranscriptSign {
     preparing,
     unavailable,
     progress,
+    cues,
+    activeIdx,
   };
 }
