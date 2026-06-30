@@ -529,9 +529,7 @@ export default function SignPracticePage() {
 												if (result === "good")
 													toast.success("Good sign! 👍");
 												else
-													toast.error(
-														"No hand detected — try the sign 👋",
-													);
+													toast.error("Keep practicing — try again 💪");
 											}
 											handSeenRef.current = false;
 											setWordIndex(
