@@ -297,17 +297,20 @@ function VideoLayout({ material }: { material: Material }) {
 						</span>
 					)}
 				</div>
-				<div className="px-6 py-6 text-gray-700 leading-relaxed">
+				<div className="px-6 py-4 space-y-2 text-gray-700 leading-relaxed max-h-80 overflow-y-auto">
 					{sign.cues && sign.cues.length > 0 ? (
-						sign.activeIdx >= 0 ? (
-							<p className="text-lg font-medium text-black">
-								{sign.cues[sign.activeIdx]?.text}
+						sign.cues.map((c, idx) => (
+							<p
+								key={idx}
+								className={
+									idx === sign.activeIdx
+										? "rounded bg-quinary/10 px-1 font-semibold text-black"
+										: ""
+								}
+							>
+								{c.text}
 							</p>
-						) : (
-							<p className="text-center text-gray-400">
-								Play the video to follow the transcript.
-							</p>
-						)
+						))
 					) : sign.preparing ? (
 						<p className="text-gray-400">Loading transcript…</p>
 					) : (
