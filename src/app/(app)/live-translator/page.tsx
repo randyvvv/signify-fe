@@ -311,7 +311,7 @@ export default function LiveTranslatorPage() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-[30px] gap-x-[20px]">
           {/* Video Player */}
-          <div className="lg:col-span-2 bg-white pt-[35px] px-[30px] pb-[35px] rounded-[10px]">
+          <div className="lg:col-span-2 self-start bg-white pt-[35px] px-[30px] pb-[35px] rounded-[10px]">
             <div className="bg-senary/30 rounded-[10px] aspect-video relative flex items-center justify-center overflow-hidden shadow-sm">
               {videoId ? (
                 <YouTube
