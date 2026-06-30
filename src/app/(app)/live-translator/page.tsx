@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Link as LinkIcon, Play, Video, Hand, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { api, ApiError } from "@/lib/api";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
@@ -122,19 +123,17 @@ export default function LiveTranslatorPage() {
     processedRef.current = false;
 
     try {
-      const res = await fetch("/api/youtube-transcript", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to fetch transcript");
-      setRawCues(data.cues as RawCue[]);
+      const data = await api.post<{ cues: RawCue[] }>(
+        "/api/translator/transcript",
+        { url: url.trim() },
+      );
+      setRawCues(data.cues);
       toast.success("Transcript loaded", {
         description: "Preparing sign language translation…",
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to fetch transcript";
+      const msg =
+        err instanceof ApiError ? err.message : "Failed to fetch transcript";
       toast.error("Failed", { description: msg });
       setVideoId(null);
     } finally {
