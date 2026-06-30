@@ -429,15 +429,18 @@ export default function LiveTranslatorPage() {
               <div className="bg-white border-x border-b border-gray-100 rounded-b-[10px] py-[30px] px-[24px] shadow-sm max-h-[320px] overflow-y-auto">
                 <div className="flex flex-col gap-2 text-sm text-grey leading-relaxed">
                   {ready && cues ? (
-                    activeIdx >= 0 ? (
-                      <p className="text-base font-medium leading-relaxed text-black">
-                        {cues[activeIdx].text}
+                    cues.map((c, i) => (
+                      <p
+                        key={i}
+                        className={
+                          i === activeIdx
+                            ? "rounded bg-quinary/10 px-1 font-semibold text-black"
+                            : ""
+                        }
+                      >
+                        {c.text}
                       </p>
-                    ) : (
-                      <p className="text-center text-grey/70">
-                        Play the video to follow the transcript.
-                      </p>
-                    )
+                    ))
                   ) : preparing ? (
                     <p className="text-center text-grey/70">
                       {prepLabel} {cues ? `(${percent}%)` : ""}
