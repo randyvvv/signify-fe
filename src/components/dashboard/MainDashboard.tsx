@@ -106,7 +106,7 @@ export function MainDashboard() {
             <div className="absolute bottom-2 right-78 w-[121px] h-[121px] bg-[#DBCE584D] rounded-full " />
             <div className="relative h-[228px] w-[254px] bg-contain bg-no-repeat bg-bottom z-10">
               <Image
-                src="/dashboard/girl.png"
+                src="/landing/girl.webp"
                 alt="Learning Sign Language"
                 fill
                 className="object-contain object-bottom"
