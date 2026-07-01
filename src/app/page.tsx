@@ -172,7 +172,7 @@ export default function LandingPage() {
           </div>
           
           {/* Right Image */}
-          <div className="relative mt-8 h-[350px] w-full md:mt-0 md:hidden xl:block xl:absolute xl:-bottom-32 xl:right-12 xl:h-[600px] xl:w-[600px]">
+          <div className="relative mt-8 h-[350px] w-full md:mt-0 md:hidden lg:block lg:absolute lg:-bottom-32 lg:-right-4 lg:h-[440px] lg:w-[440px] xl:-bottom-32 xl:right-6 xl:h-[500px] xl:w-[500px] 2xl:right-12 2xl:h-[600px] 2xl:w-[600px]">
               <div className="relative z-10 h-full w-full">
                  <Image
                   src="/landing/girl.webp"
