@@ -175,7 +175,7 @@ export default function LandingPage() {
           <div className="relative mt-8 h-[350px] w-full md:mt-0 md:-mb-32 md:h-[600px] md:w-[600px]">
               <div className="relative z-10 h-full w-full">
                   <Image 
-                    src="/landing/girl.png" 
+                    src="/landing/girl.webp" 
                     alt="Learning Sign Language" 
                     fill 
                     className="object-contain object-bottom"
