@@ -111,17 +111,15 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 			{/* Logo Section */}
 			<div className={cn("flex items-center px-4 mb-[30px]", isCollapsed ? "justify-center" : "justify-between")}>
 				{!isCollapsed && (
-					<Link href="/" className="flex items-center gap-[10px] rounded-lg focus:outline-none focus:ring-2 focus:ring-quinary/30">
+					<Link href="/" className="flex items-center rounded-lg focus:outline-none focus:ring-2 focus:ring-quinary/30">
 						<Image
-							src="/profile/hat.png"
+							src="/logo/logo-signify.png"
 							alt="Signify"
-							width={40}
-							height={30}
-							// className="h-10 w-10"
+							width={200}
+							height={180}
+							priority
+							className="h-12 w-auto"
 						/>
-						<span className="font-heading text-3xl font-bold text-black ">
-							Signify
-						</span>
 					</Link>
 				)}
 				{isCollapsed && (

@@ -32,8 +32,15 @@ export default function LandingPage() {
 
         {/* Navbar */}
         <nav className="relative z-50 container mx-auto flex items-center justify-between px-6 py-4 md:px-12 mb-8 md:mb-12">
-            <Link href="/" className="font-heading text-3xl font-bold text-[#0F5A5A]">
-              Signify
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo/logo-signify.png"
+                alt="Signify"
+                width={200}
+                height={180}
+                priority
+                className="h-12 w-auto"
+              />
             </Link>
             
             {/* Desktop Nav */}
