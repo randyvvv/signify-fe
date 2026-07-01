@@ -47,7 +47,7 @@ interface Material {
 	category: string;
 	durationMinutes: number | null;
 	pages: number | null;
-	content: string[] | null;
+	content: string[] | string | null;
 	articleUrl: string | null;
 	videoUrl: string | null;
 	transcript: string[] | null;
@@ -66,6 +66,25 @@ interface RecMaterial {
 const MATERIAL_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
 const IMAGE_INNER_SHADOW =
 	"pointer-events-none absolute inset-0 z-10 shadow-[inset_0_0_8px_rgba(0,0,0,0.25)]";
+
+function normalizeContentPages(content: Material["content"]): string[] {
+	const values = Array.isArray(content) ? content : content ? [content] : [];
+	if (values.length === 1) {
+		try {
+			const parsed = JSON.parse(values[0]);
+			if (Array.isArray(parsed)) {
+				return parsed
+					.filter((page): page is string => typeof page === "string")
+					.map((page) => page.trim())
+					.filter(Boolean);
+			}
+		} catch {
+			// Content is already plain markdown, not a JSON-encoded page array.
+		}
+	}
+
+	return values.map((page) => page.trim()).filter(Boolean);
+}
 
 function renderInlineMarkdown(text: string): ReactNode[] {
 	const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
@@ -490,7 +509,7 @@ function VideoLayout({ material }: { material: Material }) {
 
 function DocumentLayout({ material }: { material: Material }) {
 	const [currentPage, setCurrentPage] = useState(0);
-	const contentPages = material.content?.filter((page) => page.trim()) ?? [];
+	const contentPages = normalizeContentPages(material.content);
 	const pageCount = contentPages.length;
 	const pageContent = contentPages[currentPage] ?? "";
 
@@ -575,7 +594,7 @@ function DocumentLayout({ material }: { material: Material }) {
 }
 
 function ArticleLayout({ material }: { material: Material }) {
-	const paragraphs = material.content?.filter((page) => page.trim()) ?? [];
+	const paragraphs = normalizeContentPages(material.content);
 
 	return (
 		<div className="space-y-4">
