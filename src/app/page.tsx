@@ -137,7 +137,7 @@ export default function LandingPage() {
               #1 Inclusive Education Platform
             </span>
             
-            <h1 className="font-heading text-4xl font-bold leading-[1.1] text-[#0F5A5A] md:text-6xl lg:text-7xl">
+            <h1 className="font-heading text-4xl font-bold leading-[1.1] text-[#0F5A5A] md:text-5xl lg:text-7xl">
               Where <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Vision</span> <br />
               <span className="whitespace-nowrap">
                 Meets <span className="relative z-10 after:absolute after:bottom-2 after:left-0 after:-z-10 after:h-4 after:w-full after:bg-[#FFF59D] after:content-['']">Understanding</span>
@@ -172,15 +172,16 @@ export default function LandingPage() {
           </div>
           
           {/* Right Image */}
-          <div className="relative mt-8 h-[350px] w-full md:mt-0 md:-mb-32 md:h-[600px] md:w-[600px]">
+          <div className="relative mt-8 h-[350px] w-full md:mt-0 md:hidden xl:block xl:absolute xl:-bottom-32 xl:right-12 xl:h-[600px] xl:w-[600px]">
               <div className="relative z-10 h-full w-full">
-                  <Image 
-                    src="/landing/girl.webp" 
-                    alt="Learning Sign Language" 
-                    fill 
-                    className="object-contain object-bottom"
-                    priority
-                  />
+                 <Image
+                  src="/landing/girl.webp"
+                  alt="Learning Sign Language"
+                  width={800}
+                  height={800}
+                  className="w-full h-full object-contain object-bottom"
+                  priority
+                />
               </div>
           </div>
         </div>
