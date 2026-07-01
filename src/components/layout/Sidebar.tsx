@@ -118,7 +118,7 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 							width={200}
 							height={180}
 							priority
-							className="h-12 w-auto"
+							className="h-32 w-auto"
 						/>
 					</Link>
 				)}
