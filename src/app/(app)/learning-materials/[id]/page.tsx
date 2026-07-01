@@ -721,7 +721,7 @@ function ChatWidget({ materialId }: { materialId: string }) {
 				</div>
 			</div>
 
-			<div className="p-3 space-y-3 h-[280px] overflow-y-auto">
+			<div className="p-3 space-y-3 h-[280px] max-h-[35vh] min-h-[140px] overflow-y-auto">
 				{messages.length === 0 && (
 					<p className="text-center text-xs text-gray-400 pt-8">
 						Ask Signify anything about this material.
@@ -753,7 +753,7 @@ function ChatWidget({ materialId }: { materialId: string }) {
 				)}
 			</div>
 
-			<div className="px-4 py-3">
+			<div className="px-4 py-3 shrink-0">
 				<div className="flex items-center gap-2 border border-gray-200 rounded-full px-4 py-2">
 					<input
 						type="text"
