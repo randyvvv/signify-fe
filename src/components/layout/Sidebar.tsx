@@ -107,11 +107,11 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 	};
 
 	return (
-		<div className="flex h-full flex-col py-[45px]">
+		<div className="flex h-full min-h-0 flex-col overflow-y-auto py-[45px]">
 			{/* Logo Section */}
 			<div className={cn("flex items-center px-4 mb-[30px]", isCollapsed ? "justify-center" : "justify-between")}>
 				{!isCollapsed && (
-					<div className="flex items-center gap-[10px]">
+					<Link href="/" className="flex items-center gap-[10px] rounded-lg focus:outline-none focus:ring-2 focus:ring-quinary/30">
 						<Image
 							src="/profile/hat.png"
 							alt="Signify"
@@ -122,15 +122,21 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 						<span className="font-heading text-3xl font-bold text-black ">
 							Signify
 						</span>
-					</div>
+					</Link>
 				)}
 				{isCollapsed && (
-					<Image
-						src="/profile/hat.png"
-						alt="Signify"
-						width={40}
-						height={30}
-					/>
+					<Link
+						href="/"
+						className="rounded-lg focus:outline-none focus:ring-2 focus:ring-quinary/30"
+						title="Signify"
+					>
+						<Image
+							src="/profile/hat.png"
+							alt="Signify"
+							width={40}
+							height={30}
+						/>
+					</Link>
 				)}
 				{setIsCollapsed && (
 					<button
@@ -257,7 +263,7 @@ export function Sidebar() {
 		<>
 			{/* Desktop Sidebar */}
 			<aside className={cn(
-				"hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:flex-col border-r border-border bg-white transition-all duration-300",
+				"hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:flex-col overflow-hidden border-r border-border bg-white transition-all duration-300",
 				isCollapsed ? "lg:w-20" : "lg:w-64"
 			)}>
 				<SidebarContent pathname={pathname} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />

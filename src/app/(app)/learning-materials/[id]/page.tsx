@@ -385,7 +385,7 @@ export default function MaterialDetailPage() {
 						</div>
 
 						{/* Right Column - Sidebar */}
-						<div className="hidden lg:flex flex-col gap-4 w-72 shrink-0">
+						<div className="hidden max-h-[calc(100vh-8rem)] w-72 shrink-0 flex-col gap-4 overflow-y-auto pr-1 lg:sticky lg:top-8 lg:flex">
 							<ChatWidget materialId={material.id} />
 							<RecommendedMaterials recs={recs} />
 						</div>
