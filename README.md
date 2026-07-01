@@ -96,7 +96,3 @@ src/
     ├── api.ts              # Thin fetch client (Bearer token + error handling)
     └── auth-context.tsx    # AuthProvider + useAuth
 ```
-
-## License
-
-Private / unpublished.
