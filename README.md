@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo/logo-signify.png" alt="Signify logo" width="200" />
+  <img src="public/logo/logo-signify.png" alt="Signify logo" width="400" />
 </p>
 
 # Signify — Frontend
@@ -13,6 +13,8 @@ This repository (`signify-fe`) is the web frontend, built with **Next.js 16** an
 **App Router**. It talks to a separate backend, `signify-api`.
 
 **Live demo:** [ai-signify.com](https://ai-signify.com)
+
+**Backend repo:** [github.com/randyvvv/signify-be](https://github.com/randyvvv/signify-be)
 
 ## Features
 
