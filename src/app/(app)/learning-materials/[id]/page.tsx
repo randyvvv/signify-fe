@@ -8,6 +8,8 @@ import {
 	Link2,
 	Clock,
 	CheckCircle2,
+	MessageCircle,
+	X,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -392,6 +394,9 @@ export default function MaterialDetailPage() {
 					</div>
 				</div>
 			</div>
+
+			{/* Chat mengambang untuk mobile/tablet */}
+			<MobileChat materialId={material.id} />
 		</>
 	);
 }
@@ -653,7 +658,7 @@ function ArticleLayout({ material }: { material: Material }) {
 }
 
 // AI chatbot — POST /api/chat. Handles 503 (model not ready) gracefully.
-function ChatWidget({ materialId }: { materialId: string }) {
+function useChatController(materialId: string) {
 	const [messages, setMessages] = useState<
 		{ role: "user" | "bot"; text: string }[]
 	>([]);
@@ -700,10 +705,21 @@ function ChatWidget({ materialId }: { materialId: string }) {
 		}
 	};
 
+	return { messages, input, setInput, sending, send };
+}
+
+// Isi chat: kolom flex (header + daftar pesan yang bisa discroll + input yang
+// selalu menempel di bawah). Tinggi diatur oleh parent-nya.
+function ChatPanel({
+	controller,
+}: {
+	controller: ReturnType<typeof useChatController>;
+}) {
+	const { messages, input, setInput, sending, send } = controller;
 	return (
-		<div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+		<>
 			<div
-				className="px-4 py-3 flex items-center justify-between"
+				className="px-4 py-3 flex items-center justify-between shrink-0"
 				style={{
 					background:
 						"linear-gradient(180deg, #C5FBF9 0%, #FDF5BF 100%)",
@@ -721,7 +737,7 @@ function ChatWidget({ materialId }: { materialId: string }) {
 				</div>
 			</div>
 
-			<div className="p-3 space-y-3 h-[280px] max-h-[35vh] min-h-[140px] overflow-y-auto">
+			<div className="flex-1 min-h-0 p-3 space-y-3 overflow-y-auto">
 				{messages.length === 0 && (
 					<p className="text-center text-xs text-gray-400 pt-8">
 						Ask Signify anything about this material.
@@ -777,6 +793,42 @@ function ChatWidget({ materialId }: { materialId: string }) {
 					</button>
 				</div>
 			</div>
+		</>
+	);
+}
+
+// Desktop (sidebar): tinggi tetap dengan flex-col agar input selalu terlihat.
+function ChatWidget({ materialId }: { materialId: string }) {
+	const controller = useChatController(materialId);
+	return (
+		<div className="flex h-[440px] max-h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+			<ChatPanel controller={controller} />
+		</div>
+	);
+}
+
+// Mobile/tablet: bubble di pojok kanan bawah; klik untuk buka pop up chat.
+function MobileChat({ materialId }: { materialId: string }) {
+	const [open, setOpen] = useState(false);
+	const controller = useChatController(materialId);
+	return (
+		<div className="lg:hidden">
+			{open && (
+				<div className="fixed bottom-24 right-4 z-50 flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
+					<ChatPanel controller={controller} />
+				</div>
+			)}
+			<button
+				onClick={() => setOpen((v) => !v)}
+				aria-label={open ? "Close chat" : "Open chat"}
+				className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-quinary text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+			>
+				{open ? (
+					<X className="h-6 w-6" />
+				) : (
+					<MessageCircle className="h-6 w-6" />
+				)}
+			</button>
 		</div>
 	);
 }
