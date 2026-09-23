@@ -11,6 +11,7 @@ import {
 	MessageCircle,
 	X,
 	Hand,
+	SendHorizontal,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -389,15 +390,14 @@ export default function MaterialDetailPage() {
 
 						{/* Right Column - Sidebar */}
 						<div className="hidden max-h-[calc(100vh-8rem)] w-72 shrink-0 flex-col gap-4 overflow-y-auto pr-1 lg:sticky lg:top-8 lg:flex">
-							<ChatWidget materialId={material.id} />
 							<RecommendedMaterials recs={recs} />
 						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* Chat mengambang untuk mobile/tablet */}
-			<MobileChat materialId={material.id} />
+			{/* Chat mengambang di pojok kanan bawah */}
+			<FloatingChat materialId={material.id} />
 		</>
 	);
 }
@@ -684,11 +684,11 @@ function useChatController(materialId: string) {
 			.catch(() => {});
 	}, [materialId]);
 
-	const send = async () => {
-		const msg = input.trim();
+	const send = async (text?: string) => {
+		const msg = (text ?? input).trim();
 		if (!msg || sending) return;
 		setMessages((m) => [...m, { role: "user", text: msg }]);
-		setInput("");
+		if (text === undefined) setInput("");
 		setSending(true);
 		try {
 			const res = await api.post<{
@@ -711,66 +711,120 @@ function useChatController(materialId: string) {
 	return { messages, input, setInput, sending, send, signing, setSigning };
 }
 
-// Isi chat: kolom flex (header + daftar pesan yang bisa discroll + input yang
-// selalu menempel di bawah). Tinggi diatur oleh parent-nya.
+// Saran pertanyaan saat chat masih kosong.
+const CHAT_SUGGESTIONS = [
+	"Summarize this material",
+	"Explain the key points simply",
+	"Quiz me with one question",
+];
+
+// Isi pop up chat: header + daftar pesan (scroll) + input yang menempel di bawah.
 function ChatPanel({
 	controller,
+	onClose,
 }: {
 	controller: ReturnType<typeof useChatController>;
+	onClose: () => void;
 }) {
 	const { messages, input, setInput, sending, send, signing, setSigning } =
 		controller;
+	const listRef = useRef<HTMLDivElement>(null);
+
+	// Selalu gulir ke pesan terbaru.
+	useEffect(() => {
+		const el = listRef.current;
+		if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+	}, [messages.length, sending]);
+
 	return (
 		<>
-			<div
-				className="px-4 py-3 flex items-center justify-between shrink-0"
-				style={{
-					background:
-						"linear-gradient(180deg, #C5FBF9 0%, #FDF5BF 100%)",
-				}}
-			>
-				<div className="flex items-center gap-2">
-					<Image
-						src="/learning-materials/chatbot.png"
-						alt="Signify"
-						width={28}
-						height={28}
-						className="rounded-full"
-					/>
-					<span className="font-semibold text-gray-800">Signify</span>
+			{/* Header */}
+			<div className="relative flex shrink-0 items-center justify-between gap-3 bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-5 py-4 text-white">
+				<div className="flex items-center gap-3">
+					<div className="relative">
+						<Image
+							src="/learning-materials/chatbot.png"
+							alt="Signify"
+							width={40}
+							height={40}
+							className="rounded-full bg-white/90 p-0.5"
+						/>
+						<span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#1c8d8a] bg-emerald-300" />
+					</div>
+					<div className="leading-tight">
+						<p className="font-heading text-base font-bold">Signify</p>
+						<p className="text-xs text-white/80">Ask me about this material</p>
+					</div>
 				</div>
+				<button
+					onClick={onClose}
+					aria-label="Close chat"
+					className="rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+				>
+					<X className="h-5 w-5" />
+				</button>
 			</div>
 
 			{signing && <ChatSignPanel text={signing} onClose={() => setSigning(null)} />}
 
-			<div className="flex-1 min-h-0 p-3 space-y-3 overflow-y-auto">
+			{/* Messages */}
+			<div
+				ref={listRef}
+				className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-slate-50 px-4 py-5"
+			>
 				{messages.length === 0 && (
-					<p className="text-center text-xs text-gray-400 pt-8">
-						Ask Signify anything about this material.
-					</p>
+					<div className="flex flex-col items-center gap-4 pt-4 text-center">
+						<Image
+							src="/learning-materials/chatbot.png"
+							alt=""
+							width={64}
+							height={64}
+							className="rounded-full"
+						/>
+						<div>
+							<p className="font-heading font-bold text-gray-800">
+								Hi! I&apos;m Signify 👋
+							</p>
+							<p className="mt-1 text-sm text-gray-500">
+								I can answer questions using this material. Try one of these:
+							</p>
+						</div>
+						<div className="flex flex-wrap justify-center gap-2">
+							{CHAT_SUGGESTIONS.map((q) => (
+								<button
+									key={q}
+									onClick={() => send(q)}
+									disabled={sending}
+									className="rounded-full border border-teal-200 bg-white px-3 py-1.5 text-xs font-medium text-teal-700 shadow-sm transition-colors hover:bg-teal-50"
+								>
+									{q}
+								</button>
+							))}
+						</div>
+					</div>
 				)}
-				{messages.map((m, i) => (
-					<div
-						key={i}
-						className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-					>
-						<div
-							className={`rounded-2xl px-4 py-2.5 text-sm max-w-[85%] ${
-								m.role === "user"
-									? "text-white"
-									: "bg-gray-100 text-gray-700"
-							}`}
-							style={
-								m.role === "user"
-									? { backgroundColor: "#2DA5A2" }
-									: undefined
-							}
-						>
-							{m.text}
-							{m.role === "bot" && (
+
+				{messages.map((m, i) =>
+					m.role === "user" ? (
+						<div key={i} className="flex justify-end">
+							<div className="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-tr-md bg-[#2DA5A2] px-4 py-2.5 text-sm text-white shadow-sm">
+								{m.text}
+							</div>
+						</div>
+					) : (
+						<div key={i} className="flex items-end gap-2">
+							<Image
+								src="/learning-materials/chatbot.png"
+								alt=""
+								width={28}
+								height={28}
+								className="shrink-0 rounded-full"
+							/>
+							<div className="max-w-[80%] rounded-2xl rounded-bl-md border border-gray-100 bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm">
+								<p className="whitespace-pre-wrap">{m.text}</p>
 								<button
 									onClick={() => setSigning(m.text)}
-									className={`mt-1.5 flex items-center gap-1 text-xs font-medium transition-colors ${
+									className={`mt-2 flex items-center gap-1 text-xs font-semibold transition-colors ${
 										signing === m.text
 											? "text-quinary"
 											: "text-gray-400 hover:text-quinary"
@@ -779,39 +833,60 @@ function ChatPanel({
 									<Hand className="h-3.5 w-3.5" />
 									{signing === m.text ? "Signing…" : "Sign this"}
 								</button>
-							)}
+							</div>
+						</div>
+					),
+				)}
+
+				{sending && (
+					<div className="flex items-end gap-2">
+						<Image
+							src="/learning-materials/chatbot.png"
+							alt=""
+							width={28}
+							height={28}
+							className="shrink-0 rounded-full"
+						/>
+						<div
+							className="flex gap-1 rounded-2xl rounded-bl-md border border-gray-100 bg-white px-4 py-3 shadow-sm"
+							aria-label="Signify is typing"
+						>
+							{[0, 150, 300].map((delay) => (
+								<span
+									key={delay}
+									className="h-2 w-2 animate-bounce rounded-full bg-teal-400"
+									style={{ animationDelay: `${delay}ms` }}
+								/>
+							))}
 						</div>
 					</div>
-				))}
-				{sending && (
-					<p className="text-xs text-gray-400">Signify is typing…</p>
 				)}
 			</div>
 
-			<div className="px-4 py-3 shrink-0">
-				<div className="flex items-center gap-2 border border-gray-200 rounded-full px-4 py-2">
-					<input
-						type="text"
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && send()}
-						placeholder="Type your message here..."
-						className="flex-1 text-sm border-none bg-transparent focus:outline-none text-gray-600"
-					/>
-					<button
-						onClick={send}
-						disabled={sending}
-						className="hover:opacity-80 transition-opacity"
-					>
-						<Image
-							src="/learning-materials/send.png"
-							alt="Send"
-							width={20}
-							height={20}
-						/>
-					</button>
-				</div>
-			</div>
+			{/* Input */}
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					send();
+				}}
+				className="flex shrink-0 items-center gap-2 border-t border-gray-100 bg-white px-4 py-3"
+			>
+				<input
+					type="text"
+					value={input}
+					onChange={(e) => setInput(e.target.value)}
+					placeholder="Type your message..."
+					className="h-11 flex-1 rounded-full bg-slate-100 px-4 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-quinary/30"
+				/>
+				<button
+					type="submit"
+					disabled={sending || !input.trim()}
+					aria-label="Send"
+					className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2DA5A2] text-white shadow-sm transition-all hover:bg-[#258f8c] active:scale-95 disabled:bg-gray-200 disabled:text-gray-400"
+				>
+					<SendHorizontal className="h-5 w-5" />
+				</button>
+			</form>
 		</>
 	);
 }
@@ -850,39 +925,61 @@ function ChatSignPanel({ text, onClose }: { text: string; onClose: () => void })
 	);
 }
 
-// Desktop (sidebar): tinggi tetap dengan flex-col agar input selalu terlihat.
-function ChatWidget({ materialId }: { materialId: string }) {
-	const controller = useChatController(materialId);
-	return (
-		<div className="flex h-[440px] max-h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-			<ChatPanel controller={controller} />
-		</div>
-	);
-}
-
-// Mobile/tablet: bubble di pojok kanan bawah; klik untuk buka pop up chat.
-function MobileChat({ materialId }: { materialId: string }) {
+// Chat mengambang di pojok kanan bawah (semua ukuran layar): klik tombol untuk
+// membuka pop up. Riwayat tetap tersimpan saat pop up ditutup.
+function FloatingChat({ materialId }: { materialId: string }) {
 	const [open, setOpen] = useState(false);
+	const [opened, setOpened] = useState(false); // sudah pernah dibuka? (matikan efek ping)
 	const controller = useChatController(materialId);
+
+	// Esc menutup pop up.
+	useEffect(() => {
+		if (!open) return;
+		const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [open]);
+
+	const toggle = () => {
+		setOpen((v) => !v);
+		setOpened(true);
+	};
+
 	return (
-		<div className="lg:hidden">
+		<>
 			{open && (
-				<div className="fixed bottom-24 right-4 z-50 flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
-					<ChatPanel controller={controller} />
+				<div
+					role="dialog"
+					aria-label="Signify chat"
+					className="fixed bottom-24 right-4 z-50 flex h-[min(620px,calc(100dvh-8rem))] w-[calc(100vw-2rem)] origin-bottom-right flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 sm:right-6 sm:w-[400px]"
+				>
+					<ChatPanel controller={controller} onClose={() => setOpen(false)} />
 				</div>
 			)}
-			<button
-				onClick={() => setOpen((v) => !v)}
-				aria-label={open ? "Close chat" : "Open chat"}
-				className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-quinary text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-			>
-				{open ? (
-					<X className="h-6 w-6" />
-				) : (
-					<MessageCircle className="h-6 w-6" />
+
+			<div className="fixed bottom-6 right-4 z-50 flex items-center gap-3 sm:right-6">
+				{!open && (
+					<span className="hidden rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-lg sm:block">
+						Ask Signify
+					</span>
 				)}
-			</button>
-		</div>
+				<button
+					onClick={toggle}
+					aria-label={open ? "Close chat" : "Open chat"}
+					aria-expanded={open}
+					className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#2DA5A2] to-[#0B7077] text-white shadow-xl shadow-teal-900/20 transition-transform hover:scale-105 active:scale-95"
+				>
+					{!opened && (
+						<span className="absolute inset-0 animate-ping rounded-full bg-[#2DA5A2]/40" />
+					)}
+					{open ? (
+						<X className="relative h-7 w-7" />
+					) : (
+						<MessageCircle className="relative h-7 w-7" />
+					)}
+				</button>
+			</div>
+		</>
 	);
 }
 

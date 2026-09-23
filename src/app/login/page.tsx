@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AuthField, AuthLayout, PasswordField } from "@/components/auth/AuthLayout";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
@@ -37,67 +39,55 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center p-6"
-      style={{
-        background:
-          "linear-gradient(112.27deg, #C5FBF9 0%, #FFFFFF 77.41%, #FDF5BF 100%)",
-      }}
-    >
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <Link
-          href="/"
-          className="font-heading text-3xl font-bold text-[#0F5A5A]"
-        >
-          Signify
-        </Link>
-        <h1 className="mt-6 text-2xl font-bold text-slate-900">Welcome back</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Log in to continue your learning journey.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-teal-600 py-6 text-white hover:bg-teal-700"
-          >
-            {submitting ? "Logging in..." : "Log in"}
-          </Button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
+    <AuthLayout
+      title="Welcome back 👋"
+      subtitle="Log in to continue your learning journey."
+      footer={
+        <>
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-semibold text-teal-600">
-            Sign up
+          <Link href="/register" className="font-semibold text-[#0B7077] hover:underline">
+            Sign up for free
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <AuthField
+          id="email"
+          label="Email"
+          icon={Mail}
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+        />
+        <PasswordField
+          id="password"
+          label="Password"
+          icon={Lock}
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+        />
+
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="h-12 w-full rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] text-base font-semibold text-white shadow-lg shadow-teal-900/15 transition-all hover:opacity-95 hover:shadow-xl disabled:opacity-70"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" /> Logging in...
+            </>
+          ) : (
+            "Log in"
+          )}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

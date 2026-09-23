@@ -103,6 +103,11 @@ function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boo
 	);
 }
 
+// Menu aktif juga untuk sub-halaman, mis. /quizzes/:id -> "Quizzes".
+function isActivePath(pathname: string, href: string): boolean {
+	return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: string; isCollapsed?: boolean; setIsCollapsed?: (value: boolean) => void }) {
 	const { user, logout } = useAuth();
 	const router = useRouter();
@@ -161,7 +166,7 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 					<NavLink
 						key={item.href}
 						item={item}
-						isActive={pathname === item.href}
+						isActive={isActivePath(pathname, item.href)}
 						isCollapsed={isCollapsed}
 					/>
 				))}
@@ -239,7 +244,7 @@ function SidebarContent({ pathname, isCollapsed, setIsCollapsed }: { pathname: s
 					<NavLink
 						key={item.href}
 						item={item}
-						isActive={pathname === item.href}
+						isActive={isActivePath(pathname, item.href)}
 						isCollapsed={isCollapsed}
 					/>
 				))}

@@ -8,6 +8,9 @@ import {
   useState,
 } from "react";
 import { api, getToken, setToken, ApiError } from "./api";
+import { clearCache, readCache, writeCache } from "./cache";
+
+const USER_CACHE_KEY = "me";
 
 export interface User {
   id: string;
@@ -53,13 +56,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
+    // Tampilkan user ter-cache dulu supaya halaman tidak menunggu /api/me.
+    const cached = readCache<User>(USER_CACHE_KEY);
+    if (cached) {
+      setUser(cached);
+      setLoading(false);
+    }
     try {
       const me = await api.get<User>("/api/me");
+      writeCache(USER_CACHE_KEY, me);
       setUser(me);
     } catch (err) {
       // Token invalid/expired -> clear it.
       if (err instanceof ApiError && err.status === 401) {
         setToken(null);
+        clearCache();
         setUser(null);
       }
     } finally {
@@ -77,6 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     setToken(res.token);
+    clearCache();
+    writeCache(USER_CACHE_KEY, res.user);
     setUser(res.user);
   }, []);
 
@@ -88,6 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(fullName ? { fullName } : {}),
       });
       setToken(res.token);
+      clearCache();
+      writeCache(USER_CACHE_KEY, res.user);
       setUser(res.user);
     },
     [],
@@ -95,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     setToken(null);
+    clearCache();
     setUser(null);
   }, []);
 

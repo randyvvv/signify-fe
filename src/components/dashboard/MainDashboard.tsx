@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useCachedGet } from "@/lib/cache";
 
 const CARD_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
 
@@ -53,25 +54,42 @@ function greeting() {
   return "Good evening";
 }
 
-export function MainDashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState(false);
+// Kerangka dashboard selagi data pertama kali dimuat (belum ada cache).
+function DashboardSkeleton() {
+  const block = "animate-pulse rounded-2xl bg-slate-200/70";
+  return (
+    <div className="p-6 space-y-8 max-w-[1600px] mx-auto" aria-busy="true">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={`lg:col-span-2 h-[260px] ${block}`} />
+        <div className={`h-[260px] ${block}`} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={`h-28 ${block}`} />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={`lg:col-span-2 h-72 ${block}`} />
+        <div className={`h-72 ${block}`} />
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    api
-      .get<DashboardData>("/api/dashboard")
-      .then(setData)
-      .catch(() => setError(true));
-  }, []);
+export function MainDashboard() {
+  const { user: me } = useAuth();
+  // Tampil instan dari cache terakhir, lalu diperbarui di belakang.
+  const { data, error } = useCachedGet<DashboardData>(
+    "/api/dashboard",
+    me ? `dashboard:${me.id}` : null,
+  );
 
   if (error) {
     return (
       <div className="p-6 text-slate-500">Gagal memuat dashboard. Coba refresh.</div>
     );
   }
-  if (!data) {
-    return <div className="p-6 text-slate-500">Loading dashboard...</div>;
-  }
+  if (!data) return <DashboardSkeleton />;
 
   const { user, stats, recommended, recentActivity, dailyQuiz } = data;
 
