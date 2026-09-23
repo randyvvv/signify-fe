@@ -6,10 +6,20 @@ import {
   HandLandmarker,
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
-import { Camera, Circle, Square, Loader2, AlertCircle, RotateCcw } from "lucide-react";
+import {
+  AlertCircle,
+  Camera,
+  Check,
+  Circle,
+  Lightbulb,
+  Loader2,
+  RotateCcw,
+  Square,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 // Format keypoint signify-model: 17 pose + 21 tangan kiri + 21 tangan kanan (x, y, z).
 const POSE_POINTS = 17;
@@ -201,9 +211,32 @@ export function SignRecognizer() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-y-[30px] gap-x-[20px] lg:grid-cols-3">
-      <div className="self-start rounded-[10px] bg-white px-[30px] pt-[35px] pb-[35px] lg:col-span-2">
-        <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-[10px] bg-senary/30 shadow-sm">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {/* ===== Kamera ===== */}
+      <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 lg:col-span-8">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-heading text-lg font-bold text-slate-800">Camera</h2>
+            <p className="text-xs text-slate-500">
+              Recording stops by itself after {MAX_RECORD_MS / 1000} seconds
+            </p>
+          </div>
+          <span
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
+              !models
+                ? "bg-amber-100 text-amber-700"
+                : stream
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-slate-100 text-slate-600",
+            )}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            {!models ? "Loading tracker" : stream ? "Camera on" : "Camera off"}
+          </span>
+        </div>
+
+        <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
           {stream ? (
             <video
               ref={videoRef}
@@ -213,12 +246,23 @@ export function SignRecognizer() {
               className="h-full w-full -scale-x-100 transform object-cover"
             />
           ) : (
-            <Button
-              onClick={startCamera}
-              className="flex items-center gap-2 rounded-xl bg-quinary px-8 py-6 text-lg font-semibold text-white hover:bg-quinary/90"
-            >
-              <Camera className="h-5 w-5" /> Start camera
-            </Button>
+            <div className="flex flex-col items-center gap-4 px-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-[#2DA5A2] shadow-sm">
+                <Camera className="h-8 w-8" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-700">Turn on your camera</p>
+                <p className="mt-1 max-w-xs text-sm text-slate-500">
+                  Your video stays in the browser — only hand & body keypoints are sent.
+                </p>
+              </div>
+              <Button
+                onClick={startCamera}
+                className="h-11 rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-6 font-semibold text-white shadow-md shadow-teal-900/10 hover:opacity-95"
+              >
+                <Camera className="h-4 w-4" /> Start camera
+              </Button>
+            </div>
           )}
 
           {phase === "countdown" && (
@@ -229,17 +273,17 @@ export function SignRecognizer() {
             </div>
           )}
           {phase === "recording" && (
-            <div className="absolute top-6 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+            <div className="absolute top-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
               <Circle className="h-3 w-3 animate-pulse fill-current" /> Recording…
             </div>
           )}
 
           {stream && (
-            <div className="absolute bottom-6 right-6 flex gap-2">
+            <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-black/40 to-transparent p-4">
               {phase === "recording" ? (
                 <Button
                   onClick={stopRecording}
-                  className="rounded-lg bg-primary text-white hover:bg-primary/90"
+                  className="h-12 rounded-full bg-primary px-6 font-semibold text-white shadow-lg hover:bg-primary/90"
                 >
                   <Square className="h-4 w-4 fill-current" /> Stop
                 </Button>
@@ -247,14 +291,20 @@ export function SignRecognizer() {
                 <Button
                   onClick={startRecording}
                   disabled={phase !== "idle" || !models}
-                  className="rounded-lg bg-quinary text-white hover:bg-quinary/90"
+                  className="h-12 rounded-full bg-white px-6 font-semibold text-[#0B7077] shadow-lg hover:bg-white/90"
                 >
                   {phase === "processing" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Circle className="h-4 w-4 fill-current" />
+                    <Circle className="h-4 w-4 fill-[#DF5D73] text-[#DF5D73]" />
                   )}
-                  {!models ? "Loading tracker…" : phase === "processing" ? "Recognizing…" : "Record sign"}
+                  {!models
+                    ? "Loading tracker…"
+                    : phase === "processing"
+                      ? "Recognizing…"
+                      : phase === "countdown"
+                        ? "Get ready…"
+                        : "Record sign"}
                 </Button>
               )}
             </div>
@@ -262,47 +312,74 @@ export function SignRecognizer() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-[30px] rounded-[10px] bg-white px-[30px] py-[45px]">
-        <div className="flex flex-col gap-2">
-          <h3 className="font-heading text-2xl font-bold text-black">Recognized Text</h3>
-          <p className="text-sm text-grey">
-            Start the camera, press Record, sign in front of the camera, then press Stop
-            (recording stops by itself after {MAX_RECORD_MS / 1000} seconds).
-          </p>
+      {/* ===== Hasil + tips ===== */}
+      <div className="flex flex-col gap-6 lg:col-span-4">
+        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          <h2 className="font-heading text-lg font-bold text-slate-800">Recognized Text</h2>
+          <div className="mt-4">
+            {unavailable ? (
+              <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <p>
+                  The sign recognition model is not available yet. Your recording worked — it
+                  will be translated once the model server is connected.
+                </p>
+              </div>
+            ) : result ? (
+              <div className="flex flex-col gap-3 rounded-2xl bg-gradient-to-br from-[#C5FBF9] to-[#FDF5BF] p-5">
+                <p className="font-heading text-2xl font-bold text-slate-900">
+                  {result.text || "No sign recognized"}
+                </p>
+                {result.confidence != null && (
+                  <div>
+                    <div className="flex justify-between text-xs font-medium text-slate-600">
+                      <span>Confidence</span>
+                      <span>{Math.round(result.confidence * 100)}%</span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/70">
+                      <div
+                        className="h-full rounded-full bg-[#2DA5A2]"
+                        style={{ width: `${Math.round(result.confidence * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={startRecording}
+                  disabled={phase !== "idle" || !stream}
+                  className="self-start rounded-xl bg-white/70"
+                >
+                  <RotateCcw className="h-4 w-4" /> Try another sign
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-2xl border-2 border-dashed border-slate-200 px-6 py-10 text-center">
+                <p className="text-sm font-medium text-slate-500">
+                  The translation will appear here.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {unavailable ? (
-          <div className="flex gap-3 rounded-[10px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <p>
-              The sign recognition model is not available yet. Your recording worked — it
-              will be translated once the model server is connected.
-            </p>
-          </div>
-        ) : result ? (
-          <div className="flex flex-col gap-3 rounded-[10px] bg-gradient-to-r from-[#C5FBF9] to-secondary p-5">
-            <p className="font-heading text-2xl font-bold text-black">
-              {result.text || "No sign recognized"}
-            </p>
-            {result.confidence != null && (
-              <p className="text-xs font-medium text-black/60">
-                Confidence {Math.round(result.confidence * 100)}%
-              </p>
-            )}
-            <Button
-              variant="outline"
-              onClick={startRecording}
-              disabled={phase !== "idle"}
-              className="self-start rounded-lg"
-            >
-              <RotateCcw className="h-4 w-4" /> Try another sign
-            </Button>
-          </div>
-        ) : (
-          <p className="rounded-[10px] border border-dashed border-gray-200 p-6 text-center text-sm text-grey/70">
-            The translation will appear here.
-          </p>
-        )}
+        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          <h3 className="flex items-center gap-2 font-heading font-bold text-slate-800">
+            <Lightbulb className="h-5 w-5 text-amber-500" /> Tips for better results
+          </h3>
+          <ul className="mt-3 space-y-2.5 text-sm text-slate-600">
+            {[
+              "Keep both hands and your upper body in the frame",
+              "Use good, even lighting in front of you",
+              "Sign at a natural pace, then press Stop",
+            ].map((tip) => (
+              <li key={tip} className="flex gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2DA5A2]" />
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

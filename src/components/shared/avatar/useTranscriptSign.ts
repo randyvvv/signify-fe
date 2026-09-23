@@ -11,6 +11,7 @@ import { translateToPose, type PoseClip } from "./translate";
 interface YTPlayer {
   getCurrentTime(): number;
   getDuration(): number;
+  seekTo(seconds: number, allowSeekAhead?: boolean): void;
 }
 
 interface RawCue {
@@ -66,6 +67,8 @@ export interface TranscriptSign {
   cues: Cue[] | null;
   /** Indeks cue yang sedang aktif (sinkron video), -1 bila tak ada. */
   activeIdx: number;
+  /** Lompat ke detik tertentu di video (mis. klik baris transcript). */
+  seekTo: (seconds: number) => void;
 }
 
 /**
@@ -204,6 +207,14 @@ export function useTranscriptSign(videoUrl: string | null): TranscriptSign {
     return () => clearInterval(id);
   }, [playerReady, cues]);
 
+  const seekTo = useCallback((seconds: number) => {
+    try {
+      playerRef.current?.seekTo(seconds, true);
+    } catch {
+      /* player belum siap */
+    }
+  }, []);
+
   const preTranslating = progress.total > 0 && progress.done < progress.total;
   const activeClip = activeIdx >= 0 ? poses[activeIdx] ?? null : null;
   const preparing = !!videoUrl && !unavailable && (!cues || preTranslating);
@@ -218,5 +229,6 @@ export function useTranscriptSign(videoUrl: string | null): TranscriptSign {
     progress,
     cues,
     activeIdx,
+    seekTo,
   };
 }

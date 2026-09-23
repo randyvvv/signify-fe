@@ -3,7 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Link as LinkIcon, Play, Video, Hand, Loader2, BookmarkPlus } from "lucide-react";
+import {
+  BookmarkPlus,
+  Camera,
+  Captions,
+  Check,
+  ChevronLeft,
+  Hand,
+  Languages,
+  Link as LinkIcon,
+  Loader2,
+  Play,
+  Type,
+  Video,
+} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
@@ -14,6 +27,16 @@ import { SignRecognizer } from "@/components/translator/SignRecognizer";
 import { cn } from "@/lib/utils";
 
 type Mode = "to-sign" | "to-text";
+type Source = "video" | "text";
+
+const MAX_TEXT = 500;
+const QUICK_PHRASES = ["Hello", "Thank you", "How are you?", "Nice to meet you", "I love you"];
+
+function fmtTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 // react-youtube pakai window -> klien saja.
 const YouTube = dynamic(() => import("react-youtube"), { ssr: false });
@@ -77,6 +100,8 @@ function mergeCues(cues: Cue[], maxChars = 64, maxSpan = 6): Cue[] {
 
 export default function LiveTranslatorPage() {
   const [mode, setMode] = useState<Mode>("to-sign");
+  const [source, setSource] = useState<Source>("video");
+  const transcriptRef = useRef<HTMLDivElement>(null);
   const [url, setUrl] = useState("");
   const [starting, setStarting] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -258,6 +283,18 @@ export default function LiveTranslatorPage() {
     return () => clearInterval(id);
   }, [playerReady, cues]);
 
+  // Gulir transcript agar baris aktif tetap terlihat (hanya di dalam panelnya).
+  useEffect(() => {
+    const box = transcriptRef.current;
+    const el = box?.querySelector<HTMLElement>(`[data-cue="${activeIdx}"]`);
+    if (!box || !el) return;
+    const b = box.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (r.top < b.top || r.bottom > b.bottom) {
+      box.scrollTo({ top: box.scrollTop + (r.top - b.top) - b.height / 3, behavior: "smooth" });
+    }
+  }, [activeIdx]);
+
   const preTranslating = progress.total > 0 && progress.done < progress.total;
   const activeClip = videoActive && activeIdx >= 0 ? poses[activeIdx] : null;
 
@@ -273,148 +310,354 @@ export default function LiveTranslatorPage() {
       ? "Preparing…"
       : "Translating to sign language…";
 
+  const signingNow = source === "video" ? activeClip != null && videoPlaying : !!committedSign;
+  const status: { label: string; tone: string } =
+    source === "video" && preparing
+      ? { label: "Preparing", tone: "bg-amber-100 text-amber-700" }
+      : signingNow
+        ? { label: "Signing", tone: "bg-emerald-100 text-emerald-700" }
+        : source === "video" && ready && !videoPlaying
+          ? { label: "Paused", tone: "bg-slate-100 text-slate-600" }
+          : { label: "Ready", tone: "bg-teal-100 text-teal-700" };
+  const nowSigning =
+    source === "video"
+      ? activeIdx >= 0 && cues
+        ? cues[activeIdx]?.text
+        : null
+      : committedSign || null;
+
+  // Langkah progres persiapan video.
+  const steps = [
+    { label: "Fetch transcript", done: !!rawCues },
+    { label: "Translate to sign", done: !!cues && !preTranslating },
+    { label: "Ready to play", done: ready },
+  ];
+  const activeStep = steps.findIndex((s) => !s.done);
+
   return (
-    <>
-      <div className="flex flex-col gap-[30px]">
-        {/* Header */}
-        <div className="flex items-center gap-6 bg-white px-[50px] p-4">
-          <Link
-            href="/dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
-          >
-            <ChevronLeft className="h-6 w-6 text-black" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-black">Live Translator</h1>
-            <p className="text-base text-gray-500">
-              {mode === "to-sign"
-                ? "Watch a YouTube video and let the avatar translate it into sign language"
-                : "Sign in front of your camera and get the text"}
-            </p>
+    <div className="mx-auto flex max-w-[1400px] flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      {/* ===== Header ===== */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2DA5A2] via-[#1c8d8a] to-[#0B7077] p-6 text-white shadow-lg shadow-teal-900/10 md:px-8">
+        <div
+          className="absolute inset-0 opacity-15 mix-blend-overlay"
+          style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: "cover" }}
+        />
+        <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#FFE75C]/25 blur-2xl" />
+        <div className="relative flex flex-col gap-5 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              aria-label="Back to dashboard"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors hover:bg-white/25"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="font-heading text-2xl font-bold md:text-3xl">Live Translator</h1>
+              <p className="text-sm text-white/80">
+                {mode === "to-sign"
+                  ? "Turn videos and text into sign language with your avatar"
+                  : "Sign in front of your camera and get the text"}
+              </p>
+            </div>
           </div>
-          <div className="ml-auto flex rounded-[10px] bg-senary/40 p-1">
+          <div className="flex w-full rounded-2xl bg-white/15 p-1 ring-1 ring-white/20 backdrop-blur md:ml-auto md:w-auto">
             {(
               [
-                { value: "to-sign", label: "Text → Sign" },
-                { value: "to-text", label: "Sign → Text" },
+                { value: "to-sign", label: "Text → Sign", icon: Languages },
+                { value: "to-text", label: "Sign → Text", icon: Camera },
               ] as const
             ).map((m) => (
               <button
                 key={m.value}
                 onClick={() => setMode(m.value)}
                 className={cn(
-                  "rounded-lg px-4 py-2 text-sm font-semibold transition-colors",
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all md:flex-none",
                   mode === m.value
-                    ? "bg-white text-quaternary shadow-sm"
-                    : "text-grey hover:text-quaternary",
+                    ? "bg-white text-[#0B7077] shadow-sm"
+                    : "text-white/85 hover:bg-white/10",
                 )}
               >
+                <m.icon className="h-4 w-4" />
                 {m.label}
               </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {mode === "to-text" ? (
-          <SignRecognizer />
-        ) : (
-        <>
-
-        {/* Input Section */}
-        <div className="flex flex-col gap-4 bg-white px-[57px] py-[20px] rounded-[10px]">
-          <h2 className="font-heading text-2xl font-bold text-black">
-            Enter YouTube URL
-          </h2>
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-grey">
-                <LinkIcon className="w-5 h-5" />
+      {mode === "to-text" ? (
+        <SignRecognizer />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* ===== Kiri: sumber ===== */}
+          <div className="flex flex-col gap-6 lg:col-span-8">
+            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+              {/* Tab sumber */}
+              <div className="mb-5 inline-flex rounded-2xl bg-slate-100 p-1">
+                {(
+                  [
+                    { value: "video", label: "YouTube video", icon: Video },
+                    { value: "text", label: "Type text", icon: Type },
+                  ] as const
+                ).map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setSource(s.value)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+                      source === s.value
+                        ? "bg-white text-[#0B7077] shadow-sm"
+                        : "text-slate-500 hover:text-slate-700",
+                    )}
+                  >
+                    <s.icon className="h-4 w-4" />
+                    {s.label}
+                  </button>
+                ))}
               </div>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleStart()}
-                placeholder="https://www.youtube.com/watch?..."
-                className="w-full h-12 rounded-[10px] border border-gray-300 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-quinary/50"
-              />
-            </div>
-            <Button
-              onClick={handleStart}
-              disabled={starting}
-              className="h-12 bg-quinary hover:bg-quinary/90 text-white px-8 rounded-[10px] font-semibold flex items-center gap-2"
-            >
-              {starting ? "Loading..." : "Start"}{" "}
-              <Play className="w-4 h-4 fill-current" />
-            </Button>
-          </div>
-          <p className="text-base text-grey">
-            Supports YouTube videos that have captions/subtitles (including auto-captions).
-          </p>
-        </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-[30px] gap-x-[20px]">
-          {/* Video Player */}
-          <div className="lg:col-span-2 self-start bg-white pt-[35px] px-[30px] pb-[35px] rounded-[10px]">
-            <div className="bg-senary/30 rounded-[10px] aspect-video relative flex items-center justify-center overflow-hidden shadow-sm">
-              {videoId ? (
-                <YouTube
-                  videoId={videoId}
-                  className="w-full h-full"
-                  iframeClassName="w-full h-full"
-                  opts={{
-                    width: "100%",
-                    height: "100%",
-                    playerVars: { autoplay: 0 },
-                  }}
-                  onReady={onPlayerReady}
-                  onStateChange={onPlayerStateChange}
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-3 text-grey/70 px-6 text-center">
-                  <Video className="w-12 h-12" />
-                  <p className="font-medium">
-                    Enter a YouTube URL to start translating
+              {/* Kedua panel tetap di-mount supaya player YouTube tidak reset saat ganti tab. */}
+              <div className={cn(source !== "video" && "hidden")}>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <div className="relative flex-1">
+                      <LinkIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleStart()}
+                        placeholder="Paste a YouTube link, e.g. https://youtu.be/..."
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm transition-colors focus:border-[#2DA5A2] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2DA5A2]/15"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleStart}
+                      disabled={starting || preparing}
+                      className="h-12 rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-6 font-semibold text-white shadow-md shadow-teal-900/10 hover:opacity-95"
+                    >
+                      {starting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4 fill-current" />
+                      )}
+                      Translate
+                    </Button>
+                  </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                    <Captions className="h-3.5 w-3.5" />
+                    Works with videos that have captions (auto-captions included).
                   </p>
-                </div>
-              )}
 
-              {/* Loading overlay: menutup player sampai semua selesai diterjemahkan. */}
-              {preparing && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white px-8 text-center">
-                  <Loader2 className="h-10 w-10 animate-spin text-quinary" />
-                  <p className="text-lg font-semibold text-black">{prepLabel}</p>
-                  {cues && (
-                    <>
-                      <div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-gray-200">
-                        <div
-                          className="h-full rounded-full bg-quinary transition-all duration-300"
-                          style={{ width: `${percent}%` }}
-                        />
+                  {/* Player */}
+                  <div className="relative mt-5 flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                    {videoId ? (
+                      <YouTube
+                        videoId={videoId}
+                        className="h-full w-full"
+                        iframeClassName="w-full h-full"
+                        opts={{
+                          width: "100%",
+                          height: "100%",
+                          playerVars: { autoplay: 0 },
+                        }}
+                        onReady={onPlayerReady}
+                        onStateChange={onPlayerStateChange}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-3 px-6 text-center">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-[#2DA5A2] shadow-sm">
+                          <Video className="h-8 w-8" />
+                        </div>
+                        <p className="font-semibold text-slate-700">No video yet</p>
+                        <p className="max-w-xs text-sm text-slate-500">
+                          Paste a YouTube link above and the avatar will sign along with the video.
+                        </p>
                       </div>
-                      <p className="text-sm font-medium text-grey">
-                        {percent}% &middot; {progress.done}/{progress.total} segments
-                      </p>
-                    </>
-                  )}
-                  <p className="max-w-sm text-xs text-grey/70">
-                    The video & transcript will appear once the sign language translation is ready.
-                  </p>
-                </div>
-              )}
+                    )}
+
+                    {/* Overlay persiapan: menutup player sampai terjemahan siap. */}
+                    {preparing && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-white/95 px-8 text-center backdrop-blur">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#2DA5A2]" />
+                        <div>
+                          <p className="font-heading text-lg font-bold text-slate-800">{prepLabel}</p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            The video starts once the sign language translation is ready.
+                          </p>
+                        </div>
+                        <ol className="flex w-full max-w-md items-center">
+                          {steps.map((s, i) => (
+                            <li key={s.label} className="flex flex-1 items-center last:flex-none">
+                              <div className="flex flex-col items-center gap-1.5">
+                                <span
+                                  className={cn(
+                                    "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
+                                    s.done
+                                      ? "bg-[#2DA5A2] text-white"
+                                      : i === activeStep
+                                        ? "bg-teal-100 text-[#0B7077] ring-4 ring-teal-50"
+                                        : "bg-slate-100 text-slate-400",
+                                  )}
+                                >
+                                  {s.done ? <Check className="h-4 w-4" /> : i + 1}
+                                </span>
+                                <span className="whitespace-nowrap text-[11px] font-medium text-slate-500">
+                                  {s.label}
+                                </span>
+                              </div>
+                              {i < steps.length - 1 && (
+                                <span
+                                  className={cn(
+                                    "mx-2 mb-5 h-0.5 flex-1 rounded-full",
+                                    s.done ? "bg-[#2DA5A2]" : "bg-slate-200",
+                                  )}
+                                />
+                              )}
+                            </li>
+                          ))}
+                        </ol>
+                        {cues && (
+                          <div className="w-full max-w-md">
+                            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] transition-all duration-300"
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                            <p className="mt-2 text-xs font-medium text-slate-500">
+                              {percent}% · {progress.done}/{progress.total} segments
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+              </div>
+              <div className={cn("flex flex-col gap-4", source !== "text" && "hidden")}>
+                  <div className="relative">
+                    <textarea
+                      value={signText}
+                      onChange={(e) => setSignText(e.target.value.slice(0, MAX_TEXT))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSign();
+                        }
+                      }}
+                      rows={5}
+                      placeholder="Type a word or sentence, then press Sign…"
+                      className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 pb-8 text-base text-slate-800 transition-colors focus:border-[#2DA5A2] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2DA5A2]/15"
+                    />
+                    <span className="absolute bottom-3 right-4 text-xs text-slate-400">
+                      {signText.length}/{MAX_TEXT}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_PHRASES.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => {
+                          setSignText(p);
+                          setCommittedSign(p);
+                        }}
+                        className="rounded-full border border-teal-200 bg-teal-50/60 px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100"
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      onClick={handleSign}
+                      className="h-11 rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-6 font-semibold text-white shadow-md shadow-teal-900/10 hover:opacity-95"
+                    >
+                      <Hand className="h-4 w-4" /> Sign it
+                    </Button>
+                    {committedSign && (
+                      <Button
+                        variant="outline"
+                        onClick={saveToMySigns}
+                        className="h-11 rounded-xl border-slate-200 font-semibold text-slate-700"
+                      >
+                        <BookmarkPlus className="h-4 w-4" /> Save to My Signs
+                      </Button>
+                    )}
+                  </div>
+              </div>
             </div>
+
+            {/* Transcript (mode video) */}
+            {source === "video" && (
+              <div className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                  <div className="flex items-center gap-2">
+                    <Captions className="h-5 w-5 text-[#2DA5A2]" />
+                    <h2 className="font-heading font-bold text-slate-800">Transcript</h2>
+                  </div>
+                  {ready && cues && (
+                    <span className="text-xs text-slate-400">Click a line to jump there</span>
+                  )}
+                </div>
+                <div ref={transcriptRef} className="max-h-[340px] overflow-y-auto p-3">
+                  {ready && cues ? (
+                    cues.map((c, i) => (
+                      <button
+                        key={i}
+                        data-cue={i}
+                        onClick={() => playerRef.current?.seekTo(c.start, true)}
+                        className={cn(
+                          "flex w-full gap-4 rounded-xl px-3 py-2 text-left text-sm transition-colors",
+                          i === activeIdx
+                            ? "bg-teal-50 font-semibold text-slate-900"
+                            : "text-slate-600 hover:bg-slate-50",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "w-12 shrink-0 font-mono text-xs leading-5",
+                            i === activeIdx ? "text-[#0B7077]" : "text-slate-400",
+                          )}
+                        >
+                          {fmtTime(c.start)}
+                        </span>
+                        <span className="leading-5">{c.text}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-8 text-center text-sm text-slate-400">
+                      {preparing
+                        ? `${prepLabel} ${cues ? `(${percent}%)` : ""}`
+                        : "Start a video to see its transcript here."}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Column */}
-          <div className="flex bg-white py-[45px] px-[30px] rounded-[10px] flex-col gap-[30px]">
-            {/* Avatar Penerjemah */}
-            <div className="flex flex-col gap-4">
-              <h3 className="font-heading text-2xl font-bold text-black">
-                Translator Avatar
-              </h3>
-              <div className="bg-senary/30 rounded-[10px] shadow-sm aspect-square w-full">
-                {videoActive ? (
+          {/* ===== Kanan: avatar ===== */}
+          <div className="lg:col-span-4">
+            <div className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 lg:sticky lg:top-8">
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading text-lg font-bold text-slate-800">Translator Avatar</h2>
+                <span
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
+                    status.tone,
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full bg-current",
+                      status.label === "Signing" && "animate-pulse",
+                    )}
+                  />
+                  {status.label}
+                </span>
+              </div>
+              <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-b from-[#C5FBF9]/60 to-[#FDF5BF]/60">
+                {source === "video" ? (
                   <SignAvatarViewer
                     vrmUrl={avatar.vrmUrl}
                     hairColor={avatar.hairColor}
@@ -424,8 +667,8 @@ export default function LiveTranslatorPage() {
                     meta={activeClip?.meta}
                     loading={preparing}
                     playing={videoPlaying}
-                    className="w-full h-full"
-                    placeholder="Play the video to see the avatar signing"
+                    className="h-full w-full"
+                    placeholder={videoActive ? "Play the video to see the avatar signing" : ""}
                   />
                 ) : (
                   <SignAvatarViewer
@@ -434,83 +677,23 @@ export default function LiveTranslatorPage() {
                     eyeColor={avatar.eyeColor}
                     accessory={avatar.accessory}
                     text={committedSign}
-                    className="w-full h-full"
-                    placeholder="Type text then press Sign to see the avatar signing"
+                    className="h-full w-full"
+                    placeholder="Type text and press Sign it"
                   />
                 )}
               </div>
-
-              {/* Input teks manual hanya saat belum ada video. */}
-              {!videoActive && (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={signText}
-                    onChange={(e) => setSignText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSign()}
-                    placeholder="e.g. HELLO"
-                    className="flex-1 h-11 rounded-[10px] border border-gray-300 px-4 focus:outline-none focus:ring-2 focus:ring-quinary/50"
-                  />
-                  <Button
-                    onClick={handleSign}
-                    className="h-11 bg-quinary hover:bg-quinary/90 text-white px-5 rounded-[10px] font-semibold flex items-center gap-2"
-                  >
-                    <Hand className="w-4 h-4" /> Sign
-                  </Button>
-                </div>
-              )}
-              {!videoActive && committedSign && (
-                <button
-                  onClick={saveToMySigns}
-                  className="flex items-center gap-2 self-start text-sm font-medium text-quinary hover:underline"
-                >
-                  <BookmarkPlus className="h-4 w-4" /> Save &ldquo;{committedSign}&rdquo; to My Signs
-                </button>
-              )}
-            </div>
-
-            {/* Transcript */}
-            <div className="flex flex-col">
-              <div className="bg-gradient-to-r from-[#C5FBF9] to-secondary p-4 rounded-t-[10px] flex justify-between items-center">
-                <span className="font-bold text-black">Video Transcript</span>
-                {preTranslating && (
-                  <span className="text-xs font-semibold text-black/70">
-                    Translating {progress.done}/{progress.total}
-                  </span>
-                )}
-              </div>
-              <div className="bg-white border-x border-b border-gray-100 rounded-b-[10px] py-[30px] px-[24px] shadow-sm max-h-[320px] overflow-y-auto">
-                <div className="flex flex-col gap-2 text-sm text-grey leading-relaxed">
-                  {ready && cues ? (
-                    cues.map((c, i) => (
-                      <p
-                        key={i}
-                        className={
-                          i === activeIdx
-                            ? "rounded bg-quinary/10 px-1 font-semibold text-black"
-                            : ""
-                        }
-                      >
-                        {c.text}
-                      </p>
-                    ))
-                  ) : preparing ? (
-                    <p className="text-center text-grey/70">
-                      {prepLabel} {cues ? `(${percent}%)` : ""}
-                    </p>
-                  ) : (
-                    <p className="text-center text-grey/70">
-                      Start a video to show its transcript.
-                    </p>
-                  )}
-                </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Now signing
+                </p>
+                <p className="mt-0.5 line-clamp-3 text-sm font-medium text-slate-700">
+                  {nowSigning ?? "—"}
+                </p>
               </div>
             </div>
           </div>
         </div>
-        </>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }

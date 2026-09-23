@@ -2,16 +2,24 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
+	Captions,
+	CheckCircle2,
 	ChevronLeft,
 	ChevronRight,
-	FileText,
-	Link2,
 	Clock,
-	CheckCircle2,
-	MessageCircle,
-	X,
+	ExternalLink,
+	FileText,
+	Globe,
+	GripHorizontal,
 	Hand,
+	Link2,
+	Loader2,
+	MessageCircle,
+	SearchX,
 	SendHorizontal,
+	Video,
+	X,
+	type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,6 +28,7 @@ import Draggable from "react-draggable";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
@@ -68,8 +77,6 @@ interface RecMaterial {
 }
 
 const MATERIAL_IMAGE_FALLBACK = "/learning-materials/image-not-found.png";
-const IMAGE_INNER_SHADOW =
-	"pointer-events-none absolute inset-0 z-10 shadow-[inset_0_0_8px_rgba(0,0,0,0.25)]";
 
 function normalizeContentPages(content: Material["content"]): string[] {
 	const values = Array.isArray(content) ? content : content ? [content] : [];
@@ -253,6 +260,162 @@ function MarkdownContent({ content }: { content: string }) {
 	return <div className="space-y-5 text-gray-700">{blocks}</div>;
 }
 
+const TYPE_META: Record<Material["type"], { icon: LucideIcon; label: string }> = {
+	video: { icon: Video, label: "Video" },
+	article: { icon: Globe, label: "Article" },
+	document: { icon: FileText, label: "Document" },
+};
+
+function metaLabel(m: Material) {
+	if (m.type === "document") return `${m.pages ?? "?"} pages`;
+	if (m.type === "article") return `${m.durationMinutes ?? "?"} min read`;
+	return `${m.durationMinutes ?? "?"} min`;
+}
+
+function fmtTime(seconds: number): string {
+	const m = Math.floor(seconds / 60);
+	const s = Math.floor(seconds % 60);
+	return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+const CARD = "rounded-3xl bg-white shadow-sm ring-1 ring-slate-100";
+
+// Judul + meta materi (tipe, durasi, kategori, deskripsi).
+function MaterialHeader({ material, onImage = false }: { material: Material; onImage?: boolean }) {
+	const type = TYPE_META[material.type];
+	return (
+		<div>
+			<div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+				<span
+					className={cn(
+						"flex items-center gap-1.5 rounded-full px-2.5 py-1",
+						onImage ? "bg-white/90 text-slate-700" : "bg-teal-50 text-[#0B7077]",
+					)}
+				>
+					<type.icon className="h-3.5 w-3.5" /> {type.label}
+				</span>
+				<span
+					className={cn(
+						"rounded-full px-2.5 py-1",
+						onImage ? "bg-white/20 text-white backdrop-blur" : "bg-slate-100 text-slate-600",
+					)}
+				>
+					{material.category}
+				</span>
+				<span className={cn("flex items-center gap-1", onImage ? "text-white/85" : "text-slate-500")}>
+					<Clock className="h-3.5 w-3.5" /> {metaLabel(material)}
+				</span>
+			</div>
+			<h1
+				className={cn(
+					"mt-3 font-heading text-2xl font-bold leading-tight md:text-3xl",
+					onImage ? "text-white drop-shadow" : "text-slate-800",
+				)}
+			>
+				{material.title}
+			</h1>
+			{material.description && (
+				<p className={cn("mt-2 max-w-3xl", onImage ? "text-white/85" : "text-slate-500")}>
+					{material.description}
+				</p>
+			)}
+		</div>
+	);
+}
+
+// Banner bergambar untuk dokumen & artikel.
+function ImageBanner({ material }: { material: Material }) {
+	return (
+		<div className="relative overflow-hidden rounded-3xl shadow-sm">
+			<div className="relative h-64 md:h-72">
+				<Image
+					src={material.thumbnailUrl || MATERIAL_IMAGE_FALLBACK}
+					alt={material.title}
+					fill
+					priority
+					className="object-cover"
+				/>
+				<div className="absolute inset-0 bg-gradient-to-t from-[#0B3F42]/90 via-[#0B3F42]/40 to-transparent" />
+			</div>
+			<div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+				<MaterialHeader material={material} onImage />
+			</div>
+		</div>
+	);
+}
+
+function ProgressCard({
+	material,
+	marking,
+	onComplete,
+}: {
+	material: Material;
+	marking: boolean;
+	onComplete: () => void;
+}) {
+	const done = material.progress >= 100;
+	return (
+		<div className={cn(CARD, "p-6")}>
+			<div className="flex items-center justify-between">
+				<h2 className="font-heading text-lg font-bold text-slate-800">Your progress</h2>
+				<span className="font-heading text-2xl font-bold text-[#0B7077]">
+					{material.progress}%
+				</span>
+			</div>
+			<div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100">
+				<div
+					className={cn(
+						"h-full rounded-full transition-all duration-700",
+						done ? "bg-emerald-500" : "bg-gradient-to-r from-[#2DA5A2] to-[#0B7077]",
+					)}
+					style={{ width: `${Math.min(100, material.progress)}%` }}
+				/>
+			</div>
+			{done ? (
+				<div className="mt-5 flex items-center gap-3 rounded-2xl bg-emerald-50 p-3 text-emerald-700">
+					<CheckCircle2 className="h-6 w-6 shrink-0" />
+					<div className="leading-tight">
+						<p className="text-sm font-bold">Completed</p>
+						<p className="text-xs text-emerald-600">Nice work — keep your streak going!</p>
+					</div>
+				</div>
+			) : (
+				<Button
+					onClick={onComplete}
+					disabled={marking}
+					className="mt-5 h-11 w-full rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] font-semibold text-white shadow-md shadow-teal-900/10 hover:opacity-95"
+				>
+					{marking ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<CheckCircle2 className="h-4 w-4" />
+					)}
+					{marking ? "Saving..." : "Mark as complete"}
+				</Button>
+			)}
+			<p className="mt-3 text-center text-xs text-slate-400">
+				Finishing a material adds to your streak and learning time.
+			</p>
+		</div>
+	);
+}
+
+function DetailSkeleton() {
+	const block = "animate-pulse rounded-3xl bg-slate-200/70";
+	return (
+		<div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-6 lg:grid-cols-12" aria-busy="true">
+			<div className="space-y-6 lg:col-span-8">
+				<div className={`aspect-video ${block}`} />
+				<div className={`h-32 ${block}`} />
+			</div>
+			<div className="space-y-6 lg:col-span-4">
+				<div className={`h-44 ${block}`} />
+				<div className={`h-72 ${block}`} />
+			</div>
+		</div>
+	);
+}
+
 export default function MaterialDetailPage() {
 	const params = useParams();
 	const materialId = params.id as string;
@@ -298,101 +461,61 @@ export default function MaterialDetailPage() {
 		}
 	};
 
-	if (loading) {
-		return (
-			<>
-				<div className="flex items-center justify-center min-h-[50vh] text-gray-400">
-					Loading...
-				</div>
-			</>
-		);
-	}
+	if (loading) return <DetailSkeleton />;
 
 	if (notFound || !material) {
 		return (
-			<>
-				<div className="flex items-center justify-center min-h-[50vh]">
-					<p className="text-gray-500">Material not found</p>
+			<div className={cn(CARD, "mx-auto flex max-w-lg flex-col items-center gap-3 px-6 py-16 text-center")}>
+				<div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+					<SearchX className="h-8 w-8" />
 				</div>
-			</>
+				<p className="font-heading text-lg font-bold text-slate-700">Material not found</p>
+				<p className="text-sm text-slate-500">It may have been moved or removed.</p>
+				<Link
+					href="/learning-materials"
+					className="mt-2 rounded-full bg-[#0B7077] px-5 py-2 text-sm font-semibold text-white hover:bg-[#095d63]"
+				>
+					Browse materials
+				</Link>
+			</div>
 		);
 	}
 
 	return (
 		<>
-			<div className="flex flex-col">
-				{/* Header */}
-				<div className="flex items-center gap-4 bg-white p-4 shadow-sm mb-4">
+			<div className="mx-auto flex max-w-[1400px] flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+				{/* Breadcrumb */}
+				<div className="flex items-center gap-3">
 					<Link
 						href="/learning-materials"
-						className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+						aria-label="Back to learning materials"
+						className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-100 transition-colors hover:bg-slate-50"
 					>
-						<ChevronLeft className="h-6 w-6 text-quaternary" />
+						<ChevronLeft className="h-5 w-5" />
 					</Link>
-					<div>
-						<h1 className="text-xl font-bold text-quaternary">
+					<nav className="flex min-w-0 items-center gap-1.5 text-sm">
+						<Link href="/learning-materials" className="shrink-0 font-medium text-slate-500 hover:text-[#0B7077]">
 							Learning Materials
-						</h1>
-						<p className="text-sm text-grey">{material.title}</p>
-					</div>
+						</Link>
+						<ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+						<span className="shrink-0 text-slate-500">{material.category}</span>
+						<ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+						<span className="truncate font-semibold text-slate-800">{material.title}</span>
+					</nav>
 				</div>
 
-				<div className="bg-white shadow-sm mb-4 p-6">
-					<div className="flex gap-6">
-						{/* Left Column - Main Content */}
-						<div className="flex-1 min-w-0">
-							{/* Progress / complete */}
-							<div className="mb-4 flex items-center justify-between rounded-xl bg-gray-50 p-3">
-								<div className="flex items-center gap-3">
-									<span className="text-sm text-gray-500">
-										Progress
-									</span>
-									<div className="h-2 w-40 rounded-full bg-gray-200">
-										<div
-											className="h-full rounded-full bg-quinary"
-											style={{
-												width: `${material.progress}%`,
-											}}
-										/>
-									</div>
-									<span className="text-sm font-medium text-gray-700">
-										{material.progress}%
-									</span>
-								</div>
-								{material.progress >= 100 ? (
-									<span className="flex items-center gap-1 text-sm font-medium text-teal-600">
-										<CheckCircle2 className="h-4 w-4" />{" "}
-										Completed
-									</span>
-								) : (
-									<Button
-										onClick={markComplete}
-										disabled={marking}
-										className="bg-quinary text-white hover:bg-quinary/90"
-									>
-										{marking
-											? "Saving..."
-											: "Mark as complete"}
-									</Button>
-								)}
-							</div>
-
-							{material.type === "video" && (
-								<VideoLayout material={material} />
-							)}
-							{material.type === "document" && (
-								<DocumentLayout material={material} />
-							)}
-							{material.type === "article" && (
-								<ArticleLayout material={material} />
-							)}
-						</div>
-
-						{/* Right Column - Sidebar */}
-						<div className="hidden max-h-[calc(100vh-8rem)] w-72 shrink-0 flex-col gap-4 overflow-y-auto pr-1 lg:sticky lg:top-8 lg:flex">
-							<RecommendedMaterials recs={recs} />
-						</div>
+				<div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+					<div className="flex min-w-0 flex-col gap-6 lg:col-span-8">
+						{material.type === "video" && <VideoLayout material={material} />}
+						{/* key: halaman kembali ke 1 saat pindah materi */}
+						{material.type === "document" && <DocumentLayout key={material.id} material={material} />}
+						{material.type === "article" && <ArticleLayout material={material} />}
 					</div>
+
+					<aside className="flex flex-col gap-6 self-start lg:sticky lg:top-8 lg:col-span-4">
+						<ProgressCard material={material} marking={marking} onComplete={markComplete} />
+						<RecommendedMaterials recs={recs} />
+					</aside>
 				</div>
 			</div>
 
@@ -404,6 +527,7 @@ export default function MaterialDetailPage() {
 
 function VideoLayout({ material }: { material: Material }) {
 	const nodeRef = useRef<HTMLDivElement>(null);
+	const transcriptRef = useRef<HTMLDivElement>(null);
 	const avatar = useEquippedAvatar();
 	const rawSrc =
 		material.videoUrl || "https://www.youtube.com/embed/v1desDduz5M";
@@ -413,17 +537,36 @@ function VideoLayout({ material }: { material: Material }) {
 	// fallback ke gerak acak. Keduanya berhenti saat video di-pause.
 	const sign = useTranscriptSign(videoId ? rawSrc : null);
 
-	return (
-		<div className="space-y-4">
-			<h2 className="text-xl font-bold text-gray-900">
-				{material.title}
-			</h2>
+	// Gulir transcript agar baris aktif tetap terlihat (hanya di dalam panelnya).
+	useEffect(() => {
+		const box = transcriptRef.current;
+		const el = box?.querySelector<HTMLElement>(`[data-cue="${sign.activeIdx}"]`);
+		if (!box || !el) return;
+		const b = box.getBoundingClientRect();
+		const r = el.getBoundingClientRect();
+		if (r.top < b.top || r.bottom > b.bottom) {
+			box.scrollTo({ top: box.scrollTop + (r.top - b.top) - b.height / 3, behavior: "smooth" });
+		}
+	}, [sign.activeIdx]);
 
-			<div className="relative rounded-2xl overflow-hidden aspect-video shadow-lg">
+	const signStatus = sign.unavailable
+		? { label: "No captions — avatar moves freely", tone: "bg-slate-100 text-slate-600" }
+		: sign.preparing
+			? {
+					label: sign.progress.total
+						? `Preparing signs ${sign.progress.done}/${sign.progress.total}`
+						: "Preparing signs…",
+					tone: "bg-amber-100 text-amber-700",
+				}
+			: { label: "Avatar is ready", tone: "bg-emerald-100 text-emerald-700" };
+
+	return (
+		<>
+			<div className="relative aspect-video overflow-hidden rounded-3xl bg-black shadow-lg shadow-slate-900/10">
 				{videoId ? (
 					<YouTube
 						videoId={videoId}
-						className="w-full h-full"
+						className="h-full w-full"
 						iframeClassName="w-full h-full"
 						opts={{
 							width: "100%",
@@ -439,17 +582,13 @@ function VideoLayout({ material }: { material: Material }) {
 						title={material.title}
 						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 						allowFullScreen
-						className="w-full h-full"
+						className="h-full w-full"
 					/>
 				)}
-				<Draggable
-					bounds="parent"
-					defaultPosition={{ x: 0, y: 0 }}
-					nodeRef={nodeRef}
-				>
+				<Draggable bounds="parent" defaultPosition={{ x: 0, y: 0 }} nodeRef={nodeRef}>
 					<div
 						ref={nodeRef}
-						className="absolute top-4 right-4 w-36 h-44 rounded-xl overflow-hidden shadow-lg bg-senary/30 cursor-move z-10 border-2 border-white/50"
+						className="group absolute right-4 top-4 z-10 h-44 w-36 cursor-move overflow-hidden rounded-2xl bg-gradient-to-b from-[#C5FBF9] to-[#FDF5BF] shadow-xl ring-2 ring-white/80"
 					>
 						{/* Avatar VRM: berisyarat mengikuti transcript video; bila video
 						    tak punya caption -> gerak acak. Diam saat video di-pause. */}
@@ -462,54 +601,67 @@ function VideoLayout({ material }: { material: Material }) {
 							meta={sign.activeClip?.meta}
 							playing={sign.videoPlaying}
 							randomMotion={sign.unavailable}
-							className="w-full h-full pointer-events-none"
+							className="pointer-events-none h-full w-full"
 							placeholder=""
 						/>
+						<span className="pointer-events-none absolute inset-x-0 top-1.5 flex justify-center opacity-0 transition-opacity group-hover:opacity-100">
+							<span className="flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-semibold text-white">
+								<GripHorizontal className="h-3 w-3" /> Drag
+							</span>
+						</span>
 					</div>
 				</Draggable>
 			</div>
 
-			<div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-				<div
-					className="flex items-center justify-between px-5 py-4"
-					style={{
-						background:
-							"linear-gradient(90deg, #C5FBF9 0%, #FDF5BF 100%)",
-					}}
-				>
-					<h3 className="font-semibold text-gray-800">
-						Video Transcript
-					</h3>
-					{sign.preparing && (
-						<span className="text-xs font-medium text-gray-500">
-							Loading…
-						</span>
-					)}
+			<div className={cn(CARD, "p-6")}>
+				<MaterialHeader material={material} />
+			</div>
+
+			<div className={cn(CARD, "flex flex-col overflow-hidden")}>
+				<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+					<div className="flex items-center gap-2">
+						<Captions className="h-5 w-5 text-[#2DA5A2]" />
+						<h2 className="font-heading font-bold text-slate-800">Transcript</h2>
+					</div>
+					<span className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", signStatus.tone)}>
+						{signStatus.label}
+					</span>
 				</div>
-				<div className="px-6 py-4 space-y-2 text-gray-700 leading-relaxed max-h-80 overflow-y-auto">
+				<div ref={transcriptRef} className="max-h-80 overflow-y-auto p-3">
 					{sign.cues && sign.cues.length > 0 ? (
 						sign.cues.map((c, idx) => (
-							<p
+							<button
 								key={idx}
-								className={
+								data-cue={idx}
+								onClick={() => sign.seekTo(c.start)}
+								className={cn(
+									"flex w-full gap-4 rounded-xl px-3 py-2 text-left text-sm transition-colors",
 									idx === sign.activeIdx
-										? "rounded bg-quinary/10 px-1 font-semibold text-black"
-										: ""
-								}
+										? "bg-teal-50 font-semibold text-slate-900"
+										: "text-slate-600 hover:bg-slate-50",
+								)}
 							>
-								{c.text}
-							</p>
+								<span
+									className={cn(
+										"w-12 shrink-0 font-mono text-xs leading-5",
+										idx === sign.activeIdx ? "text-[#0B7077]" : "text-slate-400",
+									)}
+								>
+									{fmtTime(c.start)}
+								</span>
+								<span className="leading-5">{c.text}</span>
+							</button>
 						))
-					) : sign.preparing ? (
-						<p className="text-gray-400">Loading transcript…</p>
 					) : (
-						<p className="text-gray-400">
-							Transcript is not available for this video.
+						<p className="px-3 py-8 text-center text-sm text-slate-400">
+							{sign.preparing
+								? "Loading transcript…"
+								: "Transcript is not available for this video."}
 						</p>
 					)}
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
@@ -518,84 +670,77 @@ function DocumentLayout({ material }: { material: Material }) {
 	const contentPages = normalizeContentPages(material.content);
 	const pageCount = contentPages.length;
 	const pageContent = contentPages[currentPage] ?? "";
+	const readerRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
-		setCurrentPage(0);
-	}, [material.id]);
+	const goTo = (page: number) => {
+		setCurrentPage(Math.min(Math.max(page, 0), pageCount - 1));
+		readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+	};
 
 	return (
-		<div className="space-y-4">
-			<div className="relative h-56 rounded-2xl overflow-hidden">
-				<Image
-					src={material.thumbnailUrl || MATERIAL_IMAGE_FALLBACK}
-					alt={material.title}
-					fill
-					className="object-cover"
-				/>
-				<div className={`${IMAGE_INNER_SHADOW} rounded-2xl`} />
+		<>
+			<ImageBanner material={material} />
+
+			<div ref={readerRef} className={cn(CARD, "scroll-mt-8 overflow-hidden")}>
+				{pageCount > 0 ? (
+					<>
+						<div className="h-1 bg-slate-100">
+							<div
+								className="h-full bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] transition-all duration-500"
+								style={{ width: `${((currentPage + 1) / pageCount) * 100}%` }}
+							/>
+						</div>
+						<div className="flex items-center justify-between px-6 pt-5 text-xs font-semibold uppercase tracking-wide text-slate-400 md:px-10">
+							<span>
+								Page {currentPage + 1} of {pageCount}
+							</span>
+							<span>{Math.round(((currentPage + 1) / pageCount) * 100)}% read</span>
+						</div>
+						<div key={currentPage} className="min-h-60 px-6 py-6 animate-in fade-in duration-300 md:px-10 md:py-8">
+							<MarkdownContent content={pageContent} />
+						</div>
+						<div className="flex items-center justify-between gap-3 border-t border-slate-100 px-6 py-4 md:px-10">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => goTo(currentPage - 1)}
+								disabled={currentPage === 0}
+								className="gap-2 rounded-xl"
+							>
+								<ChevronLeft className="h-4 w-4" />
+								Previous
+							</Button>
+							{pageCount <= 12 && (
+								<div className="hidden items-center gap-1.5 sm:flex">
+									{contentPages.map((_, i) => (
+										<button
+											key={i}
+											onClick={() => goTo(i)}
+											aria-label={`Go to page ${i + 1}`}
+											className={cn(
+												"h-2 rounded-full transition-all",
+												i === currentPage ? "w-6 bg-[#0B7077]" : "w-2 bg-slate-200 hover:bg-slate-300",
+											)}
+										/>
+									))}
+								</div>
+							)}
+							<Button
+								type="button"
+								onClick={() => goTo(currentPage + 1)}
+								disabled={currentPage >= pageCount - 1}
+								className="gap-2 rounded-xl bg-[#0B7077] text-white hover:bg-[#095d63]"
+							>
+								Next
+								<ChevronRight className="h-4 w-4" />
+							</Button>
+						</div>
+					</>
+				) : (
+					<p className="px-6 py-12 text-center text-slate-400">No document content available.</p>
+				)}
 			</div>
-			<div>
-				<h2 className="text-xl font-bold text-gray-900 mb-3">
-					{material.title}
-				</h2>
-				<div className="flex items-center gap-3 mb-6">
-					<div className="flex items-center gap-1 text-sm text-gray-500">
-						<FileText className="h-4 w-4" />
-						<span>{material.pages ?? "?"} pages</span>
-					</div>
-					<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-600">
-						<Link2 className="h-3 w-3" />
-						{material.category}
-					</span>
-				</div>
-				<div className="rounded-2xl border border-gray-100 bg-white p-6">
-					{pageCount > 0 ? (
-						<>
-							<div className="min-h-40">
-								<MarkdownContent content={pageContent} />
-							</div>
-							<div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() =>
-										setCurrentPage((page) =>
-											Math.max(page - 1, 0),
-										)
-									}
-									disabled={currentPage === 0}
-									className="gap-2"
-								>
-									<ChevronLeft className="h-4 w-4" />
-									Previous
-								</Button>
-								<span className="text-sm font-medium text-gray-600">
-									Page {currentPage + 1} of {pageCount}
-								</span>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() =>
-										setCurrentPage((page) =>
-											Math.min(page + 1, pageCount - 1),
-										)
-									}
-									disabled={currentPage >= pageCount - 1}
-									className="gap-2"
-								>
-									Next
-									<ChevronRight className="h-4 w-4" />
-								</Button>
-							</div>
-						</>
-					) : (
-						<p className="text-gray-400">
-							No document content available.
-						</p>
-					)}
-				</div>
-			</div>
-		</div>
+		</>
 	);
 }
 
@@ -603,58 +748,39 @@ function ArticleLayout({ material }: { material: Material }) {
 	const paragraphs = normalizeContentPages(material.content);
 
 	return (
-		<div className="space-y-4">
+		<>
+			<ImageBanner material={material} />
+
 			{material.articleUrl && (
-				<div className="flex items-center gap-3 bg-white rounded-full border border-gray-200 px-4 py-3 shadow-sm">
-					<Link2 className="h-5 w-5 shrink-0 text-gray-400" />
-					<span className="text-gray-600 text-sm truncate">
-						{material.articleUrl}
-					</span>
-				</div>
+				<a
+					href={material.articleUrl}
+					target="_blank"
+					rel="noreferrer"
+					className={cn(CARD, "group flex items-center gap-3 px-5 py-4 transition-shadow hover:shadow-md")}
+				>
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-[#0B7077]">
+						<Link2 className="h-5 w-5" />
+					</div>
+					<div className="min-w-0 flex-1">
+						<p className="text-sm font-semibold text-slate-800">Read the original article</p>
+						<p className="truncate text-xs text-slate-500">{material.articleUrl}</p>
+					</div>
+					<ExternalLink className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[#0B7077]" />
+				</a>
 			)}
-			<div className="border border-gray-100 rounded-2xl overflow-hidden">
-				<div className="relative h-56">
-					<Image
-						src={material.thumbnailUrl || MATERIAL_IMAGE_FALLBACK}
-						alt={material.title}
-						fill
-						className="object-cover"
-					/>
-					<div className={IMAGE_INNER_SHADOW} />
+
+			<article className={cn(CARD, "px-6 py-8 md:px-10 md:py-10")}>
+				<div className="mx-auto max-w-3xl space-y-8 text-[15px]">
+					{paragraphs.length > 0 ? (
+						paragraphs.map((paragraph, index) => (
+							<MarkdownContent key={index} content={paragraph} />
+						))
+					) : (
+						<p className="text-center text-slate-400">No article content available.</p>
+					)}
 				</div>
-				<div className="p-6">
-					<h2 className="text-xl font-bold text-gray-900 mb-3">
-						{material.title}
-					</h2>
-					<div className="flex items-center gap-3 mb-6">
-						<div className="flex items-center gap-1 text-sm text-gray-500">
-							<Clock className="h-4 w-4" />
-							<span>
-								{material.durationMinutes ?? "?"} min read
-							</span>
-						</div>
-						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-600">
-							<Link2 className="h-3 w-3" />
-							{material.category}
-						</span>
-					</div>
-					<div className="space-y-8">
-						{paragraphs.length > 0 ? (
-							paragraphs.map((paragraph, index) => (
-								<MarkdownContent
-									key={index}
-									content={paragraph}
-								/>
-							))
-						) : (
-							<p className="text-gray-400">
-								No article content available.
-							</p>
-						)}
-					</div>
-				</div>
-			</div>
-		</div>
+			</article>
+		</>
 	);
 }
 
@@ -986,40 +1112,31 @@ function FloatingChat({ materialId }: { materialId: string }) {
 function RecommendedMaterials({ recs }: { recs: RecMaterial[] }) {
 	if (recs.length === 0) return null;
 	return (
-		<div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-			<h3 className="font-semibold text-gray-900 mb-4">
-				Recommended Materials
-			</h3>
-			<div className="space-y-4">
+		<div className={cn(CARD, "p-5")}>
+			<h3 className="mb-4 font-heading text-lg font-bold text-slate-800">Up next</h3>
+			<div className="space-y-2">
 				{recs.map((rec) => (
 					<Link
 						key={rec.id}
 						href={`/learning-materials/${rec.id}`}
-						className="flex gap-3 group"
+						className="group flex gap-3 rounded-2xl p-2 transition-colors hover:bg-slate-50"
 					>
-						<div className="relative w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-gray-900">
+						<div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
 							<Image
 								src={rec.thumbnailUrl || MATERIAL_IMAGE_FALLBACK}
 								alt={rec.title}
 								fill
-								className="object-cover"
+								className="object-cover transition-transform duration-500 group-hover:scale-105"
 							/>
-							<div className={`${IMAGE_INNER_SHADOW} rounded-lg`} />
 						</div>
-						<div className="flex-1 min-w-0">
-							<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-600">
-								<Link2 className="h-2.5 w-2.5" />
-								{rec.category}
-							</span>
-							<h4 className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-quaternary transition-colors">
+						<div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+							<h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800 transition-colors group-hover:text-[#0B7077]">
 								{rec.title}
 							</h4>
-							<div className="flex items-center gap-1 text-xs text-gray-500">
-								<FileText className="h-3 w-3" />
+							<div className="flex items-center gap-2 text-xs text-slate-500">
+								<span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium">{rec.category}</span>
 								<span>
-									{rec.pages
-										? `${rec.pages} pages`
-										: `${rec.durationMinutes ?? "?"} min`}
+									{rec.pages ? `${rec.pages} pages` : `${rec.durationMinutes ?? "?"} min`}
 								</span>
 							</div>
 						</div>
