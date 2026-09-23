@@ -53,6 +53,65 @@ async function request<T>(
   return data as T;
 }
 
+/**
+ * POST yang responsnya Server-Sent Events. Tiap event `data:` (JSON) diteruskan
+ * ke `onEvent`. Error HTTP sebelum stream dimulai dilempar sebagai ApiError.
+ */
+export async function streamPost<E>(
+  path: string,
+  body: unknown,
+  onEvent: (event: E) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => "");
+    let data: { error?: string; code?: string } | null = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      /* bukan JSON */
+    }
+    throw new ApiError(res.status, data?.error || res.statusText || "Request failed", data?.code);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+    let sep: number;
+    while ((sep = buffer.indexOf("\n\n")) >= 0) {
+      const chunk = buffer.slice(0, sep);
+      buffer = buffer.slice(sep + 2);
+      const data = chunk
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trimStart())
+        .join("\n");
+      if (!data) continue;
+      try {
+        onEvent(JSON.parse(data) as E);
+      } catch {
+        /* abaikan event rusak */
+      }
+    }
+  }
+}
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),

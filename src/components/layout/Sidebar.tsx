@@ -20,6 +20,7 @@ import {
 	Menu,
 	Settings,
 	ShoppingBag,
+	Sparkles,
 	X,
 	type LucideIcon,
 } from "lucide-react";
@@ -38,6 +39,8 @@ interface NavItem {
 	href: string;
 	label: string;
 	icon: LucideIcon;
+	/** Label kecil di samping menu, mis. "AI". */
+	tag?: string;
 }
 
 const navSections: { title: string; items: NavItem[] }[] = [
@@ -45,6 +48,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
 		title: "Learn",
 		items: [
 			{ href: "/dashboard", label: "Dashboard", icon: Grid2X2 },
+			{ href: "/coach", label: "Signify Coach", icon: Sparkles, tag: "AI" },
 			{ href: "/learning-materials", label: "Learning Materials", icon: BookOpen },
 			{ href: "/quizzes", label: "Quizzes", icon: ListChecks },
 		],
@@ -115,6 +119,23 @@ function NavLink({
 				)}
 			/>
 			{!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
+			{item.tag &&
+				(isCollapsed ? (
+					<span className="absolute -right-0.5 top-0.5 rounded bg-gradient-to-r from-[#6632FF] to-[#2DA5A2] px-1 text-[8px] font-bold leading-3 text-white ring-2 ring-white">
+						{item.tag}
+					</span>
+				) : (
+					<span
+						className={cn(
+							"rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none tracking-wider",
+							isActive
+								? "bg-white/25 text-white"
+								: "bg-gradient-to-r from-[#6632FF] to-[#2DA5A2] text-white shadow-sm",
+						)}
+					>
+						{item.tag}
+					</span>
+				))}
 			{!!badge &&
 				(isCollapsed ? (
 					<span className="absolute right-2.5 top-1.5 h-2 w-2 rounded-full bg-[#DF5D73] ring-2 ring-white" />

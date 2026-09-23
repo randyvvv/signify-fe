@@ -36,7 +36,7 @@ type Rating = "again" | "hard" | "good" | "easy";
 interface VocabItem {
   id: string;
   word: string;
-  source: "practice" | "quiz" | "translator" | "manual";
+  source: "practice" | "quiz" | "translator" | "manual" | "coach";
   intervalDays: number;
   repetitions: number;
   dueDate: string;
@@ -108,6 +108,7 @@ const SOURCE_LABEL: Record<VocabItem["source"], string> = {
   quiz: "Quiz",
   translator: "Translator",
   manual: "Added",
+  coach: "Signify Coach",
 };
 
 const SIGN_LANGUAGE_LABEL: Record<string, string> = { ase: "ASL" };
