@@ -14,6 +14,13 @@ interface Preferences {
   soundEffects: boolean;
   autoplay: boolean;
   language: string;
+  signLanguage: string;
+}
+
+interface SignLanguageInfo {
+  code: string;
+  name: string;
+  signGpt: boolean;
 }
 
 const LANGUAGES: { value: string; label: string }[] = [
@@ -52,6 +59,7 @@ export default function SettingsPage() {
   const { logout } = useAuth();
 
   const [prefs, setPrefs] = useState<Preferences | null>(null);
+  const [signLanguages, setSignLanguages] = useState<SignLanguageInfo[]>([]);
 
   // change-password form
   const [showPwd, setShowPwd] = useState(false);
@@ -64,6 +72,10 @@ export default function SettingsPage() {
       .get<Preferences>("/api/me/preferences")
       .then(setPrefs)
       .catch(() => toast.error("Gagal memuat preferensi"));
+    api
+      .get<{ languages: SignLanguageInfo[] }>("/api/signs/languages")
+      .then((res) => setSignLanguages(res.languages))
+      .catch(() => {});
   }, []);
 
   const updatePref = async (patch: Partial<Preferences>) => {
@@ -167,6 +179,48 @@ export default function SettingsPage() {
                   onClick={() => updatePref({ autoplay: !prefs?.autoplay })}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Sign Language */}
+          <div className="rounded-xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-black">Sign Language</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-4 p-3">
+                <div>
+                  <p className="font-medium text-black">Avatar sign language</p>
+                  <p className="text-sm text-grey">
+                    Used by the avatar in the translator, practice, quizzes and My Signs
+                  </p>
+                </div>
+                <select
+                  value={prefs?.signLanguage ?? "ase"}
+                  onChange={(e) => updatePref({ signLanguage: e.target.value })}
+                  className="rounded-lg border border-gray-200 bg-white p-2 text-sm text-grey focus:outline-none focus:ring-2 focus:ring-quinary/20"
+                >
+                  {(signLanguages.length
+                    ? signLanguages
+                    : [{ code: "ase", name: "American Sign Language (ASL)", signGpt: true }]
+                  ).map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {signLanguages.find((l) => l.code === prefs?.signLanguage && !l.signGpt) && (
+                <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-quaternary">
+                  This language only uses signs from the Signify dictionary. Words
+                  that are not in the dictionary yet cannot be signed by the avatar.
+                </p>
+              )}
+              <Link
+                href="/sign-dictionary"
+                className="flex items-center justify-between rounded-lg p-3 hover:bg-gray-50"
+              >
+                <span className="font-medium text-black">Sign Dictionary</span>
+                <ChevronRight className="h-5 w-5 text-grey" />
+              </Link>
             </div>
           </div>
 

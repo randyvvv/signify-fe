@@ -8,6 +8,7 @@ import {
 	Briefcase,
 	Building2,
 	XCircle,
+	Circle,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,21 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
+import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
+import {
+	PASS_SCORE,
+	referenceFeatures,
+	scoreSign,
+	type Point2,
+} from "@/components/shared/avatar/signScore";
+
+// Durasi rekaman: ikuti panjang klip referensi, dibatasi 2..6 detik.
+const COUNTDOWN_SECONDS = 3;
+function recordSeconds(clip: PoseClip | null): number {
+	if (!clip || !clip.frames.length) return 3;
+	const secs = clip.frames.length / (clip.meta.fps || 25) + 0.5;
+	return Math.min(6, Math.max(2, secs));
+}
 
 // Kata-kata yang diperagakan avatar per kategori (FE-only, untuk demo).
 const WORDS: Record<string, string[]> = {
@@ -80,8 +96,16 @@ export default function SignPracticePage() {
 	// Waktu mulai sesi (untuk durasi).
 	const practiceStartRef = useRef<number>(0);
 
-	// Apakah tangan terdeteksi untuk kata yang sedang aktif? Direset tiap ganti kata.
-	const handSeenRef = useRef(false);
+	// Rekaman tangan untuk kata aktif: per frame, daftar tangan (21 titik).
+	const recordingRef = useRef(false);
+	const recordedRef = useRef<Point2[][][]>([]);
+	const [recordPhase, setRecordPhase] = useState<"idle" | "countdown" | "recording">("idle");
+	const [countdown, setCountdown] = useState(0);
+	const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+	const clearTimers = () => {
+		timersRef.current.forEach((t) => clearTimeout(t));
+		timersRef.current = [];
+	};
 
 	// Avatar VRM + kustomisasi user (sama dengan shop & live-translator).
 	const avatar = useEquippedAvatar();
@@ -128,7 +152,11 @@ export default function SignPracticePage() {
 		}
 		setIsPracticeActive(false);
 
-		// Simpan hasil sesi (placeholder skor — scoring real menyusul).
+		clearTimers();
+		recordingRef.current = false;
+		setRecordPhase("idle");
+
+		// Simpan hasil sesi: skor per kata yang sudah direkam.
 		const durationSeconds = practiceStartRef.current
 			? Math.round((nowMs() - practiceStartRef.current) / 1000)
 			: 0;
@@ -136,23 +164,27 @@ export default function SignPracticePage() {
 			.post("/api/sign-practice/sessions", {
 				category: selectedCategory,
 				goalWord: currentWord,
-				completedCount: doneCount,
 				totalCount: practiceWords.length,
-				accuracy,
+				attempts: Object.entries(scores).map(([i, score]) => ({
+					word: practiceWords[Number(i)],
+					score,
+				})),
 				durationSeconds,
 			})
-			.then(() => {
-				toast.success("Practice session saved");
+			.then((res) => {
+				const coins = (res as { pointsEarned?: number } | null)?.pointsEarned;
+				toast.success("Practice session saved", {
+					description: coins ? `+${coins} coins earned` : undefined,
+				});
 			})
 			.catch(() => {});
 	};
 
 	// Buka modul: siapkan daftar kata (diacak) lalu masuk ke layar latihan.
 	const openModule = (name: string) => {
-		handSeenRef.current = false;
 		setPracticeWords(shuffle(WORDS[name] ?? ["HELLO"]));
 		setWordIndex(0);
-		setDone({});
+		setScores({});
 		setSelectedCategory(name);
 	};
 
@@ -205,8 +237,16 @@ export default function SignPracticePage() {
 						},
 					);
 					setDetectedHands(newHands);
-					// Tandai kata aktif "diperagakan" begitu ada tangan terdeteksi.
-					if (newHands.length > 0) handSeenRef.current = true;
+					// Saat merekam: simpan titik tangan (x dikali aspect agar skala x = y).
+					if (recordingRef.current) {
+						const v = videoRef.current;
+						const aspect = v.videoWidth / (v.videoHeight || 1);
+						recordedRef.current.push(
+							results.landmarks.map((hand) =>
+								hand.map((l) => ({ x: l.x * aspect, y: l.y })),
+							),
+						);
+					}
 				}
 			}
 			if (isPracticeActive) {
@@ -239,16 +279,81 @@ export default function SignPracticePage() {
 	const [wordIndex, setWordIndex] = useState(0);
 	const currentWord = practiceWords[wordIndex] ?? "HELLO";
 
-	// Progres sesi (FE-only): hasil Good/Bad per kata yang sudah dilewati.
-	// Good/Bad ditentukan dari apakah tangan user terdeteksi saat memperagakan
-	// kata (placeholder klasifikasi isyarat) — bukan angka acak seperti dulu.
-	const [done, setDone] = useState<Record<number, "good" | "bad">>({});
-	const doneCount = Object.keys(done).length;
-	const goodCount = Object.values(done).filter((v) => v === "good").length;
+	// Skor 0..100 per indeks kata, dari pencocokan rekaman tangan dengan pose
+	// referensi avatar. Good = skor >= PASS_SCORE.
+	const [scores, setScores] = useState<Record<number, number>>({});
+	const doneCount = Object.keys(scores).length;
+	const goodCount = Object.values(scores).filter((v) => v >= PASS_SCORE).length;
 	const badCount = doneCount - goodCount;
-	// Disimpan ke API (kontrak lama pakai angka): persen Good yang nyata.
-	const accuracy = doneCount ? Math.round((goodCount / doneCount) * 100) : 0;
+	const avgScore = doneCount
+		? Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / doneCount)
+		: 0;
+	const currentScore = scores[wordIndex];
 
+	// Klip referensi kata aktif (di-cache per kata): diputar avatar & dipakai menilai.
+	// null = gagal diterjemahkan (skor lalu hanya dari deteksi tangan).
+	const [clips, setClips] = useState<Record<string, PoseClip | null>>({});
+	const refClip = clips[currentWord] ?? null;
+	const refLoading = !!selectedCategory && !(currentWord in clips);
+
+	const inflight = useRef(new Set<string>());
+
+	useEffect(() => {
+		if (!selectedCategory || currentWord in clips) return;
+		const word = currentWord;
+		if (inflight.current.has(word)) return;
+		inflight.current.add(word);
+		translateToPose(word)
+			.then((clip) => setClips((prev) => ({ ...prev, [word]: clip })))
+			.catch(() => setClips((prev) => ({ ...prev, [word]: null })));
+	}, [selectedCategory, currentWord, clips]);
+
+	// Hitung mundur -> rekam selama durasi klip referensi -> nilai.
+	const startRecording = () => {
+		if (recordPhase !== "idle" || !isPracticeActive) return;
+		const idx = wordIndex;
+		const clip = refClip;
+		setRecordPhase("countdown");
+		setCountdown(COUNTDOWN_SECONDS);
+
+		const later = (fn: () => void, ms: number) => {
+			timersRef.current.push(setTimeout(fn, ms));
+		};
+		for (let s = 1; s < COUNTDOWN_SECONDS; s++) {
+			later(() => setCountdown(COUNTDOWN_SECONDS - s), s * 1000);
+		}
+
+		later(() => {
+			recordedRef.current = [];
+			recordingRef.current = true;
+			setRecordPhase("recording");
+			later(() => {
+				timersRef.current = [];
+				recordingRef.current = false;
+				setRecordPhase("idle");
+
+				const result = scoreSign(
+					recordedRef.current,
+					clip ? referenceFeatures(clip) : [],
+				);
+				setScores((prev) => ({ ...prev, [idx]: result.score }));
+				if (result.score >= PASS_SCORE) {
+					toast.success(`Good sign! Score ${result.score} 👍`);
+				} else if (result.coverage < 0.3) {
+					toast.error("We couldn't see your hands", {
+						description: "Keep your hands inside the camera frame and try again.",
+					});
+				} else {
+					toast.error(`Score ${result.score} — keep practicing 💪`, {
+						description: "Watch the reference sign and try again.",
+					});
+				}
+			}, recordSeconds(clip) * 1000);
+		}, COUNTDOWN_SECONDS * 1000);
+	};
+
+	// Batalkan timer rekaman saat halaman ditutup.
+	useEffect(() => () => clearTimers(), []);
 
 	return (
 		<>
@@ -382,6 +487,33 @@ export default function SignPracticePage() {
 										</div>
 									))}
 
+									{/* Countdown / recording overlay */}
+									{recordPhase === "countdown" && (
+										<div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30">
+											<span className="font-heading text-8xl font-bold text-white drop-shadow-lg">
+												{countdown}
+											</span>
+										</div>
+									)}
+									{recordPhase === "recording" && (
+										<div className="absolute top-6 left-1/2 z-20 -translate-x-1/2 flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+											<Circle className="h-3 w-3 animate-pulse fill-current" />
+											Recording…
+										</div>
+									)}
+
+									{/* Record Button */}
+									<button
+										onClick={startRecording}
+										disabled={recordPhase !== "idle"}
+										className="absolute bottom-6 right-6 z-20 flex items-center gap-2 rounded-lg bg-quinary px-4 py-2 font-medium text-white shadow-lg hover:bg-quinary/90 disabled:opacity-60"
+									>
+										<Circle className="h-4 w-4 fill-current" />
+										<span>
+											{currentScore != null ? "Try again" : "Record sign"}
+										</span>
+									</button>
+
 									{/* End Button */}
 									<button
 										onClick={stopCamera}
@@ -437,6 +569,9 @@ export default function SignPracticePage() {
 											Bad
 										</span>
 									</div>
+									<p className="text-xs text-grey">
+										Average score {avgScore} · pass at {PASS_SCORE}
+									</p>
 									<div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
 										<div
 											className="h-full bg-green-400"
@@ -471,7 +606,9 @@ export default function SignPracticePage() {
 							</p>
 							<div className="aspect-square w-full rounded-xl bg-senary/30 overflow-hidden">
 								<SignAvatarViewer
-									text={currentWord}
+									frames={refClip ? refClip.frames : null}
+									meta={refClip?.meta}
+									loading={refLoading}
 									vrmUrl={avatar.vrmUrl}
 									hairColor={avatar.hairColor}
 									eyeColor={avatar.eyeColor}
@@ -487,55 +624,39 @@ export default function SignPracticePage() {
 									<span className="text-sm font-medium text-grey">
 										Word {wordIndex + 1} / {practiceWords.length}
 									</span>
-									{done[wordIndex] && (
+									{currentScore != null && (
 										<span
 											className={cn(
 												"px-2 py-0.5 rounded-full text-xs font-bold",
-												done[wordIndex] === "good"
+												currentScore >= PASS_SCORE
 													? "bg-green-100 text-green-600"
 													: "bg-red-100 text-red-500",
 											)}
 										>
-											{done[wordIndex] === "good" ? "Good" : "Bad"}
+											{currentScore >= PASS_SCORE ? "Good" : "Bad"} · {currentScore}
 										</span>
 									)}
 								</div>
 								<div className="flex gap-2">
 									<Button
 										variant="outline"
-										onClick={() => {
-											handSeenRef.current = false;
+										disabled={recordPhase !== "idle"}
+										onClick={() =>
 											setWordIndex(
 												(i) =>
 													(i - 1 + practiceWords.length) %
 													practiceWords.length,
-											);
-										}}
+											)
+										}
 										className="h-9 px-3 rounded-lg"
 									>
 										Prev
 									</Button>
 									<Button
-										onClick={() => {
-											// Good bila tangan terdeteksi saat kata ini aktif, Bad bila tidak.
-											if (done[wordIndex] == null) {
-												const result = handSeenRef.current
-													? "good"
-													: "bad";
-												setDone((d) => ({
-													...d,
-													[wordIndex]: result,
-												}));
-												if (result === "good")
-													toast.success("Good sign! 👍");
-												else
-													toast.error("Keep practicing — try again 💪");
-											}
-											handSeenRef.current = false;
-											setWordIndex(
-												(i) => (i + 1) % practiceWords.length,
-											);
-										}}
+										disabled={recordPhase !== "idle"}
+										onClick={() =>
+											setWordIndex((i) => (i + 1) % practiceWords.length)
+										}
 										className="h-9 px-4 rounded-lg bg-quinary hover:bg-quinary/90 text-white"
 									>
 										Next word

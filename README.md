@@ -20,10 +20,21 @@ This repository (`signify-fe`) is the web frontend, built with **Next.js 16** an
 
 - **Learning materials** — browsable, searchable lessons with progress tracking.
 - **Quizzes** — take quizzes, submit attempts, and review scored results.
-- **Sign practice** — practice signs in front of your webcam; hand detection runs
-  client-side via MediaPipe Tasks Vision.
-- **Live translator** — type text and watch a 3D VRM avatar sign it, powered by
-  SignGPT (`text → .pose`) and rendered with three.js / `@pixiv/three-vrm`.
+  "Guess the Sign" questions (`type: "sign"`) have the avatar perform the term.
+- **Sign practice** — the avatar shows the reference sign, you record yourself
+  and get a 0–100 score. MediaPipe hand landmarks are compared with the
+  reference pose using DTW (`components/shared/avatar/signScore.ts`); a score ≥ 60
+  passes and earns coins.
+- **Live translator** — *Text → Sign*: type text or play a YouTube video and a 3D
+  VRM avatar signs it (backend `/api/translator/pose`: sign dictionary first, then
+  SignGPT). *Sign → Text*: record yourself signing; pose + hand keypoints are sent
+  to the backend's signify-model integration.
+- **Chatbot signing** — any chatbot answer on a learning material can be signed by
+  the avatar ("Sign this").
+- **My Signs** — every sign met in practice, quizzes or the translator lands in a
+  personal vocabulary with spaced-repetition reviews (SM-2).
+- **Sign languages & dictionary** — choose ASL or BISINDO in Settings; admins can
+  upload custom `.pose` clips per word in the Sign Dictionary.
 - **Shop & avatar** — spend earned coins to buy and equip avatar items.
 - **Dashboard** — streaks, daily goals, rank, recommendations, and recent activity.
 - **Gamification** — coins, streaks, and daily quizzes.
@@ -85,12 +96,13 @@ src/
 ├── app/                    # App Router routes
 │   ├── (app)/              # Authenticated app (dashboard, quizzes, shop, …)
 │   ├── login/ register/    # Auth pages
-│   └── api/                # Route handlers (SignGPT & YouTube transcript proxies)
+│   └── api/                # Route handlers (YouTube transcript proxy)
 ├── components/
 │   ├── dashboard/          # Dashboard & onboarding
 │   ├── layout/             # Sidebar, footer, main layout
 │   ├── shared/avatar/      # 3D VRM avatar rigging & pose playback
 │   ├── shop/               # Shop UI + avatar canvas
+│   ├── translator/         # Sign → text recorder
 │   └── ui/                 # Reusable UI primitives (button, card, …)
 └── lib/
     ├── api.ts              # Thin fetch client (Bearer token + error handling)

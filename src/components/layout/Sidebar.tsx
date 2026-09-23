@@ -8,6 +8,7 @@ import {
 	LayoutDashboard,
 	Languages,
 	BookOpen,
+	BookMarked,
 	ListChecks,
 	Grid2X2,
 	ShoppingBag,
@@ -62,6 +63,11 @@ const navItems: NavItem[] = [
 		href: "/sign-practice",
 		label: "Sign Practice",
 		icon: <Grid2X2 className="h-5 w-5" />,
+	},
+	{
+		href: "/my-signs",
+		label: "My Signs",
+		icon: <BookMarked className="h-5 w-5" />,
 	},
 ];
 

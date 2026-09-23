@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Hand, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 // Registrasi web component <pose-viewer> sekali saja (client-only).
 let loaderPromise: Promise<void> | null = null;
@@ -36,7 +37,7 @@ interface SignPoseViewerProps {
 }
 
 /**
- * Menerjemahkan teks -> .pose lewat /api/translate-pose (proxy SignGPT),
+ * Menerjemahkan teks -> .pose lewat backend /api/translator/pose,
  * lalu merendernya sebagai animasi memakai web component <pose-viewer>.
  * Auto-translate setiap kali `text` berubah.
  */
@@ -78,17 +79,17 @@ export function SignPoseViewer({
     setLoading(true);
     setError("");
 
-    fetch("/api/translate-pose", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: query, signedLanguage, spokenLanguage }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Gagal menerjemahkan");
-        if (!data.pose) throw new Error("Respons tidak berisi data pose");
+    api
+      .post<{ clips: { pose: string }[] }>("/api/translator/pose", {
+        text: query,
+        signedLanguage,
+        spokenLanguage,
+      })
+      .then((data) => {
+        const pose = data.clips?.[0]?.pose;
+        if (!pose) throw new Error("Respons tidak berisi data pose");
         if (cancelled) return;
-        const url = URL.createObjectURL(base64ToBlob(data.pose));
+        const url = URL.createObjectURL(base64ToBlob(pose));
         if (urlRef.current) URL.revokeObjectURL(urlRef.current);
         urlRef.current = url;
         setPoseUrl(url);
