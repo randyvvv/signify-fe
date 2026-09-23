@@ -32,6 +32,7 @@ interface SignAvatarViewerProps {
   loading?: boolean;
   /** Jalankan/bekukan animasi. false = avatar berhenti di frame terakhir. */
   playing?: boolean;
+  /** Kode bahasa isyarat (ase, ins). Kosong = preferensi user. */
   signedLanguage?: string;
   spokenLanguage?: string;
   className?: string;
@@ -54,7 +55,7 @@ interface SignAvatarViewerProps {
 
 /**
  * Menganimasikan model VRM 3D (three.js + @pixiv/three-vrm) untuk bahasa isyarat.
- * - Mode teks: terjemahkan `text` -> pose lewat /api/translate-pose otomatis.
+ * - Mode teks: terjemahkan `text` -> pose lewat backend /api/translator/pose otomatis.
  * - Mode controlled: putar `frames` yang disuplai dari luar (untuk sinkron video).
  */
 export function SignAvatarViewer({
@@ -63,7 +64,7 @@ export function SignAvatarViewer({
   meta: controlledMeta,
   loading: controlledLoading,
   playing = true,
-  signedLanguage = "ase",
+  signedLanguage,
   spokenLanguage = "en",
   className,
   vrmUrl = DEFAULT_VRM,

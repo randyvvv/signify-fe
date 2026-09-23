@@ -19,11 +19,13 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
+import { SignAvatarViewer } from "@/components/shared";
+import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 
 interface Question {
   id: string;
   ordering: number;
-  type: "text" | "image";
+  type: "text" | "image" | "sign";
   question: string;
   promptImageUrl: string | null;
   term: string | null;
@@ -45,7 +47,7 @@ interface QuizDetail {
 interface ResultItem {
   questionId: string;
   question: string;
-  type: "text" | "image";
+  type: "text" | "image" | "sign";
   term: string | null;
   selectedIndex: number;
   correctIndex: number;
@@ -84,6 +86,7 @@ export default function QuizPage() {
   const [result, setResult] = useState<AttemptResult | null>(null);
   const [reviewFilter, setReviewFilter] = useState<"All" | "Correct" | "Wrong">("All");
   const startRef = useRef<number>(Date.now());
+  const avatar = useEquippedAvatar();
 
   useEffect(() => {
     setLoading(true);
@@ -318,14 +321,14 @@ export default function QuizPage() {
                             <p className="text-sm mt-1">
                               <span className="text-gray-500 mr-2">Your Answer:</span>
                               <span className={ans.isCorrect ? "text-teal-600 font-medium" : "text-rose-600 font-medium"}>
-                                {ans.type === "text" ? selectedOptionString : LABELS[ans.selectedIndex]}
+                                {ans.type !== "image" ? selectedOptionString : LABELS[ans.selectedIndex]}
                               </span>
                               {!ans.isCorrect && (
                                 <>
                                   <span className="text-gray-300 mx-2">|</span>
                                   <span className="text-gray-500 mr-1">Correct Answer:</span>
                                   <span className="text-teal-600 font-medium">
-                                    {ans.type === "text" ? correctOptionString : LABELS[ans.correctIndex]}
+                                    {ans.type !== "image" ? correctOptionString : LABELS[ans.correctIndex]}
                                   </span>
                                 </>
                               )}
@@ -389,7 +392,26 @@ export default function QuizPage() {
                 <p className="text-gray-500">This quiz has no questions yet.</p>
               ) : (
                 <>
-                  {current.type === "text" ? (
+                  {current.type === "sign" ? (
+                    <div className="text-center mb-8">
+                      <div className="relative w-full max-w-sm mx-auto aspect-square rounded-2xl overflow-hidden border border-gray-200 bg-senary/30 mb-6">
+                        <SignAvatarViewer
+                          key={current.id}
+                          text={current.term ?? ""}
+                          vrmUrl={avatar.vrmUrl}
+                          hairColor={avatar.hairColor}
+                          eyeColor={avatar.eyeColor}
+                          accessory={avatar.accessory}
+                          className="w-full h-full"
+                          placeholder="Watch the avatar sign"
+                        />
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">{current.question}</h2>
+                      <p className="text-sm text-gray-500">
+                        The sign loops — watch it as many times as you need
+                      </p>
+                    </div>
+                  ) : current.type === "text" ? (
                     <div className="relative w-full max-w-lg mx-auto h-[280px] rounded-2xl overflow-hidden border border-gray-200 mb-6">
                       <Image
                         src={current.promptImageUrl || "/quizzes/hand.png"}
@@ -500,7 +522,7 @@ export default function QuizPage() {
                             current.type === "image" ? "p-3" : "flex items-center justify-between py-4 px-4"
                           } cursor-pointer`}
                         >
-                          {current.type === "text" ? (
+                          {current.type !== "image" ? (
                             <>
                               <span className="font-semibold text-lg">
                                 {LABELS[i]}. {option}

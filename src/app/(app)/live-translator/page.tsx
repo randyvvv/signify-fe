@@ -3,13 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Link as LinkIcon, Play, Video, Hand, Loader2 } from "lucide-react";
+import { ChevronLeft, Link as LinkIcon, Play, Video, Hand, Loader2, BookmarkPlus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
+import { SignRecognizer } from "@/components/translator/SignRecognizer";
+import { cn } from "@/lib/utils";
+
+type Mode = "to-sign" | "to-text";
 
 // react-youtube pakai window -> klien saja.
 const YouTube = dynamic(() => import("react-youtube"), { ssr: false });
@@ -72,6 +76,7 @@ function mergeCues(cues: Cue[], maxChars = 64, maxSpan = 6): Cue[] {
 }
 
 export default function LiveTranslatorPage() {
+  const [mode, setMode] = useState<Mode>("to-sign");
   const [url, setUrl] = useState("");
   const [starting, setStarting] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -102,6 +107,19 @@ export default function LiveTranslatorPage() {
       return;
     }
     setCommittedSign(signText.trim());
+  };
+
+  // Simpan teks yang sedang diperagakan ke kosakata pribadi (My Signs).
+  const saveToMySigns = async () => {
+    if (!committedSign) return;
+    try {
+      await api.post("/api/vocabulary", { word: committedSign, source: "translator" });
+      toast.success(`Saved "${committedSign}" to My Signs`);
+    } catch (err) {
+      toast.error("Failed to save", {
+        description: err instanceof ApiError ? err.message : undefined,
+      });
+    }
   };
 
   const handleStart = async () => {
@@ -269,11 +287,38 @@ export default function LiveTranslatorPage() {
           <div>
             <h1 className="text-2xl font-bold text-black">Live Translator</h1>
             <p className="text-base text-gray-500">
-              Watch a YouTube video and let the avatar translate it into sign
-              language
+              {mode === "to-sign"
+                ? "Watch a YouTube video and let the avatar translate it into sign language"
+                : "Sign in front of your camera and get the text"}
             </p>
           </div>
+          <div className="ml-auto flex rounded-[10px] bg-senary/40 p-1">
+            {(
+              [
+                { value: "to-sign", label: "Text → Sign" },
+                { value: "to-text", label: "Sign → Text" },
+              ] as const
+            ).map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setMode(m.value)}
+                className={cn(
+                  "rounded-lg px-4 py-2 text-sm font-semibold transition-colors",
+                  mode === m.value
+                    ? "bg-white text-quaternary shadow-sm"
+                    : "text-grey hover:text-quaternary",
+                )}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {mode === "to-text" ? (
+          <SignRecognizer />
+        ) : (
+        <>
 
         {/* Input Section */}
         <div className="flex flex-col gap-4 bg-white px-[57px] py-[20px] rounded-[10px]">
@@ -414,6 +459,14 @@ export default function LiveTranslatorPage() {
                   </Button>
                 </div>
               )}
+              {!videoActive && committedSign && (
+                <button
+                  onClick={saveToMySigns}
+                  className="flex items-center gap-2 self-start text-sm font-medium text-quinary hover:underline"
+                >
+                  <BookmarkPlus className="h-4 w-4" /> Save &ldquo;{committedSign}&rdquo; to My Signs
+                </button>
+              )}
             </div>
 
             {/* Transcript */}
@@ -455,6 +508,8 @@ export default function LiveTranslatorPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </>
   );

@@ -10,6 +10,7 @@ import {
 	CheckCircle2,
 	MessageCircle,
 	X,
+	Hand,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -664,6 +665,8 @@ function useChatController(materialId: string) {
 	>([]);
 	const [input, setInput] = useState("");
 	const [sending, setSending] = useState(false);
+	// Pesan bot yang sedang diperagakan avatar (null = panel avatar tertutup).
+	const [signing, setSigning] = useState<string | null>(null);
 
 	useEffect(() => {
 		api.get<{
@@ -705,7 +708,7 @@ function useChatController(materialId: string) {
 		}
 	};
 
-	return { messages, input, setInput, sending, send };
+	return { messages, input, setInput, sending, send, signing, setSigning };
 }
 
 // Isi chat: kolom flex (header + daftar pesan yang bisa discroll + input yang
@@ -715,7 +718,8 @@ function ChatPanel({
 }: {
 	controller: ReturnType<typeof useChatController>;
 }) {
-	const { messages, input, setInput, sending, send } = controller;
+	const { messages, input, setInput, sending, send, signing, setSigning } =
+		controller;
 	return (
 		<>
 			<div
@@ -736,6 +740,8 @@ function ChatPanel({
 					<span className="font-semibold text-gray-800">Signify</span>
 				</div>
 			</div>
+
+			{signing && <ChatSignPanel text={signing} onClose={() => setSigning(null)} />}
 
 			<div className="flex-1 min-h-0 p-3 space-y-3 overflow-y-auto">
 				{messages.length === 0 && (
@@ -761,6 +767,19 @@ function ChatPanel({
 							}
 						>
 							{m.text}
+							{m.role === "bot" && (
+								<button
+									onClick={() => setSigning(m.text)}
+									className={`mt-1.5 flex items-center gap-1 text-xs font-medium transition-colors ${
+										signing === m.text
+											? "text-quinary"
+											: "text-gray-400 hover:text-quinary"
+									}`}
+								>
+									<Hand className="h-3.5 w-3.5" />
+									{signing === m.text ? "Signing…" : "Sign this"}
+								</button>
+							)}
 						</div>
 					</div>
 				))}
@@ -794,6 +813,40 @@ function ChatPanel({
 				</div>
 			</div>
 		</>
+	);
+}
+
+// Batas teks yang dikirim ke penerjemah isyarat (sama dengan backend).
+const MAX_SIGN_CHARS = 500;
+
+// Avatar kecil di atas daftar pesan yang memperagakan jawaban bot.
+function ChatSignPanel({ text, onClose }: { text: string; onClose: () => void }) {
+	const avatar = useEquippedAvatar();
+	// Potong di batas kata terakhir sebelum batas karakter.
+	const cut = text.lastIndexOf(" ", MAX_SIGN_CHARS);
+	const clipped =
+		text.length > MAX_SIGN_CHARS
+			? text.slice(0, cut > 0 ? cut : MAX_SIGN_CHARS)
+			: text;
+	return (
+		<div className="relative h-44 shrink-0 border-b border-gray-100 bg-senary/30">
+			<SignAvatarViewer
+				text={clipped}
+				vrmUrl={avatar.vrmUrl}
+				hairColor={avatar.hairColor}
+				eyeColor={avatar.eyeColor}
+				accessory={avatar.accessory}
+				className="h-full w-full"
+				placeholder="Signing the answer"
+			/>
+			<button
+				onClick={onClose}
+				aria-label="Close avatar"
+				className="absolute right-2 top-2 rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-gray-800"
+			>
+				<X className="h-4 w-4" />
+			</button>
+		</div>
 	);
 }
 
