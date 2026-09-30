@@ -1,4 +1,4 @@
-// Frontal-plane bone aiming untuk data .pose SignGPT (praktis 2D, Z datar).
+// Frontal-plane bone aiming untuk data .pose sign.mt/SignGPT (praktis 2D, Z datar).
 //
 // Kenapa bukan Kalidokit: solver-nya memakai atan2(Δ, a.z-b.z); dengan Z konstan,
 // rotasi X/Y jadi ±90° (lengan terkunci ke atas). Di sini tiap tulang diarahkan

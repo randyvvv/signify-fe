@@ -49,7 +49,8 @@ interface Preferences {
 interface SignLanguageInfo {
   code: string;
   name: string;
-  signGpt: boolean;
+  /** Kata di luar kamus diterjemahkan penyedia eksternal (sign.mt). */
+  external: boolean;
 }
 
 const LANGUAGES: { value: string; label: string }[] = [
@@ -61,7 +62,7 @@ const LANGUAGES: { value: string; label: string }[] = [
 ];
 
 const DEFAULT_SIGN_LANGUAGES: SignLanguageInfo[] = [
-  { code: "ase", name: "American Sign Language (ASL)", signGpt: true },
+  { code: "ase", name: "American Sign Language (ASL)", external: true },
 ];
 
 const APP_VERSION = "1.0.0";
@@ -337,9 +338,9 @@ export default function SettingsPage() {
   };
 
   const signLanguageOptions = signLanguages.length ? signLanguages : DEFAULT_SIGN_LANGUAGES;
-  // Bahasa isyarat tanpa SignGPT (mis. BISINDO) hanya memakai kamus Signify.
+  // Bahasa isyarat tanpa penyedia eksternal (mis. BISINDO) hanya memakai kamus Signify.
   const dictionaryOnly = signLanguages.find(
-    (l) => l.code === prefs?.signLanguage && !l.signGpt,
+    (l) => l.code === prefs?.signLanguage && !l.external,
   );
   const newPwdOk = newPassword.length >= 6;
   const displayName = user?.fullName?.trim() || "Signify Learner";

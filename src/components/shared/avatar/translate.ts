@@ -1,5 +1,5 @@
 // Helper bersama: teks -> data pose ter-parse (frames) lewat backend
-// POST /api/translator/pose (kamus isyarat lokal dulu, sisanya SignGPT).
+// POST /api/translator/pose (kamus isyarat lokal dulu, sisanya penyedia eksternal: sign.mt).
 // Dipakai oleh SignAvatarViewer (mode teks) maupun pre-translate transcript YouTube.
 import { api } from "@/lib/api";
 import { parsePoseFile } from "./posefile";
@@ -17,7 +17,7 @@ export interface PoseClip {
 
 interface TranslatePoseResponse {
   signedLanguage: string;
-  clips: { text: string; source: "dictionary" | "signgpt"; pose: string }[];
+  clips: { text: string; source: "dictionary" | "signmt" | "signgpt"; pose: string }[];
   missing: string[];
 }
 

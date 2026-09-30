@@ -13,7 +13,8 @@ import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar"
 interface SignLanguageInfo {
   code: string;
   name: string;
-  signGpt: boolean;
+  /** Kata di luar kamus diterjemahkan penyedia eksternal. */
+  external: boolean;
 }
 
 interface DictionaryEntry {
@@ -37,6 +38,7 @@ export default function SignDictionaryPage() {
   const avatar = useEquippedAvatar();
   const [languages, setLanguages] = useState<SignLanguageInfo[]>([]);
   const [canEdit, setCanEdit] = useState(false);
+  const [provider, setProvider] = useState("sign.mt");
   const [lang, setLang] = useState("ase");
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState<DictionaryEntry[] | null>(null);
@@ -50,12 +52,13 @@ export default function SignDictionaryPage() {
 
   useEffect(() => {
     Promise.all([
-      api.get<{ languages: SignLanguageInfo[]; canEdit: boolean }>("/api/signs/languages"),
+      api.get<{ languages: SignLanguageInfo[]; provider?: string; canEdit: boolean }>("/api/signs/languages"),
       api.get<{ signLanguage: string }>("/api/me/preferences"),
     ])
       .then(([info, prefs]) => {
         setLanguages(info.languages);
         setCanEdit(info.canEdit);
+        if (info.provider) setProvider(info.provider);
         setLang(prefs.signLanguage ?? "ase");
       })
       .catch(() => {});
@@ -127,7 +130,7 @@ export default function SignDictionaryPage() {
         <div>
           <h1 className="text-xl font-bold text-black">Sign Dictionary</h1>
           <p className="text-sm text-grey">
-            Custom signs the avatar uses before falling back to SignGPT
+            Custom signs the avatar uses before falling back to {provider}
           </p>
         </div>
       </div>
@@ -160,8 +163,8 @@ export default function SignDictionaryPage() {
 
           {current && (
             <p className="text-xs text-grey">
-              {current.signGpt
-                ? "Words not in this dictionary are translated by SignGPT."
+              {current.external
+                ? `Words not in this dictionary are translated by ${provider}.`
                 : "Only words in this dictionary can be signed in this language."}
             </p>
           )}

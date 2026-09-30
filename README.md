@@ -27,7 +27,7 @@ This repository (`signify-fe`) is the web frontend, built with **Next.js 16** an
   passes and earns coins.
 - **Live translator** — *Text → Sign*: type text or play a YouTube video and a 3D
   VRM avatar signs it (backend `/api/translator/pose`: sign dictionary first, then
-  SignGPT). *Sign → Text*: record yourself signing; pose + hand keypoints are sent
+  sign.mt). *Sign → Text*: record yourself signing; pose + hand keypoints are sent
   to the backend's signify-model integration.
 - **Chatbot signing** — any chatbot answer on a learning material can be signed by
   the avatar ("Sign this").

@@ -1,5 +1,5 @@
 // Penilaian latihan isyarat: bandingkan rekaman tangan user (MediaPipe
-// HandLandmarker) dengan pose referensi avatar (.pose dari kamus/SignGPT).
+// HandLandmarker) dengan pose referensi avatar (.pose dari kamus/sign.mt).
 //
 // Fitur per frame = 21 titik tangan (x, y) yang dinormalisasi: pergelangan
 // jadi titik asal, diskalakan dengan jarak pergelangan -> pangkal jari tengah.
