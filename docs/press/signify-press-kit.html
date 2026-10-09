@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signify · HackAstone 2026 Grand Final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<!--
+  Press kit Signify untuk Indonesia AI Institute (IAII): finalis Grand Final HackAstone 2026.
+  A4, 3 halaman. Simpan sebagai PDF: Ctrl+P -> Save as PDF (margin: None, centang Background graphics).
+  Gambar merujuk ke folder assets/ dan ../../public/landing/corak.png.
+-->
+<style>
+  :root {
+    --ink: #0F5A5A; --ink-soft: #3E5F5E; --muted: #6B8583;
+    --teal: #2DA5A2; --teal-deep: #0B7077; --mint: #D2E6E4; --tint: #F1F8F7; --ground: #DCEDEA;
+    --yellow: #FFE75C; --yellow-ink: #5A4A00; --pink: #DF5D73; --amber: #F2A516; --violet: #6632FF;
+    --white: #FFFFFF;
+    --card-shadow: 0 1px 2px rgba(11, 112, 119, .08), 0 8px 20px -14px rgba(11, 112, 119, .35);
+    --display: "Raleway", "Segoe UI", Arial, sans-serif;
+    --body: "DM Sans", "Segoe UI", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; background: #C3D6D2; }
+  body { font-family: var(--body); color: var(--ink-soft); font-size: 10pt; line-height: 1.5; padding-block: 12mm; }
+  svg { display: block; }
+  h1, h2, h3, h4 { font-family: var(--display); color: var(--ink); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+
+  .page {
+    position: relative; isolation: isolate; overflow: hidden;
+    width: 210mm; height: 297mm; margin: 0 auto 10mm;
+    padding: 12mm 15mm 10mm; background: var(--white);
+    display: flex; flex-direction: column; gap: 5mm;
+    box-shadow: 0 20px 60px -30px rgba(11, 112, 119, .45);
+  }
+  .page > * { flex-shrink: 0; }
+  .page.patterned { background: var(--ground); }
+  .page.patterned::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: url("../../public/landing/corak.png") center / cover no-repeat; opacity: .55; mix-blend-mode: multiply;
+  }
+
+  /* ---------- Header logo & footer ---------- */
+  .logos { display: flex; align-items: center; justify-content: space-between; gap: 8mm;
+    background: var(--white); border-radius: 4mm; padding: 4mm 7mm; box-shadow: var(--card-shadow); }
+  .logos img { height: 11mm; width: auto; display: block; }
+  .logos img.iaii { height: 12.5mm; }
+  .logos img.hack { height: 8.5mm; }
+  .logos i { width: 1px; align-self: stretch; background: var(--mint); }
+  .running { display: flex; align-items: center; justify-content: space-between; font-size: 8pt; color: var(--muted); }
+  .running img { height: 7mm; width: auto; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center;
+    padding-top: 3mm; border-top: 1px solid rgba(11, 112, 119, .18); font-size: 8pt; color: var(--muted); }
+  .foot b { color: var(--teal-deep); }
+
+  /* ---------- Halaman 1 ---------- */
+  .hero {
+    position: relative; overflow: hidden; border-radius: 5mm; padding: 7.5mm 8.5mm 7mm; color: var(--white);
+    background: radial-gradient(50% 60% at 100% 0%, rgba(255, 231, 92, .4), transparent 70%),
+                linear-gradient(150deg, #2DA5A2 0%, #1C8D8A 48%, #0B7077 100%);
+  }
+  .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: url("../../public/landing/corak.png") center / cover; opacity: .3; mix-blend-mode: screen; }
+  .hero > * { position: relative; }
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 7mm; align-items: center; }
+  .hero-qr { background: var(--white); border-radius: 3.5mm; padding: 3.5mm; display: grid; justify-items: center; gap: 1.8mm; text-align: center; }
+  .hero-qr .qr-code { width: 25mm; height: 25mm; }
+  .hero-qr b { font-family: var(--display); font-weight: 800; color: var(--ink); font-size: 9.5pt; line-height: 1.1; }
+  .hero-qr span { font-size: 7.5pt; color: var(--teal-deep); font-weight: 700; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 2mm; background: var(--yellow); color: var(--yellow-ink);
+    font-weight: 700; font-size: 8.5pt; letter-spacing: .06em; text-transform: uppercase; padding: 1.4mm 3mm; border-radius: 1.6mm; }
+  .eyebrow svg { font-size: 10pt; }
+  .hero h1 { color: var(--white); font-weight: 900; font-size: 21.5pt; line-height: 1.1; margin-top: 4mm; }
+  .hero p { margin-top: 3mm; font-size: 10.5pt; color: rgba(255, 255, 255, .92); }
+
+  .card { background: var(--white); border-radius: 4mm; padding: 5mm 6.5mm; box-shadow: var(--card-shadow); }
+  .section-title { display: flex; align-items: center; gap: 2.5mm; font-family: var(--display); font-weight: 800; color: var(--ink); font-size: 13pt; margin-bottom: 3.2mm; }
+  .section-title .dot { width: 7.5mm; height: 7.5mm; border-radius: 50%; display: grid; place-items: center; color: var(--white); font-size: 9.5pt; flex: none; }
+
+  .details { display: grid; grid-template-columns: auto 1fr; gap: 1.9mm 6mm; margin: 0; }
+  .details dt { display: flex; align-items: center; gap: 2mm; font-weight: 700; color: var(--teal-deep); font-size: 9pt; white-space: nowrap; }
+  .details dt svg { font-size: 10.5pt; color: var(--teal); }
+  .details dd { margin: 0; color: var(--ink); font-weight: 500; }
+  .details dd small { display: block; color: var(--muted); font-weight: 400; font-size: 8.5pt; }
+  .details a { color: var(--teal-deep); font-weight: 700; text-decoration: none; }
+
+  .team { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2mm 5mm; }
+  .member { display: flex; align-items: center; gap: 3mm; padding: 1.8mm 3mm; background: var(--tint); border-radius: 2.6mm; }
+  .member .av { width: 8mm; height: 8mm; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: var(--teal); color: var(--white); font-family: var(--display); font-weight: 800; font-size: 8.5pt; }
+  .member:nth-child(4n+2) .av { background: var(--pink); }
+  .member:nth-child(4n+3) .av { background: var(--amber); }
+  .member:nth-child(4n+4) .av { background: var(--teal-deep); }
+  .member span { font-weight: 600; color: var(--ink); font-size: 9.5pt; }
+
+  /* Detail & tim berdampingan, foto tim di bawahnya */
+  .p1-row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 4.5mm; align-items: stretch; }
+  .p1-row .card { padding: 5mm 5.5mm; display: flex; flex-direction: column; }
+  .p1-row .details { flex: 1; align-content: space-between; }
+  .p1-row .section-title { margin-bottom: 3mm; }
+  .p1-row .details { gap: 1.7mm 4mm; }
+  .p1-row .details dd { font-size: 9.2pt; line-height: 1.38; }
+  .p1-row .team { grid-template-columns: 1fr; gap: 1.4mm; }
+  .p1-row .member { padding: 1.25mm 2.4mm; gap: 2.6mm; }
+  .p1-row .member .av { width: 6.8mm; height: 6.8mm; font-size: 7.4pt; }
+  .p1-row .member span:not(.av) { font-size: 9.1pt; }
+  .team-photo { margin: 0; border-radius: 4mm; overflow: hidden; border: 1.2mm solid var(--white); background: #202124; box-shadow: var(--card-shadow); }
+  .team-photo img { display: block; width: 100%; height: auto; }
+
+  .bottom-row { display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: stretch; }
+  .try { display: flex; align-items: center; gap: 5mm; }
+  .try .qr-code { width: 28mm; height: 28mm; }
+  .try h3 { font-size: 12pt; }
+  .try p { font-size: 9pt; margin-top: 1mm; }
+  .try a { color: var(--teal-deep); font-weight: 700; text-decoration: none; }
+
+  /* ---------- Halaman 2 & 3 ---------- */
+  .page-title { font-weight: 900; font-size: 20pt; line-height: 1.15; }
+  .page-title mark { background: linear-gradient(transparent 60%, var(--yellow) 60%, var(--yellow) 92%, transparent 92%); color: inherit; }
+  .lede { font-size: 10.5pt; color: var(--ink-soft); margin-top: 2.5mm; }
+  .lede strong { color: var(--ink); }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .tile { background: var(--tint); border-radius: 3mm; padding: 4.5mm; display: flex; flex-direction: column; gap: 2mm; }
+  .tile .ic { width: 8mm; height: 8mm; border-radius: 50%; display: grid; place-items: center; color: var(--white); font-size: 10pt; }
+  .tile h4 { font-size: 10.5pt; font-weight: 800; line-height: 1.25; }
+  .tile p { font-size: 9pt; line-height: 1.45; }
+
+  .problem { display: grid; grid-template-columns: 1.35fr 1fr; gap: 5mm; align-items: start; }
+  .plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 3mm; }
+  .plist li { display: grid; grid-template-columns: auto 1fr; gap: 3mm; }
+  .plist .ic { width: 7mm; height: 7mm; border-radius: 2mm; display: grid; place-items: center; background: var(--tint); color: var(--teal-deep); font-size: 9.5pt; }
+  .plist h4 { font-family: var(--body); font-size: 10pt; font-weight: 700; }
+  .plist p { font-size: 9pt; }
+  .stats { display: grid; gap: 3mm; }
+  .stat { background: var(--tint); border-radius: 3mm; padding: 3mm 3.5mm; }
+  .stat .num { font-family: var(--display); font-weight: 900; font-size: 17pt; line-height: 1; color: var(--teal-deep); }
+  .stat .num.pink { color: var(--pink); }
+  .stat p { font-size: 8.8pt; margin-top: 1.5mm; }
+  .stat small { display: block; color: var(--muted); font-size: 7.5pt; margin-top: 1mm; }
+
+  .showcase { position: relative; background: var(--ground); border-radius: 4mm; overflow: hidden; isolation: isolate; padding: 5mm 6mm 4mm; }
+  .showcase::before { content: ""; position: absolute; inset: 0; z-index: -1;
+    background: url("../../public/landing/corak.png") center / cover; opacity: .55; mix-blend-mode: multiply; }
+  .mock { position: relative; width: 62%; margin-inline: auto; aspect-ratio: 27 / 12.5; }
+  .mock img { position: absolute; bottom: 0; height: auto; max-width: none; }
+  .mock .laptop { left: 0; width: 80%; transform: translate(-3.23%, 6.59%); }
+  .mock .phone { right: 0; height: 102%; width: auto; transform: translate(5.59%, 3.54%); }
+  .showcase figcaption { text-align: center; font-size: 8.5pt; color: var(--muted); margin-top: 2mm; }
+  .showcase figcaption b { color: var(--ink); }
+
+  /* Halaman fitur: 2 fitur per halaman, dengan screenshot */
+  .page.feat-page { padding-inline: 27mm; }
+  .page.feat-page > .running, .page.feat-page > .foot { margin-inline: -12mm; }
+  .feature { display: flex; flex-direction: column; gap: 3mm; }
+  .f-head { display: flex; align-items: center; gap: 3mm; }
+  .f-ic { width: 9.5mm; height: 9.5mm; border-radius: 2.8mm; display: grid; place-items: center; color: var(--white); font-size: 11.5pt; flex: none; }
+  .f-kicker { display: block; font-size: 7.4pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); line-height: 1.2; }
+  .f-head h3 { font-size: 15.5pt; font-weight: 900; line-height: 1.2; display: flex; align-items: center; flex-wrap: wrap; gap: 0 2.2mm; }
+  .f-head h3 > span:not(.ai-tag) { font-family: var(--body); font-size: 10pt; font-weight: 500; color: var(--muted); }
+  .ai-tag { font-family: var(--body); font-size: 7pt; font-weight: 700; letter-spacing: .06em; color: var(--white);
+    background: var(--violet); padding: .4mm 1.6mm; border-radius: 1mm; }
+  .shot { margin: 0; border-radius: 3mm; overflow: hidden; border: 1px solid #D3E4E1; background: #F0F0F0;
+    box-shadow: 0 12px 26px -18px rgba(11, 112, 119, .55); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .f-body { display: grid; grid-template-columns: 1fr 1.1fr; gap: 7mm; align-items: start; }
+  .f-desc { font-size: 9.6pt; line-height: 1.55; color: var(--ink-soft); }
+  .f-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5mm; }
+  .f-list li { display: grid; grid-template-columns: auto 1fr; gap: 2mm; font-size: 9pt; line-height: 1.45; }
+  .f-list li svg { color: var(--teal); font-size: 10pt; margin-top: .55mm; }
+  .f-list b { color: var(--ink); }
+  .f-divider { height: 1px; background: var(--mint); margin-block: auto; }
+  .feature.split { display: grid; grid-template-columns: 1.3fr 1fr; gap: 6mm; align-items: center; }
+  .f-side { display: flex; flex-direction: column; gap: 2.4mm; }
+  .f-tag { font-size: 10pt; font-weight: 600; color: var(--muted); margin-top: -1mm; }
+  .acct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .acct-card { background: var(--tint); border-radius: 3mm; padding: 4mm 4.5mm; display: flex; flex-direction: column; gap: 2mm; }
+  .acct-card header { display: flex; align-items: center; gap: 2.6mm; }
+  .acct-card .f-ic { width: 8mm; height: 8mm; font-size: 9.5pt; }
+  .acct-card h4 { font-size: 11.5pt; font-weight: 800; }
+  .acct-card p { font-size: 8.9pt; line-height: 1.48; }
+  .acct-card b { color: var(--ink); }
+  .cta { position: relative; overflow: hidden; isolation: isolate; display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center;
+    border-radius: 4mm; padding: 4.5mm 7mm; color: var(--white); text-decoration: none;
+    background: radial-gradient(50% 70% at 100% 0%, rgba(255, 231, 92, .35), transparent 70%),
+                linear-gradient(150deg, #2DA5A2 0%, #1C8D8A 48%, #0B7077 100%); }
+  .cta::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: url("../../public/landing/corak.png") center / cover; opacity: .3; mix-blend-mode: screen; }
+  .cta h3 { color: var(--white); font-size: 15pt; font-weight: 900; margin-top: 2.5mm; }
+  .cta p { margin-top: 1.5mm; font-size: 9.8pt; color: rgba(255, 255, 255, .92); }
+  .cta b { color: var(--white); }
+  .cta .hero-qr { padding: 2.6mm; gap: 1.2mm; }
+  .cta .hero-qr .qr-code { width: 23mm; height: 23mm; }
+
+  /* Signa */
+  .signa-hero {
+    position: relative; overflow: hidden; border-radius: 5mm; padding: 7mm 8mm; color: var(--white);
+    background: radial-gradient(50% 60% at 100% 0%, rgba(255, 231, 92, .35), transparent 70%),
+                linear-gradient(150deg, #2DA5A2 0%, #1C8D8A 48%, #0B7077 100%);
+  }
+  .signa-hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: url("../../public/landing/corak.png") center / cover; opacity: .3; mix-blend-mode: screen; }
+  .signa-hero > * { position: relative; }
+  .signa-top { display: flex; align-items: center; gap: 4mm; }
+  .star { width: 12mm; height: 12mm; border-radius: 50%; background: var(--white); color: var(--violet); display: grid; place-items: center; font-size: 17pt; flex: none; box-shadow: 0 6px 16px -6px rgba(8, 60, 64, .45); }
+  .signa-hero h2 { color: var(--white); font-weight: 900; font-size: 17pt; line-height: 1.15; }
+  .pill { display: inline-block; margin-top: 1mm; background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .4);
+    font-size: 7pt; font-weight: 700; letter-spacing: .14em; padding: .6mm 2mm; border-radius: 1.2mm; }
+  .signa-hero p { margin-top: 3.5mm; color: rgba(255, 255, 255, .93); font-size: 10pt; }
+
+  .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .loop .step { background: var(--tint); border-radius: 3mm; padding: 3.5mm; }
+  .loop .step b { display: flex; align-items: center; gap: 1.8mm; font-family: var(--display); font-weight: 800; color: var(--ink); font-size: 10pt; }
+  .loop .step b span { width: 5.5mm; height: 5.5mm; border-radius: 50%; background: var(--teal); color: var(--white); display: grid; place-items: center; font-size: 7.5pt; flex: none; }
+  .loop .step p { font-size: 8.6pt; margin-top: 1.5mm; line-height: 1.4; }
+
+  .scenario { display: grid; gap: 3mm; }
+  .quote { background: var(--teal-deep); color: var(--white); border-radius: 3mm 3mm 3mm .8mm; padding: 3mm 4mm; font-size: 9.5pt; font-style: italic; }
+  .quote small { display: block; font-style: normal; font-size: 7.5pt; letter-spacing: .08em; text-transform: uppercase; opacity: .8; margin-bottom: 1.5mm; }
+  .timeline { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.8mm 3mm; }
+  .timeline li { display: flex; align-items: center; gap: 2.5mm; background: var(--tint); border-radius: 2mm; padding: 1.8mm 2.5mm; font-size: 8.8pt; color: var(--ink); }
+  .timeline li svg { color: var(--teal); font-size: 10pt; flex: none; }
+  .timeline li em { font-style: normal; color: var(--muted); margin-left: auto; font-size: 7.8pt; }
+
+  .guards { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm 5mm; list-style: none; margin: 0; padding: 0; }
+  .guards li { display: flex; gap: 2mm; font-size: 8.8pt; }
+  .guards li svg { color: var(--teal); font-size: 10pt; flex: none; margin-top: .6mm; }
+
+  .sdgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .sdg { display: flex; gap: 3mm; align-items: center; }
+  .sdg img { width: 11mm; height: 11mm; border-radius: 1.2mm; flex: none; }
+  .sdg h4 { font-family: var(--body); font-size: 9pt; font-weight: 700; line-height: 1.25; }
+  .sdg p { font-size: 8pt; line-height: 1.35; margin-top: .5mm; }
+
+  .tech { font-size: 8.6pt; }
+  .tech b { color: var(--ink); }
+
+  @media print {
+    html, body { background: var(--white); padding: 0; }
+    .page { margin: 0; box-shadow: none; break-after: page; }
+    .page:last-child { break-after: auto; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HALAMAN 1: DETAIL KEGIATAN & TIM ================= -->
+<section class="page patterned" style="gap:4.2mm">
+  <div class="logos">
+    <img src="assets/logo-signify.png" alt="Signify">
+    <i></i>
+    <img class="iaii" src="assets/logo-iaii.png" alt="Indonesia AI Institute">
+    <i></i>
+    <img class="hack" src="assets/logo-hackastone.png" alt="HackAstone">
+  </div>
+
+  <div class="hero">
+    <div>
+    <span class="eyebrow"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg> Finalis · Grand Final HackAstone 2026</span>
+    <h1>Signify melaju ke Grand Final HackAstone 2026 di Amsterdam</h1>
+    <p>Signify adalah platform belajar bahasa isyarat dengan avatar 3D yang berisyarat dan <strong>Signa</strong>,
+      agentic AI yang menjadi pelatih belajar pribadi. Proyek ini dikembangkan untuk tema
+      <strong>Agentic AI for Education</strong>.</p>
+    </div>
+    <a class="hero-qr" href="https://www.ai-signify.com/" style="text-decoration:none">
+      <svg viewBox="0 0 25 25" class="qr-code" role="img" aria-label="QR code ke ai-signify.com" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><path class="qrline" stroke="#0b5a5e" d="M0 0.5h7m1 0h1m1 0h3m2 0h2m1 0h7m-25 1h1m5 0h1m2 0h1m2 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h4m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h1m1 0h2m4 0h1m1 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m2 0h1m3 0h2m-17 1h1m3 0h1m1 0h4m2 0h1m2 0h1m1 0h5m2 0h1m-25 1h2m7 0h3m1 0h4m3 0h2m1 0h1m-24 1h2m3 0h2m1 0h1m2 0h1m1 0h1m1 0h5m1 0h2m-23 1h1m1 0h3m6 0h1m2 0h1m7 0h2m-22 1h2m1 0h2m2 0h1m2 0h1m2 0h1m2 0h2m1 0h4m-25 1h2m1 0h1m4 0h1m1 0h1m3 0h3m3 0h1m2 0h1m-20 1h3m2 0h1m3 0h3m2 0h5m-21 1h1m4 0h2m3 0h1m1 0h1m4 0h2m1 0h2m-24 1h2m1 0h5m2 0h2m4 0h7m-15 1h1m3 0h1m1 0h1m1 0h1m3 0h1m-21 1h7m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m5 0h1m2 0h3m2 0h1m1 0h1m3 0h5m-25 1h1m1 0h3m1 0h1m1 0h1m3 0h3m1 0h9m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h3m1 0h3m2 0h3m-25 1h1m1 0h3m1 0h1m2 0h2m4 0h1m2 0h1m2 0h1m1 0h1m-24 1h1m5 0h1m2 0h1m2 0h1m2 0h1m1 0h1m1 0h5m-24 1h7m1 0h2m1 0h5m1 0h1m4 0h3"/></svg>
+      <b>Coba sekarang</b>
+      <span>ai-signify.com</span>
+    </a>
+  </div>
+
+  <div class="p1-row">
+  <div class="card">
+    <div class="section-title"><span class="dot" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg></span>Detail Kegiatan</div>
+    <dl class="details">
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>Kegiatan</dt>
+      <dd>Grand Final HackAstone 2026<small>HACKATHON Through CAPstone</small></dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>Tema</dt>
+      <dd>Agentic AI for Education</dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>Penyelenggara</dt>
+      <dd>Association of Global AI Technomics Education &amp; Exchange</dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>Lokasi</dt>
+      <dd>Vrije Universiteit Amsterdam<small>Amsterdam, Belanda</small></dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Tanggal</dt>
+      <dd>29–30 Oktober 2026</dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>Website</dt>
+      <dd><a href="https://hackastone.varteledu.com/">hackastone.varteledu.com</a></dd>
+      <dt><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg>Proyek</dt>
+      <dd>Signify · <a href="https://www.ai-signify.com/">ai-signify.com</a></dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span class="dot" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>Tim Signify</div>
+    <div class="team">
+      <div class="member"><span class="av">RV</span><span>Randy Verdian</span></div>
+      <div class="member"><span class="av">MF</span><span>Muhammad Al Thariq Fairuz</span></div>
+      <div class="member"><span class="av">SI</span><span>Shafiq Irvansyah</span></div>
+      <div class="member"><span class="av">SH</span><span>Sa'ad Abdul Hakim</span></div>
+      <div class="member"><span class="av">YS</span><span>Yusuf Ardian Sandi</span></div>
+      <div class="member"><span class="av">TH</span><span>Thea Josephine Halim</span></div>
+      <div class="member"><span class="av">MA</span><span>Melati Anggraini</span></div>
+      <div class="member"><span class="av">OL</span><span>Olivia Christy Lismanto</span></div>
+    </div>
+  </div>
+  </div>
+
+  <figure class="team-photo"><img src="assets/team-photo.jpg" alt="Foto tim Signify"></figure>
+
+  <div class="foot"><span><b>Signify</b> · Where Vision Meets Understanding</span><span>1 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 2: TENTANG SIGNIFY ================= -->
+<section class="page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Penjelasan Produk</span></div>
+
+  <div>
+    <h2 class="page-title">Bahasa isyarat <mark>untuk semua</mark>, dibantu AI.</h2>
+    <p class="lede">
+      <strong>Signify</strong> adalah platform web untuk belajar dan mengakses bahasa isyarat. Avatar 3D memperagakan
+      isyarat dari teks dan video YouTube, kamera menilai gerakan pengguna secara langsung, dan <strong>Signa</strong>,
+      agentic AI kami, menyusun pengalaman belajar yang personal untuk setiap pengguna.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span class="dot" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></span>Masalah yang kami selesaikan</div>
+    <div class="problem">
+      <ul class="plist">
+        <li><span class="ic"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></span><div><h4>Komunikasi Tuli–dengar masih terhambat</h4>
+          <p>Sedikit orang dengar yang bisa berisyarat, dan Juru Bahasa Isyarat jumlahnya terbatas untuk kebutuhan sehari-hari di sekolah, kampus, dan tempat kerja.</p></div></li>
+        <li><span class="ic"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path><rect x="2" y="6" width="14" height="12" rx="2"></rect></svg></span><div><h4>Konten belajar belum aksesibel</h4>
+          <p>Video, kelas online, dan materi pelatihan jarang dilengkapi bahasa isyarat.</p></div></li>
+        <li><span class="ic"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"></path><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg></span><div><h4>Belajar isyarat sendiri itu sulit</h4>
+          <p>Tutorial bersifat pasif: tidak ada yang menilai gerakan atau mengingatkan untuk mengulang.</p></div></li>
+      </ul>
+      <div class="stats">
+        <div class="stat"><span class="num">± 900 rb</span>
+          <p>penduduk Indonesia usia 5+ mengalami gangguan pendengaran berat (0,36%).</p>
+          <small>BPS, Long Form SP2020 (jumlah = perkiraan dari persentase)</small></div>
+        <div class="stat"><span class="num pink">430 jt+</span>
+          <p>orang di dunia hidup dengan gangguan pendengaran yang membutuhkan rehabilitasi.</p>
+          <small>WHO, Deafness and hearing loss</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-title"><span class="dot" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path></svg></span>Solusi: satu platform, tiga pilar</div>
+    <div class="grid-3">
+      <div class="tile"><span class="ic" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg></span><h4>Communication Bridge</h4>
+        <p>Teks dan video YouTube diperagakan avatar 3D secara sinkron. Kamera juga bisa merekam isyarat untuk diterjemahkan ke teks.</p></div>
+      <div class="tile"><span class="ic" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span><h4>Content Accessibility</h4>
+        <p>Materi belajar dilengkapi avatar yang berisyarat mengikuti video, transcript, dan chatbot yang menjawab dari isi materi.</p></div>
+      <div class="tile"><span class="ic" style="background:var(--amber)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><h4>Active Sign Practice</h4>
+        <p>Latihan di depan kamera dengan skor gerakan 0–100, kuis "Guess the Sign", dan review kosakata terjadwal.</p></div>
+    </div>
+  </div>
+
+  <figure class="showcase" style="margin:0">
+    <div class="mock">
+      <img class="laptop" src="assets/signify-live-laptop.png" alt="Live Translator Signify di laptop">
+      <img class="phone" src="assets/signify-practice-phone.png" alt="Sign Practice Signify di HP">
+    </div>
+    <figcaption><b>Live Translator</b> di laptop &amp; <b>Sign Practice</b> di HP · available at ai-signify.com</figcaption>
+  </figure>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com</span><span>2 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 3: FITUR LEARN (1) ================= -->
+<section class="page feat-page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Fitur Aplikasi · Learn</span></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></span>
+      <div><span class="f-kicker">Learn · Fitur 01</span><h3>Dashboard <span>Pusat belajar harian</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-dashboard.jpg" alt="Dashboard Signify"></figure>
+    <div class="f-body">
+      <p class="f-desc">Halaman pertama setelah masuk. Dashboard merangkum progres belajar dan mengarahkan pengguna ke langkah
+        berikutnya, sesuai tujuan yang dipilih saat onboarding: akademik, karier, atau presentasi.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span><b>Daily Goal</b>: target menit belajar per hari, lengkap dengan streak harian.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Ringkasan streak, peringkat leaderboard, total waktu belajar, dan koin.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Pintasan ke semua fitur dan <b>rekomendasi materi</b> sesuai tujuan dan progres.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="f-divider"></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--violet)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg></span>
+      <div><span class="f-kicker">Learn · Fitur 02</span><h3>Signify Coach <span class="ai-tag">AI</span> <span>Signa, pelatih belajar berbasis agentic AI</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-coach.jpg" alt="Signify Coach: Signa"></figure>
+    <div class="f-body">
+      <p class="f-desc">Pengguna cukup menuliskan tujuannya, misalnya persiapan wawancara kerja. Signa membaca progres belajar,
+        memilih sendiri langkah yang perlu diambil, lalu menjalankannya langsung di aplikasi. Cara kerjanya dijelaskan di halaman 7.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Membuat <b>kuis isyarat pribadi</b> sesuai kebutuhan pengguna.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Menambahkan kosakata ke <b>My Signs</b>, lalu avatar memperagakan isyarat kuncinya.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Menyusun rencana belajar, merekomendasikan materi, dan bisa belajar dari link YouTube.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com</span><span>3 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 4: FITUR LEARN (2) ================= -->
+<section class="page feat-page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Fitur Aplikasi · Learn</span></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--teal-deep)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></span>
+      <div><span class="f-kicker">Learn · Fitur 03</span><h3>Learning Materials <span>Materi belajar yang aksesibel</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-learning-materials.jpg" alt="Learning Materials Signify"></figure>
+    <div class="f-body">
+      <p class="f-desc">Perpustakaan video, artikel, dan dokumen tentang bahasa isyarat, sekolah, kampus, karier, dan
+        pendidikan vokasi, yang dibuat aksesibel untuk pengguna Tuli.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Filter kategori (Career, K-12, Sign Language, University, Vocational), jenis, dan bahasa.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Video dilengkapi <b>avatar 3D yang berisyarat</b> dan transcript yang bisa diklik.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Chat materi untuk ringkasan atau soal; <b>"Sign this"</b> membuat avatar memperagakan jawabannya.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="f-divider"></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--amber)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg></span>
+      <div><span class="f-kicker">Learn · Fitur 04</span><h3>Quizzes <span>Uji pemahaman, kumpulkan koin</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-quizzes.jpg" alt="Quiz Signify"></figure>
+    <div class="f-body">
+      <p class="f-desc">Kuis bahasa isyarat per topik dan level (Beginner, Intermediate). Setiap kuis menampilkan jumlah soal,
+        koin maksimal, timer, dan akurasi secara langsung selama dikerjakan.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Tiga jenis soal: <b>Find the sign</b>, <b>Read the sign</b>, dan <b>Watch the avatar</b>.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Hasil akhir: skor, waktu, dan pembahasan tiap soal.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Koin hasil kuis bisa ditukar di <b>Shop</b>.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com</span><span>4 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 5: FITUR PRACTICE (1) ================= -->
+<section class="page feat-page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Fitur Aplikasi · Practice</span></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg></span>
+      <div><span class="f-kicker">Practice · Fitur 05</span><h3>Live Translator <span>Jembatan komunikasi dua arah</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-live-translator.jpg" alt="Live Translator Signify"></figure>
+    <div class="f-body">
+      <p class="f-desc">Menerjemahkan teks dan video menjadi bahasa isyarat lewat avatar 3D, dan sebaliknya. Berguna untuk
+        memahami video pelajaran maupun berkomunikasi sehari-hari.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span><b>YouTube → isyarat:</b> tempel link video bercaption, avatar berisyarat mengikuti video.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span><b>Teks → isyarat:</b> ketik kata atau kalimat, avatar langsung memperagakannya.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span><b>Isyarat → teks:</b> berisyarat di depan kamera, Signify menuliskan artinya.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="f-divider"></div>
+
+  <article class="feature split">
+    <figure class="shot"><img src="assets/ss-sign-practice.jpg" alt="Sign Practice Signify"></figure>
+    <div class="f-side">
+      <header class="f-head"><span class="f-ic" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"></path><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg></span>
+        <div><span class="f-kicker">Practice · Fitur 06</span><h3>Sign Practice</h3></div></header>
+      <p class="f-tag">Latihan dengan penilaian kamera</p>
+      <p class="f-desc">Modul latihan sesuai situasi nyata: Sign Language Basics, Job Interview, School Presentations, dan
+        Business Pitching. Avatar memberi contoh, pengguna menirukan di depan kamera.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Tangan dideteksi real-time: hitung mundur 3 detik, lalu rekam ±4 detik.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Gerakan dinilai <b>0–100</b>, skor 60 ke atas dihitung berhasil. Tangan kiri atau kanan sama-sama bisa.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Progres sesi: rata-rata skor, isyarat berhasil, dan yang perlu diulang.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Video kamera diproses langsung di browser.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com</span><span>5 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 6: FITUR PRACTICE (2) & AKUN ================= -->
+<section class="page feat-page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Fitur Aplikasi · Practice &amp; Akun</span></div>
+
+  <article class="feature">
+    <header class="f-head"><span class="f-ic" style="background:var(--amber)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 2v8l3-3 3 3V2"></path><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"></path></svg></span>
+      <div><span class="f-kicker">Practice · Fitur 07</span><h3>My Signs <span>Kosakata isyarat pribadi</span></h3></div></header>
+    <figure class="shot"><img src="assets/ss-my-signs.jpg" alt="My Signs Signify"></figure>
+    <div class="f-body">
+      <p class="f-desc">Semua isyarat yang pernah ditemui pengguna terkumpul di sini, dari Live Translator, Sign Practice, dan
+        Signify Coach, atau ditambahkan sendiri. My Signs membantu pengguna mengingat isyarat dalam jangka panjang.</p>
+      <ul class="f-list">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Review harian dengan <b>spaced repetition</b>: avatar berisyarat, pengguna menebak artinya.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Pengguna menilai ingatannya (Again, Hard, Good, Easy), dan jadwal review berikutnya menyesuaikan.</span></li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg><span>Status <i>Learning</i> sampai <i>Mastered</i>; jumlah yang perlu direview tampil di menu.</span></li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="f-divider"></div>
+
+  <div>
+    <div class="section-title"><span class="dot" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span>Menu akun</div>
+    <div class="acct">
+      <article class="acct-card"><header><span class="f-ic" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><h4>Shop</h4></header>
+        <p>Koin dari kuis bisa ditukar dengan item avatar: model avatar, warna rambut, warna mata, aksesori, dan background.
+          Item bisa dicoba dulu sebelum dibeli.</p></article>
+      <article class="acct-card"><header><span class="f-ic" style="background:var(--teal-deep)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></span><h4>Profile</h4></header>
+        <p>Statistik belajar: streak, jam belajar, skor latihan, isyarat yang dikuasai, koin, dan peringkat leaderboard.
+          Nama, foto, dan bio juga bisa diubah.</p></article>
+      <article class="acct-card"><header><span class="f-ic" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg></span><h4>Settings</h4></header>
+        <p>Pilih bahasa isyarat avatar (ASL atau BISINDO), bahasa aplikasi, suara, notifikasi, dan password. Ada juga
+          <b>Sign Dictionary</b> berisi semua isyarat yang dikuasai avatar.</p></article>
+    </div>
+  </div>
+
+  <a class="cta" href="https://www.ai-signify.com/">
+    <div>
+      <span class="eyebrow"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg> Coba sekarang</span>
+      <h3>Semua fitur di atas sudah bisa dicoba</h3>
+      <p>Buka <b>ai-signify.com</b> di laptop atau HP, lalu mulai belajar bersama Signa.</p>
+    </div>
+    <span class="hero-qr"><svg viewBox="0 0 25 25" class="qr-code" role="img" aria-label="QR code ke ai-signify.com" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><path class="qrline" stroke="#0b5a5e" d="M0 0.5h7m1 0h1m1 0h3m2 0h2m1 0h7m-25 1h1m5 0h1m2 0h1m2 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h4m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h1m1 0h2m4 0h1m1 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m2 0h1m3 0h2m-17 1h1m3 0h1m1 0h4m2 0h1m2 0h1m1 0h5m2 0h1m-25 1h2m7 0h3m1 0h4m3 0h2m1 0h1m-24 1h2m3 0h2m1 0h1m2 0h1m1 0h1m1 0h5m1 0h2m-23 1h1m1 0h3m6 0h1m2 0h1m7 0h2m-22 1h2m1 0h2m2 0h1m2 0h1m2 0h1m2 0h2m1 0h4m-25 1h2m1 0h1m4 0h1m1 0h1m3 0h3m3 0h1m2 0h1m-20 1h3m2 0h1m3 0h3m2 0h5m-21 1h1m4 0h2m3 0h1m1 0h1m4 0h2m1 0h2m-24 1h2m1 0h5m2 0h2m4 0h7m-15 1h1m3 0h1m1 0h1m1 0h1m3 0h1m-21 1h7m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m5 0h1m2 0h3m2 0h1m1 0h1m3 0h5m-25 1h1m1 0h3m1 0h1m1 0h1m3 0h3m1 0h9m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h3m1 0h3m2 0h3m-25 1h1m1 0h3m1 0h1m2 0h2m4 0h1m2 0h1m2 0h1m1 0h1m-24 1h1m5 0h1m2 0h1m2 0h1m2 0h1m1 0h1m1 0h5m-24 1h7m1 0h2m1 0h5m1 0h1m4 0h3"/></svg><span>ai-signify.com</span></span>
+  </a>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com</span><span>6 / 7</span></div>
+</section>
+
+<!-- ================= HALAMAN 7: SIGNA (AGENTIC AI) ================= -->
+<section class="page">
+  <div class="running"><img src="assets/logo-signify.png" alt="Signify"><span>Agentic AI for Education</span></div>
+
+  <div class="signa-hero">
+    <div class="signa-top">
+      <span class="star"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg></span>
+      <div><h2>Signa: agentic AI pelatih belajar bahasa isyarat</h2><span class="pill">AI AGENT</span></div>
+    </div>
+    <p>Signa bukan chatbot biasa. Pengguna cukup menyampaikan tujuan belajarnya, lalu Signa membaca data belajar asli
+      pengguna, merencanakan langkahnya sendiri, dan <strong>bertindak langsung di dalam aplikasi</strong>. Setiap langkah
+      tampil secara real-time, jadi pengguna selalu tahu apa yang sedang dikerjakan Signa.</p>
+  </div>
+
+  <div>
+    <div class="section-title"><span class="dot" style="background:var(--violet)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M9 13a4.5 4.5 0 0 0 3-4"></path><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"></path><path d="M3.477 10.896a4 4 0 0 1 .585-.396"></path><path d="M6 18a4 4 0 0 1-1.967-.516"></path><path d="M12 13h4"></path><path d="M12 18h6a2 2 0 0 1 2 2v1"></path><path d="M12 8h8"></path><path d="M16 8V5a2 2 0 0 1 2-2"></path><circle cx="16" cy="13" r=".5"></circle><circle cx="18" cy="3" r=".5"></circle><circle cx="20" cy="21" r=".5"></circle><circle cx="20" cy="8" r=".5"></circle></svg></span>Cara Signa bekerja</div>
+    <div class="loop">
+      <div class="step"><b><span>1</span>Perceive</b><p>Membaca progres asli: skor latihan, isyarat yang sering salah, dan materi yang sedang dipelajari.</p></div>
+      <div class="step"><b><span>2</span>Plan</b><p>Memutuskan sendiri langkah dan tool yang dipakai untuk mencapai tujuan pengguna.</p></div>
+      <div class="step"><b><span>3</span>Act</b><p>Membuat kuis pribadi, menambah kosakata, menyusun rencana belajar, dan menyiapkan avatar.</p></div>
+      <div class="step"><b><span>4</span>Observe</b><p>Memakai hasil tiap langkah untuk langkah berikutnya, lalu menjawab singkat.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span class="dot" style="background:var(--teal)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg></span>Contoh: persiapan wawancara kerja</div>
+    <div class="scenario">
+      <div class="quote"><small>Pengguna</small>"Minggu depan aku interview kerja. Bantu aku siap pakai bahasa isyarat."</div>
+      <ul class="timeline">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>Mengecek progres belajar</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Mencari materi Career &amp; interview</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>Menyusun rencana belajar 5 hari</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg>Membuat kuis isyarat pribadi</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 2v8l3-3 3 3V2"></path><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"></path></svg>Menambah kosakata ke My Signs</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"></path><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg>Avatar memperagakan frasa kunci</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="padding:5mm 6mm">
+      <div class="section-title" style="margin-bottom:3mm"><span class="dot" style="background:var(--teal-deep)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg></span>Aman &amp; terkendali</div>
+      <ul class="guards">
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Hanya bertindak lewat tools resmi aplikasi</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Data pengguna sesuai akun yang login</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Setiap argumen AI divalidasi</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Kuis buatan Signa bersifat pribadi</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Maksimal 8 langkah per permintaan</li>
+        <li><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6 9 17l-5-5"></path></svg>Video kamera diproses di browser</li>
+      </ul>
+    </div>
+    <div class="card" style="padding:5mm 6mm">
+      <div class="section-title" style="margin-bottom:3mm"><span class="dot" style="background:var(--pink)"><svg stroke="currentColor" fill="none" stroke-width="2.1" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="currentColor" aria-hidden="true" style="color:currentColor" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg></span>Dampak &amp; SDGs</div>
+      <div class="sdgs" style="grid-template-columns:1fr; gap:2.4mm">
+        <div class="sdg"><img src="assets/sdg-04.png" alt="SDG 4"><div><h4>Pendidikan Berkualitas</h4><p>Materi dan kelas yang aksesibel bagi pelajar Tuli.</p></div></div>
+        <div class="sdg"><img src="assets/sdg-08.png" alt="SDG 8"><div><h4>Pekerjaan Layak</h4><p>Persiapan kerja dan tempat kerja yang inklusif.</p></div></div>
+        <div class="sdg"><img src="assets/sdg-10.png" alt="SDG 10"><div><h4>Berkurangnya Kesenjangan</h4><p>Komunikasi Tuli–dengar tanpa hambatan.</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tech"><b>Teknologi:</b> Next.js · Hono · PostgreSQL · Google Gemini (function calling untuk Signa) ·
+    MediaPipe (deteksi tangan &amp; tubuh di browser) · avatar 3D VRM (three.js) · animasi isyarat dari sign.mt &amp;
+    Sign Dictionary Signify (ASL &amp; BISINDO).</p>
+
+  <div class="foot"><span><b>Signify</b> · www.ai-signify.com · Finalis Grand Final HackAstone 2026</span><span>7 / 7</span></div>
+</section>
+
+</body>
+</html>
