@@ -269,7 +269,9 @@ function ControlSkeleton({ wide }: { wide?: boolean }) {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, refresh } = useAuth();
+  // Akun Google tanpa password: form membuat password pertama (tanpa password lama).
+  const hasPassword = user?.hasPassword !== false;
 
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [prefsLoading, setPrefsLoading] = useState(true);
@@ -313,11 +315,15 @@ export default function SettingsPage() {
     }
     setSavingPwd(true);
     try {
-      await api.post("/api/me/password", { currentPassword, newPassword });
-      toast.success("Password berhasil diubah");
+      await api.post("/api/me/password", {
+        newPassword,
+        ...(hasPassword ? { currentPassword } : {}),
+      });
+      toast.success(hasPassword ? "Password berhasil diubah" : "Password berhasil dibuat");
       setShowPwd(false);
       setCurrentPassword("");
       setNewPassword("");
+      if (!hasPassword) await refresh();
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Gagal mengubah password";
       toast.error("Gagal mengubah password", { description: msg });
@@ -566,7 +572,14 @@ export default function SettingsPage() {
             className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-slate-50 sm:px-6"
           >
             <IconTile icon={KeyRound} tone="bg-sky-50 text-sky-600" />
-            <RowText label="Change Password" description="Update the password you use to sign in" />
+            <RowText
+              label={hasPassword ? "Change Password" : "Set Password"}
+              description={
+                hasPassword
+                  ? "Update the password you use to sign in"
+                  : "Add a password so you can also log in with your email"
+              }
+            />
             <ChevronDown
               className={cn(
                 "h-5 w-5 shrink-0 text-slate-300 transition-transform duration-300 group-hover:text-teal-500",
@@ -583,16 +596,18 @@ export default function SettingsPage() {
               }}
               className="mx-5 mb-5 space-y-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100 animate-in fade-in slide-in-from-top-1 sm:mx-6 sm:p-5"
             >
-              <PasswordField
-                id="current-password"
-                label="Current password"
-                icon={Lock}
-                placeholder="Enter your current password"
-                autoComplete="current-password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="bg-white"
-              />
+              {hasPassword && (
+                <PasswordField
+                  id="current-password"
+                  label="Current password"
+                  icon={Lock}
+                  placeholder="Enter your current password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="bg-white"
+                />
+              )}
               <div className="space-y-2">
                 <PasswordField
                   id="new-password"
@@ -628,7 +643,7 @@ export default function SettingsPage() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-5 text-sm font-semibold text-white shadow-sm shadow-teal-900/10 transition-all hover:shadow-md hover:brightness-105 disabled:opacity-60"
                 >
                   {savingPwd && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {savingPwd ? "Saving..." : "Update Password"}
+                  {savingPwd ? "Saving..." : hasPassword ? "Update Password" : "Set Password"}
                 </button>
               </div>
             </form>

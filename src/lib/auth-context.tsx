@@ -19,6 +19,9 @@ export interface User {
   gender?: "male" | "female" | null;
   bio?: string | null;
   avatarUrl: string | null;
+  /** false = akun Google yang belum punya password. */
+  hasPassword?: boolean;
+  googleLinked?: boolean;
   coins: number;
   streakCount: number;
   totalLearningSeconds?: number;
@@ -31,6 +34,10 @@ interface AuthResponse {
   user: User;
 }
 
+interface GoogleAuthResponse extends AuthResponse {
+  isNewUser: boolean;
+}
+
 interface AuthState {
   user: User | null;
   loading: boolean;
@@ -40,6 +47,8 @@ interface AuthState {
     password: string,
     fullName?: string,
   ) => Promise<void>;
+  /** Tukar ID token Google (dari tombol Google) dengan sesi Signify. */
+  loginWithGoogle: (credential: string) => Promise<{ isNewUser: boolean }>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -82,16 +91,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.post<AuthResponse>("/api/auth/login", {
-      email,
-      password,
-    });
+  // Simpan sesi baru dari login/register (password maupun Google).
+  const startSession = useCallback((res: AuthResponse) => {
     setToken(res.token);
     clearCache();
     writeCache(USER_CACHE_KEY, res.user);
     setUser(res.user);
   }, []);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await api.post<AuthResponse>("/api/auth/login", {
+        email,
+        password,
+      });
+      startSession(res);
+    },
+    [startSession],
+  );
 
   const register = useCallback(
     async (email: string, password: string, fullName?: string) => {
@@ -100,12 +117,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         ...(fullName ? { fullName } : {}),
       });
-      setToken(res.token);
-      clearCache();
-      writeCache(USER_CACHE_KEY, res.user);
-      setUser(res.user);
+      startSession(res);
     },
-    [],
+    [startSession],
+  );
+
+  const loginWithGoogle = useCallback(
+    async (credential: string) => {
+      const res = await api.post<GoogleAuthResponse>("/api/auth/google", { credential });
+      startSession(res);
+      return { isNewUser: res.isNewUser };
+    },
+    [startSession],
   );
 
   const logout = useCallback(() => {
@@ -116,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refresh }}
+      value={{ user, loading, login, register, loginWithGoogle, logout, refresh }}
     >
       {children}
     </AuthContext.Provider>

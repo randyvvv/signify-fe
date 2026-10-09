@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, Lock, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthField, AuthLayout, PasswordField } from "@/components/auth/AuthLayout";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
@@ -55,6 +56,7 @@ export default function RegisterPage() {
         </>
       }
     >
+      <GoogleSignIn text="signup_with" />
       <form onSubmit={handleSubmit} className="space-y-5">
         <AuthField
           id="fullName"
