@@ -1,18 +1,58 @@
 import Image from "next/image";
-import { Crown } from "lucide-react";
 import { Reveal } from "@/components/landing/Reveal";
 
-const MAIN_SPONSOR = {
+type Sponsor = {
+  name: string;
+  logo: string;
+  url: string;
+  width: number;
+  height: number;
+};
+
+const MAIN_SPONSOR: Sponsor = {
   name: "Indonesia AI Institute",
   logo: "/sponsors/indonesia-ai-institute.png",
+  url: "https://aiinstitute.id/id/",
   width: 900,
   height: 304,
 };
 
-const SPONSORS = [
-  { name: "AI Center ITB", logo: "/sponsors/ai-center-itb.png", width: 520, height: 520 },
-  { name: "Telkom Indonesia", logo: "/sponsors/telkom-indonesia.png", width: 760, height: 417 },
+const SPONSORS: Sponsor[] = [
+  {
+    name: "AI Center ITB",
+    logo: "/sponsors/ai-center-itb.png",
+    url: "https://itb.ac.id/pusat-artificial-intelligence/",
+    width: 520,
+    height: 520,
+  },
+  {
+    name: "Telkom Indonesia",
+    logo: "/sponsors/telkom-indonesia.png",
+    url: "https://www.telkom.co.id/",
+    width: 760,
+    height: 417,
+  },
 ];
+
+function SponsorLink({ sponsor, sizes, className }: { sponsor: Sponsor; sizes: string; className: string }) {
+  return (
+    <a
+      href={sponsor.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex rounded-xl p-2 transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B7077] focus-visible:ring-offset-4"
+    >
+      <Image
+        src={sponsor.logo}
+        alt={`${sponsor.name} (opens in a new tab)`}
+        width={sponsor.width}
+        height={sponsor.height}
+        sizes={sizes}
+        className={`w-auto object-contain ${className}`}
+      />
+    </a>
+  );
+}
 
 export function Sponsors() {
   return (
@@ -27,45 +67,19 @@ export function Sponsors() {
         </p>
       </Reveal>
 
-      <div className="mx-auto mt-14 flex max-w-5xl flex-col gap-6">
+      <div className="mx-auto mt-14 flex max-w-4xl flex-col items-center gap-10 md:gap-14">
         <Reveal variant="zoom">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-[#D2E6E4] px-6 py-10 md:px-12 md:py-12">
-            <div
-              className="absolute inset-0 opacity-40 mix-blend-multiply"
-              style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: "cover" }}
-            />
-            <div className="relative flex flex-col items-center gap-6">
-              <span className="inline-flex items-center gap-2 rounded-lg bg-[#FFE75C] px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-[#5A4A00]">
-                <Crown className="h-4 w-4" aria-hidden />
-                Main Sponsor
-              </span>
-              <div className="flex w-full max-w-xl items-center justify-center rounded-3xl bg-white px-8 py-8 shadow-[0_10px_30px_-18px_rgba(11,112,119,0.45)] md:px-14 md:py-10">
-                <Image
-                  src={MAIN_SPONSOR.logo}
-                  alt={MAIN_SPONSOR.name}
-                  width={MAIN_SPONSOR.width}
-                  height={MAIN_SPONSOR.height}
-                  sizes="(min-width: 768px) 420px, 80vw"
-                  className="h-20 w-auto object-contain md:h-28"
-                />
-              </div>
-            </div>
-          </div>
+          <SponsorLink
+            sponsor={MAIN_SPONSOR}
+            sizes="(min-width: 768px) 520px, 80vw"
+            className="h-24 md:h-36"
+          />
         </Reveal>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="flex w-full flex-wrap items-center justify-center gap-x-16 gap-y-8 md:gap-x-28">
           {SPONSORS.map((sponsor, i) => (
-            <Reveal key={sponsor.name} delay={120 + i * 120} className="h-full">
-              <div className="flex h-full items-center justify-center rounded-[2rem] border border-[#0F5A5A]/10 bg-white px-8 py-8 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.08)]">
-                <Image
-                  src={sponsor.logo}
-                  alt={sponsor.name}
-                  width={sponsor.width}
-                  height={sponsor.height}
-                  sizes="(min-width: 640px) 240px, 60vw"
-                  className="h-24 w-auto object-contain md:h-28"
-                />
-              </div>
+            <Reveal key={sponsor.name} delay={120 + i * 120}>
+              <SponsorLink sponsor={sponsor} sizes="(min-width: 768px) 200px, 40vw" className="h-16 md:h-24" />
             </Reveal>
           ))}
         </div>
