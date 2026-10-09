@@ -3,6 +3,7 @@ import { Raleway, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 
 const raleway = Raleway({
   variable: "--font-raleway",
@@ -17,11 +18,26 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  // Basis URL absolut untuk gambar Open Graph (preview link berita di media sosial).
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ai-signify.com"),
-  title: "Signify - Learn Sign Language",
-  description: "Interactive sign language learning platform with live translation, quizzes, and practice sessions",
+  // Basis URL absolut untuk canonical dan gambar Open Graph (preview link di media sosial).
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: ["sign language", "learning", "accessibility", "education", "ASL", "BISINDO"],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  // Token verifikasi Google Search Console (metode tag HTML); kosong = tag tidak dirender.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined },
 };
 
 export default function RootLayout({

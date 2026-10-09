@@ -1,0 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Log In",
+  description: "Log in to Signify to continue learning sign language with your AI coach, quizzes and practice sessions.",
+  alternates: { canonical: "/login" },
+};
+
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
+  return children;
+}

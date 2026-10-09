@@ -7,37 +7,80 @@ import { Reveal } from "@/components/landing/Reveal";
 import { CategoryPill, NewsCard, NewsCoverImage, NewsMeta } from "@/components/news/NewsCard";
 import { NewsHeader } from "@/components/news/NewsHeader";
 import { ShareLinks } from "@/components/news/ShareLinks";
+import { JsonLd } from "@/components/shared/JsonLd";
 import { MarkdownContent } from "@/components/shared/Markdown";
-import { fetchNews, fetchNewsPage } from "@/lib/news";
+import { fetchNews, fetchNewsPage, type NewsDetail } from "@/lib/news";
+import { DEFAULT_OG_IMAGE, ORGANIZATION_ID, SITE_LOGO, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await fetchNews(slug).catch(() => null);
-  if (!article) return { title: "News - Signify" };
+  if (!article) return { title: "News" };
 
+  const path = `/news/${article.slug}`;
   const images = article.coverImageUrl
     ? [{ url: article.coverImageUrl, width: 1200, height: 630, alt: article.title }]
-    : undefined;
+    : [DEFAULT_OG_IMAGE];
   return {
-    title: `${article.title} - Signify`,
+    title: article.title,
     description: article.excerpt,
-    alternates: { canonical: `/news/${article.slug}` },
+    alternates: { canonical: path },
     openGraph: {
       type: "article",
+      siteName: SITE_NAME,
+      url: path,
       title: article.title,
       description: article.excerpt,
       publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt,
       authors: [article.authorName],
+      section: article.category,
       images,
     },
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description: article.excerpt,
-      images: images?.map((i) => i.url),
+      images: images.map((i) => i.url),
     },
+  };
+}
+
+// Structured data artikel + breadcrumb untuk hasil pencarian Google.
+function articleStructuredData(article: NewsDetail) {
+  const url = absoluteUrl(`/news/${article.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "NewsArticle",
+        headline: article.title,
+        description: article.excerpt,
+        image: article.coverImageUrl ? [absoluteUrl(article.coverImageUrl)] : undefined,
+        datePublished: article.publishedAt,
+        dateModified: article.updatedAt,
+        articleSection: article.category,
+        inLanguage: "en",
+        mainEntityOfPage: url,
+        author: [{ "@type": "Organization", name: article.authorName, url: SITE_URL }],
+        publisher: {
+          "@type": "Organization",
+          "@id": ORGANIZATION_ID,
+          name: SITE_NAME,
+          logo: { "@type": "ImageObject", url: absoluteUrl(SITE_LOGO) },
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+          { "@type": "ListItem", position: 2, name: "News", item: absoluteUrl("/news") },
+          { "@type": "ListItem", position: 3, name: article.title, item: url },
+        ],
+      },
+    ],
   };
 }
 
@@ -61,6 +104,7 @@ export default async function NewsArticlePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-white font-body">
+      <JsonLd data={articleStructuredData(article)} />
       <NewsHeader className={article.coverImageUrl ? "pb-28 md:pb-40" : undefined}>
         <Reveal className="mx-auto max-w-4xl text-center">
           <Link

@@ -6,24 +6,42 @@ import { Reveal } from "@/components/landing/Reveal";
 import { FeaturedNewsCard, NewsCard } from "@/components/news/NewsCard";
 import { NewsHeader } from "@/components/news/NewsHeader";
 import { fetchNewsPage, type NewsPage } from "@/lib/news";
+import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "News - Signify",
-  description: "Milestones, events and stories from the Signify team.",
-  openGraph: {
-    title: "Signify News",
-    description: "Milestones, events and stories from the Signify team.",
-    type: "website",
-  },
-};
+const NEWS_DESCRIPTION = "Milestones, events and stories from the Signify team.";
 
-export default async function NewsListPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const { page: pageParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
+type Props = { searchParams: Promise<{ page?: string }> };
+
+function parsePage(pageParam: string | undefined) {
+  return Math.max(1, Number(pageParam) || 1);
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const page = parsePage((await searchParams).page);
+  const path = page > 1 ? `/news?page=${page}` : "/news";
+  return {
+    title: page > 1 ? `News - Page ${page}` : "News",
+    description: NEWS_DESCRIPTION,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      title: "Signify News",
+      description: NEWS_DESCRIPTION,
+      url: path,
+      images: [DEFAULT_OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Signify News",
+      description: NEWS_DESCRIPTION,
+      images: [DEFAULT_OG_IMAGE.url],
+    },
+  };
+}
+
+export default async function NewsListPage({ searchParams }: Props) {
+  const page = parsePage((await searchParams).page);
 
   let data: NewsPage | null = null;
   try {

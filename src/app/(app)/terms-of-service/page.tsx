@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Terms of Service — Signify",
+  title: "Terms of Service",
 };
 
 const sections = [

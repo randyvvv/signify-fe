@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export const metadata = {
-  title: "About Signify",
+  title: "About",
 };
 
 const team = [

@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy — Signify",
+  title: "Privacy Policy",
 };
 
 const sections = [
