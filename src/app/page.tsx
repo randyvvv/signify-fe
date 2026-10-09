@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/layout/footer";
-import { useAuth } from "@/lib/auth-context";
-import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Reveal } from "@/components/landing/Reveal";
+import { SiteNavbar } from "@/components/landing/SiteNavbar";
+import { Sponsors } from "@/components/landing/Sponsors";
 
 // Video demo di section "Meet SIGNA" (https://youtu.be/wi_hiz7INks).
 const DEMO_VIDEO_ID = "wi_hiz7INks";
@@ -47,10 +47,6 @@ function ScrollProgress() {
 }
 
 export default function LandingPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, loading, logout } = useAuth();
-  const isSignedIn = !loading && !!user;
-
   const scrollToVideo = () => {
     const section = document.getElementById("video-section");
     if (section) {
@@ -69,105 +65,7 @@ export default function LandingPage() {
               style={{ backgroundImage: "url('/landing/corak.png')", backgroundSize: 'cover' }}>
          </div>
 
-        {/* Navbar */}
-        <nav className="relative z-50 container mx-auto flex items-center justify-between px-6 py-4 md:px-12 mb-8 md:mb-12">
-            <Link href="/" className="flex items-center">
-              <Image
-                src="/logo/logo-signify.png"
-                alt="Signify"
-                width={200}
-                height={180}
-                priority
-                className="h-32 w-auto"
-              />
-            </Link>
-
-            {/* Desktop Nav */}
-            <div className="hidden gap-12 md:flex">
-              <Link href="#" className="font-medium text-[#FF7D50] hover:text-[#ff6b3d]">
-                Home
-              </Link>
-              {isSignedIn && (
-                <>
-                  <Link href="/dashboard" className="font-medium text-gray-600 hover:text-[#0F5A5A]">
-                    Dashboard
-                  </Link>
-                  <Link href="/quizzes" className="font-medium text-gray-600 hover:text-[#0F5A5A]">
-                    Quiz
-                  </Link>
-                </>
-              )}
-            </div>
-            <div className="hidden items-center gap-4 md:flex">
-              {isSignedIn ? (
-                <Button
-                  onClick={logout}
-                  className="bg-[#DF5D73] text-white hover:bg-[#c94d62] shadow-lg shadow-[#DF5D73]/20 px-8 py-6"
-                >
-                  LOG OUT
-                </Button>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button className="bg-white text-[#0F5A5A] hover:bg-gray-50 shadow-sm px-8 py-6">
-                      LOG IN
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button className="bg-[#0B7077] text-white hover:bg-[#0b4545] shadow-lg shadow-[#0F5A5A]/20 px-8 py-6">
-                      SIGN UP
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Toggle */}
-            <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <X className="text-[#0F5A5A] h-8 w-8" /> : <Menu className="text-[#0F5A5A] h-8 w-8" />}
-            </button>
-        </nav>
-
-        {/* Mobile Menu Overlay */}
-        {isMenuOpen && (
-            <div className="absolute top-[80px] left-0 z-40 w-full bg-[#D2E6E4]/95 backdrop-blur-sm p-6 shadow-xl border-t border-[#0F5A5A]/10 md:hidden">
-                <div className="flex flex-col gap-6 text-center">
-                    <Link href="#" className="font-medium text-[#FF7D50] text-lg py-2">Home</Link>
-                    {isSignedIn && (
-                      <>
-                        <Link href="/dashboard" className="font-medium text-gray-600 text-lg py-2">Dashboard</Link>
-                        <Link href="/quizzes" className="font-medium text-gray-600 text-lg py-2">Quiz</Link>
-                      </>
-                    )}
-                    <div className="flex flex-col gap-4 mt-2">
-                        {isSignedIn ? (
-                          <Button
-                            onClick={() => {
-                              logout();
-                              setIsMenuOpen(false);
-                            }}
-                            className="w-full bg-[#DF5D73] text-white hover:bg-[#c94d62] py-6"
-                          >
-                            LOG OUT
-                          </Button>
-                        ) : (
-                          <>
-                            <Link href="/login">
-                                <Button className="w-full bg-white text-[#0F5A5A] border border-[#0F5A5A]/20 hover:bg-gray-50 py-6">
-                                    LOG IN
-                                </Button>
-                            </Link>
-                            <Link href="/register">
-                                <Button className="w-full bg-[#0B7077] text-white hover:bg-[#0b4545] py-6">
-                                    SIGN UP
-                                </Button>
-                            </Link>
-                          </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        )}
+        <SiteNavbar active="home" />
 
         <div className="relative z-10 container mx-auto flex flex-col items-center gap-12 px-6 md:flex-row md:justify-between md:px-12">
           {/* Left Content */}
@@ -394,6 +292,9 @@ export default function LandingPage() {
             </div>
         </div>
       </section>
+
+      {/* Sponsors */}
+      <Sponsors />
 
       {/* CTA Section */}
       <section className="container mx-auto min-h-screen flex flex-col justify-center px-6 py-20">

@@ -17,6 +17,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  // Basis URL absolut untuk gambar Open Graph (preview link berita di media sosial).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ai-signify.com"),
   title: "Signify - Learn Sign Language",
   description: "Interactive sign language learning platform with live translation, quizzes, and practice sessions",
   keywords: ["sign language", "learning", "accessibility", "education", "ASL", "BISINDO"],

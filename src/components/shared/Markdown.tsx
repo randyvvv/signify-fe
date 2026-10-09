@@ -1,6 +1,10 @@
-// Renderer markdown ringan (heading, list, quote, bold, code, link) untuk
-// konten materi dan jawaban Signify Coach. Tanpa dependency.
+// Renderer markdown ringan (heading, list, quote, gambar, bold, code, link) untuk
+// konten materi, jawaban Signify Coach, dan artikel berita. Tanpa dependency.
+import Image from "next/image";
 import type { ReactNode } from "react";
+
+// Satu baris berisi gambar saja: ![caption](src)
+const IMAGE_LINE = /^!\[([^\]]*)\]\((\S+?)\)$/;
 
 function renderInlineMarkdown(text: string): ReactNode[] {
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
@@ -53,6 +57,27 @@ export function MarkdownContent({ content, compact = false }: { content: string;
     const line = lines[index]?.trim() ?? "";
 
     if (!line) {
+      index += 1;
+      continue;
+    }
+
+    const image = line.match(IMAGE_LINE);
+    if (image) {
+      const [, alt, src] = image;
+      blocks.push(
+        <figure key={key++}>
+          <Image
+            src={src}
+            alt={alt}
+            width={1600}
+            height={900}
+            sizes="(min-width: 1024px) 720px, 100vw"
+            unoptimized={/^https?:\/\//.test(src)}
+            className="h-auto w-full rounded-2xl"
+          />
+          {alt && <figcaption className="mt-3 text-center text-sm text-grey">{alt}</figcaption>}
+        </figure>,
+      );
       index += 1;
       continue;
     }
@@ -147,7 +172,8 @@ export function MarkdownContent({ content, compact = false }: { content: string;
         /^(#{1,3})\s+/.test(nextLine) ||
         /^[-*]\s+/.test(nextLine) ||
         /^\d+\.\s+/.test(nextLine) ||
-        nextLine.startsWith("> ")
+        nextLine.startsWith("> ") ||
+        IMAGE_LINE.test(nextLine)
       ) {
         break;
       }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
 
@@ -17,10 +18,20 @@ export function Footer() {
             {/* Logo and Links */}
             <div className="flex flex-col gap-8 md:flex-row md:gap-20">
               <div className="space-y-6">
-                <Link href="/" className="font-heading text-3xl font-bold text-[#0B7077]">
-                  Signify
-                </Link>
-                
+                <div className="flex items-center gap-5">
+                  <Link href="/" className="font-heading text-3xl font-bold text-[#0B7077]">
+                    Signify
+                  </Link>
+                  <span className="h-12 w-px bg-[#0B7077]/25" aria-hidden />
+                  <Image
+                    src="/logo/logo-itb.png"
+                    alt="Institut Teknologi Bandung"
+                    width={320}
+                    height={320}
+                    className="h-14 w-14"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm font-medium text-[#0B7077] md:text-base mt-6">
                   <div className="flex flex-col gap-3">
                     <h4 className="mb-2 font-bold text-[#0A033C]">Product</h4>
@@ -33,6 +44,7 @@ export function Footer() {
                   
                   <div className="flex flex-col gap-3">
                     <h4 className="mb-2 font-bold text-[#0A033C]">Links</h4>
+                    <Link href="/news" className="hover:text-[#0b4545] hover:underline">News</Link>
                     <Link href="#" className="hover:text-[#0b4545] hover:underline">Demo</Link>
                   </div>
                 </div>
