@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import {
+  AudioLines,
   BookmarkPlus,
-  Camera,
   Captions,
   Check,
   ChevronLeft,
@@ -23,7 +23,7 @@ import { api, ApiError } from "@/lib/api";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
-import { SignRecognizer } from "@/components/translator/SignRecognizer";
+import { SignConversation } from "@/components/translator/SignConversation";
 import { cn } from "@/lib/utils";
 
 type Mode = "to-sign" | "to-text";
@@ -357,7 +357,7 @@ export default function LiveTranslatorPage() {
               <p className="text-sm text-white/80">
                 {mode === "to-sign"
                   ? "Turn videos and text into sign language with your avatar"
-                  : "Sign in front of your camera and get the text"}
+                  : "Sign in front of your camera, and Signify says it out loud"}
               </p>
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function LiveTranslatorPage() {
             {(
               [
                 { value: "to-sign", label: "Text → Sign", icon: Languages },
-                { value: "to-text", label: "Sign → Text", icon: Camera },
+                { value: "to-text", label: "Sign → Voice", icon: AudioLines },
               ] as const
             ).map((m) => (
               <button
@@ -387,7 +387,7 @@ export default function LiveTranslatorPage() {
       </div>
 
       {mode === "to-text" ? (
-        <SignRecognizer />
+        <SignConversation />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* ===== Kiri: sumber ===== */}
