@@ -18,6 +18,7 @@ import {
 	ListChecks,
 	LogOut,
 	Menu,
+	MessagesSquare,
 	Presentation,
 	Radio,
 	Settings,
@@ -63,6 +64,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
 		items: [
 			{ href: "/live-translator", label: "Live Translator", icon: Languages },
 			{ href: "/sign-practice", label: "Sign Practice", icon: Hand },
+			{ href: "/role-play", label: "Role Play", icon: MessagesSquare, tag: "AI" },
 			{ href: "/my-signs", label: "My Signs", icon: BookMarked },
 		],
 	},
