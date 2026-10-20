@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Copy, Link2, Loader2, Mic, Pause, Plus, Square } from "lucide-react";
+import { Copy, Link2, Loader2, Mic, Pause, Plus, Square, Video, VideoOff } from "lucide-react";
 import { toast } from "sonner";
 import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-class";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,9 @@ import { ClassToMaterial } from "@/components/teacher/ClassToMaterial";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket } from "./useLiveClassSocket";
+import { useLiveVideo, type VideoStatus } from "./useLiveVideo";
 import { useMicStreamer } from "./useMicStreamer";
+import { VideoTile } from "./VideoTile";
 
 const TIPS = [
   "Use a headset or clip-on mic in noisy rooms.",
@@ -54,13 +56,90 @@ function CodeCard({ code }: { code: string }) {
   );
 }
 
+function CameraCard({
+  video,
+}: {
+  video: { status: VideoStatus; videoTrack: ReturnType<typeof useLiveVideo>["videoTrack"]; cameraOn: boolean; setCamera: (on: boolean) => Promise<void> };
+}) {
+  const [busy, setBusy] = useState(false);
+  const toggle = async () => {
+    setBusy(true);
+    try {
+      await video.setCamera(!video.cameraOn);
+    } catch (err) {
+      const denied = err instanceof DOMException && err.name === "NotAllowedError";
+      toast.error("Kamera tidak bisa diakses", {
+        description: denied ? "Izinkan akses kamera di browser, lalu coba lagi." : undefined,
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const badge =
+    video.status === "connecting"
+      ? "Connecting video…"
+      : video.status === "error"
+        ? "Video unavailable"
+        : video.cameraOn
+          ? "Students can see you"
+          : null;
+
+  return (
+    <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-100">
+      <div className="relative aspect-video bg-slate-900">
+        {video.cameraOn && video.videoTrack ? (
+          <VideoTile track={video.videoTrack} mirror className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">
+            <VideoOff className="h-8 w-8" aria-hidden />
+            <p className="text-sm font-medium">Your camera is off</p>
+          </div>
+        )}
+        {badge && (
+          <span
+            className={cn(
+              "absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold",
+              video.cameraOn && video.status === "connected" ? "bg-[#FD661F] text-white" : "bg-white/90 text-slate-700",
+            )}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-500">Students see you next to the signing avatar, like a video call.</p>
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={busy || video.status !== "connected"}
+          className={cn(
+            "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:opacity-50",
+            video.cameraOn
+              ? "text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+              : "bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] text-white shadow-sm",
+          )}
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : video.cameraOn ? <VideoOff className="h-4 w-4" aria-hidden /> : <Video className="h-4 w-4" aria-hidden />}
+          {video.cameraOn ? "Turn camera off" : "Turn camera on"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Batas tunggu konfirmasi server setelah tombol mulai ditekan.
 const START_TIMEOUT_MS = 15_000;
 // Audio yang ditahan selama menunggu konfirmasi siaran (50 x 100 ms = 5 detik).
 const MAX_PENDING_CHUNKS = 50;
 
 export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
-  const { level: micLevel, start: startMic, stop: stopMic, isActive: isMicActive } = useMicStreamer();
+  const {
+    level: micLevel,
+    start: startMic,
+    stop: stopMic,
+    isActive: isMicActive,
+    getTrack: getMicTrack,
+  } = useMicStreamer();
   const [starting, setStartingState] = useState(false);
   // Dibaca di callback event socket (di luar render).
   const startingRef = useRef(false);
@@ -102,6 +181,14 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
   const cls = state.cls ?? initial;
   const status = state.status ?? initial.status;
   const ended = status === "ended";
+  const video = useLiveVideo(initial.code, !!initial.videoEnabled && !ended);
+  const { setMic: setVideoMic } = video;
+
+  // Suara guru ikut disiarkan ke video kelas selama siaran berjalan.
+  useEffect(() => {
+    if (video.status !== "connected") return;
+    void setVideoMic(state.broadcasting ? getMicTrack() : null);
+  }, [state.broadcasting, video.status, setVideoMic, getMicTrack]);
 
   useEffect(() => {
     if (!starting) return;
@@ -176,6 +263,7 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="flex flex-col gap-6 lg:col-span-7">
+          {initial.videoEnabled && !ended && <CameraCard video={video} />}
           {ended ? (
             <div className="flex flex-col items-start gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
               <h2 className="font-heading text-xl font-bold text-slate-800">This class has ended</h2>

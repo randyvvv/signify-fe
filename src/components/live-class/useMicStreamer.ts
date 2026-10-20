@@ -63,8 +63,10 @@ export function useMicStreamer() {
 
   /** Untuk callback di luar render (event socket). */
   const isActive = useCallback(() => resources.current !== null, []);
+  /** Track mikrofon yang sedang direkam (juga disiarkan ke video kelas). */
+  const getTrack = useCallback(() => resources.current?.stream.getAudioTracks()[0] ?? null, []);
 
   useEffect(() => stop, [stop]);
 
-  return { active, level, start, stop, isActive };
+  return { active, level, start, stop, isActive, getTrack };
 }

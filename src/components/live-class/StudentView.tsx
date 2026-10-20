@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FastForward, Maximize2, Minimize2, Radio } from "lucide-react";
+import { FastForward, Maximize2, Minimize2, Radio, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket, type LiveState } from "./useLiveClassSocket";
+import { useLiveVideo } from "./useLiveVideo";
+import { VideoTile } from "./VideoTile";
 
 // Jeda antar kalimat (juga mereset frame avatar ke awal klip).
 const GAP_MS = 150;
@@ -171,6 +173,9 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
   const cls = state.cls ?? initial;
   const status = state.status ?? initial.status;
   const ended = status === "ended";
+  const video = useLiveVideo(initial.code, !!initial.videoEnabled && !ended);
+  // Mode video (seperti video call) hanya saat kamera guru menyala.
+  const hasVideo = !!video.videoTrack;
 
   // Kelas selesai: tampilkan transkrip lengkap (WebSocket hanya mengirim 100 kalimat terakhir).
   useEffect(() => {
@@ -207,17 +212,63 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
     stageMessage =
       status === "waiting" ? `Waiting for ${teacher} to start the class…` : `${teacher} paused the broadcast.`;
 
+  const transcript = (
+    <TranscriptPanel
+      cls={cls}
+      segments={ended && fullTranscript ? fullTranscript : state.segments}
+      partial={ended ? "" : state.partial}
+      activeSeq={queue.current?.seq ?? null}
+      emptyText={ended ? "No transcript for this class." : "Sentences appear here as the teacher speaks."}
+      className={hasVideo ? "h-[360px]" : "h-[480px] lg:col-span-5 lg:h-auto lg:max-h-[620px]"}
+    />
+  );
+  const liveCaption = state.partial || state.segments.at(-1)?.text;
+
   return (
     <div className="mx-auto flex max-w-[1400px] flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <ClassHeader cls={cls} status={status} broadcasting={state.broadcasting} viewers={state.viewers} />
       <ConnectionNotice connection={state.connection} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div
+        ref={hasVideo ? stageRef : undefined}
+        className={cn(
+          "grid grid-cols-1 gap-6 lg:grid-cols-12",
+          hasVideo && fullscreen && "h-screen w-screen content-center bg-slate-950 p-4",
+        )}
+      >
+        {/* Video guru (slot tetap supaya avatar di sebelahnya tidak dimuat ulang). */}
+        {hasVideo && video.videoTrack && (
+          <div className="relative overflow-hidden rounded-3xl bg-slate-900 shadow-sm lg:col-span-8">
+            <VideoTile track={video.videoTrack} className="aspect-video h-full w-full object-contain" />
+            {video.audioBlocked && (
+              <button
+                type="button"
+                onClick={video.unlockAudio}
+                className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md"
+              >
+                <Volume2 className="h-3.5 w-3.5" aria-hidden /> Turn on sound
+              </button>
+            )}
+            {liveCaption && !ended && (
+              <p
+                aria-live="polite"
+                className={cn(
+                  "absolute inset-x-4 bottom-4 rounded-2xl bg-black/65 px-4 py-2 text-center font-semibold leading-snug text-white",
+                  fullscreen ? "text-2xl" : "text-base md:text-lg",
+                )}
+              >
+                {liveCaption}
+              </p>
+            )}
+          </div>
+        )}
+
         <div
-          ref={stageRef}
+          ref={hasVideo ? undefined : stageRef}
           className={cn(
-            "relative flex flex-col overflow-hidden bg-white shadow-sm ring-1 ring-slate-100 lg:col-span-7",
-            fullscreen ? "h-screen w-screen rounded-none" : "rounded-3xl",
+            "relative flex flex-col overflow-hidden bg-white shadow-sm ring-1 ring-slate-100",
+            hasVideo ? "rounded-3xl lg:col-span-4" : "lg:col-span-7",
+            !hasVideo && (fullscreen ? "h-screen w-screen rounded-none" : "rounded-3xl"),
           )}
         >
           <div className="absolute right-4 top-4 z-10 flex gap-2">
@@ -250,10 +301,13 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
             eyeColor={avatar.eyeColor}
             accessory={avatar.accessory}
             placeholder=""
-            className={cn("w-full bg-gradient-to-b from-[#E7F3F2] to-white", fullscreen ? "flex-1" : "h-[380px] md:h-[460px]")}
+            className={cn(
+              "w-full bg-gradient-to-b from-[#E7F3F2] to-white",
+              hasVideo ? "h-[300px] lg:h-auto lg:flex-1" : fullscreen ? "flex-1" : "h-[380px] md:h-[460px]",
+            )}
           />
 
-          <div className={cn("border-t border-slate-100 px-6 py-5", fullscreen && "pb-10")}>
+          <div className={cn("border-t border-slate-100 px-6 py-5", !hasVideo && fullscreen && "pb-10")}>
             {stageMessage ? (
               <p className="flex items-center gap-2 text-sm font-medium text-slate-500">
                 {!ended && <Radio className="h-4 w-4 text-[#2DA5A2]" aria-hidden />}
@@ -264,31 +318,28 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
                 <p
                   className={cn(
                     "font-heading font-bold leading-snug text-[#0F5A5A]",
-                    fullscreen ? "text-3xl md:text-4xl" : "min-h-[1.75rem] text-xl md:text-2xl",
+                    !hasVideo && fullscreen ? "text-3xl md:text-4xl" : "min-h-[1.75rem] text-xl md:text-2xl",
                   )}
                 >
-                  {signingText ?? " "}
+                  {signingText ?? "\u00A0"}
                 </p>
-                <p
-                  className={cn("mt-2 italic text-slate-500", fullscreen ? "text-xl" : "min-h-[1.5rem] text-base")}
-                  aria-live="polite"
-                >
-                  {state.partial || " "}
-                </p>
+                {!hasVideo && (
+                  <p
+                    className={cn("mt-2 italic text-slate-500", fullscreen ? "text-xl" : "min-h-[1.5rem] text-base")}
+                    aria-live="polite"
+                  >
+                    {state.partial || "\u00A0"}
+                  </p>
+                )}
               </>
             )}
           </div>
         </div>
 
-        <TranscriptPanel
-          cls={cls}
-          segments={ended && fullTranscript ? fullTranscript : state.segments}
-          partial={ended ? "" : state.partial}
-          activeSeq={queue.current?.seq ?? null}
-          emptyText={ended ? "No transcript for this class." : "Sentences appear here as the teacher speaks."}
-          className="h-[480px] lg:col-span-5 lg:h-auto lg:max-h-[620px]"
-        />
+        {!hasVideo && transcript}
       </div>
+
+      {hasVideo && transcript}
     </div>
   );
 }

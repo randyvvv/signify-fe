@@ -26,6 +26,8 @@ export interface LiveClassDetail extends LiveClass {
   /** Materi & kuis yang sudah dibuat dari transkrip kelas ini. */
   materialId: string | null;
   quizId: string | null;
+  /** Video guru (LiveKit) sudah dikonfigurasi di server. */
+  videoEnabled?: boolean;
 }
 
 export interface LiveSegment {
@@ -82,6 +84,10 @@ export const liveApi = {
   segments: (code: string) =>
     api.get<LiveSegment[]>(`/api/live/classes/${encodeURIComponent(code)}/segments`),
   end: (code: string) => api.post<LiveClass>(`/api/live/classes/${encodeURIComponent(code)}/end`),
+  videoToken: (code: string) =>
+    api.post<{ url: string; token: string; canPublish: boolean }>(
+      `/api/live/classes/${encodeURIComponent(code)}/video-token`,
+    ),
 };
 
 /** "1:05:30" / "12:04" dari milidetik. */
