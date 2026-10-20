@@ -154,6 +154,31 @@ function CreateCard({ onCreated }: { onCreated: (cls: LiveClass) => void }) {
   );
 }
 
+const STEPS = [
+  "Create a class and pick its language.",
+  "Share the 6-character code or link with your students.",
+  "Press the mic and teach. Students see captions and the signing avatar.",
+  "After class, turn the transcript into an article and quiz.",
+];
+
+function HowItWorks() {
+  return (
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 lg:col-span-2">
+      <h2 className="font-heading text-lg font-bold text-slate-800">How it works</h2>
+      <ol className="mt-4 space-y-3">
+        {STEPS.map((step, i) => (
+          <li key={step} className="flex gap-3 text-sm text-slate-600">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-[#0B7077]">
+              {i + 1}
+            </span>
+            {step}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function MyClasses({ classes }: { classes: LiveClass[] | null }) {
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
@@ -228,7 +253,7 @@ export default function LiveClassPage() {
         <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#FFE75C]/25 blur-2xl" />
         <div className="relative flex items-center gap-4">
           <Link
-            href="/dashboard"
+            href={isTeacher ? "/teacher" : "/dashboard"}
             aria-label="Back to dashboard"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors hover:bg-white/25"
           >
@@ -243,11 +268,16 @@ export default function LiveClassPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <JoinCard />
-        {isTeacher ? (
-          <CreateCard onCreated={(cls) => router.push(`/live-class/${cls.code}`)} />
-        ) : (
+      {isTeacher ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <CreateCard onCreated={(cls) => router.push(`/live-class/${cls.code}`)} />
+          </div>
+          <HowItWorks />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <JoinCard />
           <div className="flex flex-col justify-between gap-5 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
@@ -267,8 +297,8 @@ export default function LiveClassPage() {
               <Settings className="h-4 w-4" aria-hidden /> Open Settings
             </Link>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {isTeacher && <MyClasses classes={classes} />}
     </div>

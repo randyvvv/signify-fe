@@ -31,6 +31,12 @@ export default function DashboardPage() {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
 
+  // Akun guru punya dashboard sendiri.
+  const isTeacher = user?.role === "teacher";
+  useEffect(() => {
+    if (isTeacher) router.replace("/teacher");
+  }, [isTeacher, router]);
+
   // Cek status onboarding dari preferences.
   useEffect(() => {
     if (!user) return;
@@ -43,7 +49,7 @@ export default function DashboardPage() {
       .catch(() => setOnboarded(true)); // jangan blokir kalau gagal
   }, [user]);
 
-  if (loading || !user || isOnboarded === null) return <Loading />;
+  if (loading || !user || isOnboarded === null || isTeacher) return <Loading />;
 
   if (!isOnboarded) {
     return <OnboardingFlow onComplete={() => setOnboarded(true)} />;

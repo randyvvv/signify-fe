@@ -43,6 +43,8 @@ interface NavItem {
 	icon: LucideIcon;
 	/** Label kecil di samping menu, mis. "AI". */
 	tag?: string;
+	/** Aktif hanya di path ini persis (bukan sub-halaman). */
+	exact?: boolean;
 }
 
 const navSections: { title: string; items: NavItem[] }[] = [
@@ -66,16 +68,24 @@ const navSections: { title: string; items: NavItem[] }[] = [
 	},
 ];
 
-// Khusus akun guru, tampil paling atas.
-const teachSection: { title: string; items: NavItem[] } = {
-	title: "Teach",
-	items: [{ href: "/teacher", label: "Teacher Dashboard", icon: Presentation }],
-};
+// Akun guru: hanya menu mengajar (tanpa menu belajar & gamifikasi murid).
+const teacherNavSections: { title: string; items: NavItem[] }[] = [
+	{
+		title: "Teach",
+		items: [
+			{ href: "/teacher", label: "Dashboard", icon: Presentation, exact: true },
+			{ href: "/live-class", label: "Live Class", icon: Radio, tag: "Live" },
+			{ href: "/teacher/materials", label: "Materials", icon: BookOpen },
+		],
+	},
+];
 
 const bottomNavItems: NavItem[] = [
 	{ href: "/shop", label: "Shop", icon: ShoppingBag },
 	{ href: "/settings", label: "Settings", icon: Settings },
 ];
+
+const teacherBottomNavItems: NavItem[] = [{ href: "/settings", label: "Settings", icon: Settings }];
 
 interface VocabularyStats {
 	stats: { due: number };
@@ -92,8 +102,8 @@ function initials(name?: string | null) {
 }
 
 // Menu aktif juga untuk sub-halaman, mis. /quizzes/:id -> "Quizzes".
-function isActivePath(pathname: string, href: string): boolean {
-	return pathname === href || pathname.startsWith(`${href}/`);
+function isActivePath(pathname: string, item: NavItem): boolean {
+	return pathname === item.href || (!item.exact && pathname.startsWith(`${item.href}/`));
 }
 
 function NavLink({
@@ -174,12 +184,14 @@ function SidebarContent({
 	const { user, logout } = useAuth();
 	const router = useRouter();
 	// Jumlah kartu My Signs yang jatuh tempo (cache sama dengan dashboard).
+	const isTeacher = user?.role === "teacher";
 	const { data: vocab } = useCachedGet<VocabularyStats>(
 		"/api/vocabulary",
-		user ? `vocabulary:${user.id}` : null,
+		user && !isTeacher ? `vocabulary:${user.id}` : null,
 	);
 	const dueSigns = vocab?.stats.due ?? 0;
-	const sections = user?.role === "teacher" ? [teachSection, ...navSections] : navSections;
+	const sections = isTeacher ? teacherNavSections : navSections;
+	const bottomItems = isTeacher ? teacherBottomNavItems : bottomNavItems;
 
 	const handleLogout = () => {
 		logout();
@@ -241,7 +253,7 @@ function SidebarContent({
 							<NavLink
 								key={item.href}
 								item={item}
-								isActive={isActivePath(pathname, item.href)}
+								isActive={isActivePath(pathname, item)}
 								isCollapsed={isCollapsed}
 								badge={item.href === "/my-signs" ? dueSigns : undefined}
 							/>
@@ -254,11 +266,11 @@ function SidebarContent({
 
 			{/* Menu bawah */}
 			<nav className="mt-6 flex flex-col gap-1 px-3">
-				{bottomNavItems.map((item) => (
+				{bottomItems.map((item) => (
 					<NavLink
 						key={item.href}
 						item={item}
-						isActive={isActivePath(pathname, item.href)}
+						isActive={isActivePath(pathname, item)}
 						isCollapsed={isCollapsed}
 					/>
 				))}
@@ -298,16 +310,20 @@ function SidebarContent({
 								<p className="truncate text-sm font-bold text-slate-800">
 									{user?.fullName ?? "User"}
 								</p>
-								<div className="mt-1 flex items-center gap-2 text-xs font-semibold">
-									<span className="flex items-center gap-1 text-amber-600">
-										<Coins className="h-3.5 w-3.5" />
-										{(user?.coins ?? 0).toLocaleString()}
-									</span>
-									<span className="flex items-center gap-1 text-orange-500">
-										<Flame className="h-3.5 w-3.5" />
-										{user?.streakCount ?? 0}
-									</span>
-								</div>
+								{isTeacher ? (
+									<p className="mt-1 text-xs font-semibold text-[#0B7077]">Teacher</p>
+								) : (
+									<div className="mt-1 flex items-center gap-2 text-xs font-semibold">
+										<span className="flex items-center gap-1 text-amber-600">
+											<Coins className="h-3.5 w-3.5" />
+											{(user?.coins ?? 0).toLocaleString()}
+										</span>
+										<span className="flex items-center gap-1 text-orange-500">
+											<Flame className="h-3.5 w-3.5" />
+											{user?.streakCount ?? 0}
+										</span>
+									</div>
+								)}
 							</div>
 							<ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
 						</Link>
