@@ -23,6 +23,9 @@ export interface LiveClassDetail extends LiveClass {
   broadcasting: boolean;
   viewers: number;
   isTeacher: boolean;
+  /** Materi & kuis yang sudah dibuat dari transkrip kelas ini. */
+  materialId: string | null;
+  quizId: string | null;
 }
 
 export interface LiveSegment {

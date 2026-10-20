@@ -317,7 +317,7 @@ export default function SettingsPage() {
     try {
       await api.patch("/api/me", { role });
       await refresh();
-      toast.success(role === "teacher" ? "Teacher Mode is on" : "Teacher Mode is off");
+      toast.success(role === "teacher" ? "Switched to a teacher account" : "Switched to a learner account");
     } catch {
       toast.error("Gagal mengubah Mode Pengajar");
     } finally {
@@ -583,11 +583,11 @@ export default function SettingsPage() {
         <SettingRow
           icon={GraduationCap}
           tone="bg-orange-50 text-orange-500"
-          label="Teacher Mode"
-          description="Create Live Classes and broadcast your voice as captions and sign language"
+          label="Teacher account"
+          description="Open the Teacher Dashboard: run Live Classes and publish materials"
         >
           <Toggle
-            label="Teacher Mode"
+            label="Teacher account"
             enabled={user?.role === "teacher"}
             disabled={!user || savingRole}
             onClick={toggleTeacherMode}

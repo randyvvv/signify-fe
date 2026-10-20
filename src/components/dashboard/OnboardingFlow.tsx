@@ -1,18 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Check, GraduationCap, Briefcase, School, Globe, Users, ChevronRight, ChevronLeft } from "lucide-react";
+import { Check, GraduationCap, Briefcase, School, Globe, Users, ChevronRight, ChevronLeft, Presentation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+
+type Role = "learner" | "teacher";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
+  const router = useRouter();
+  const { refresh } = useAuth();
   const [step, setStep] = useState(1);
+  // Langkah 1: peran. Pengajar langsung ke Teacher Dashboard; pelajar lanjut 3 langkah.
+  const [role, setRole] = useState<Role | null>(null);
+  const totalSteps = role === "teacher" ? 1 : 4;
   const [selections, setSelections] = useState<{
     goals: string[];
     master: string;
@@ -35,7 +44,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   const handleNext = () => {
-    if (step < 3) setStep(step + 1);
+    if (step < totalSteps) setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -47,6 +56,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const handleConfirm = async () => {
     setSubmitting(true);
     try {
+      if (role === "teacher") {
+        await api.patch("/api/me", { role: "teacher" });
+        await api.put("/api/me/preferences", { onboardingCompleted: true });
+        await refresh();
+        onComplete();
+        router.replace("/teacher");
+        return;
+      }
       await api.put("/api/me/preferences", {
         goals: selections.goals,
         masterFocus: selections.master,
@@ -74,7 +91,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         <div 
           className="h-full transition-all duration-500 ease-out"
           style={{ 
-            width: `${((step - 1) / 3) * 100}%`,
+            width: `${((step - 1) / totalSteps) * 100}%`,
             background: 'linear-gradient(90deg, #458785 0%, #E799A3 100%)'
           }}
         />
@@ -84,11 +101,63 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         
         {/* Step Counter */}
         <div className="flex justify-end text-muted-foreground font-medium">
-          {step} of 3
+          {step} of {totalSteps}
         </div>
 
-        {/* Step 1: Goals */}
+        {/* Step 1: Peran */}
         {step === 1 && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">How will you use Signify?</h1>
+              <p className="text-muted-foreground text-lg">You can change this later in Settings</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px] content-start">
+              {[
+                { id: "learner" as const, label: "I'm a learner", desc: "Learn and practice sign language, follow live classes", icon: GraduationCap },
+                { id: "teacher" as const, label: "I'm a teacher", desc: "Teach live with captions and a signing avatar, publish materials", icon: Presentation },
+              ].map((item) => {
+                const isSelected = role === item.id;
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.id}
+                    role="radio"
+                    aria-checked={isSelected}
+                    tabIndex={0}
+                    onClick={() => setRole(item.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setRole(item.id);
+                      }
+                    }}
+                    className={cn(
+                      "cursor-pointer group relative flex items-center p-6 bg-white border-2 rounded-xl transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-500/20",
+                      isSelected ? "border-teal-500 shadow-sm" : "border-slate-100 hover:border-slate-200"
+                    )}
+                  >
+                     <div className={cn("absolute right-4 top-4 h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors",
+                        isSelected ? "bg-teal-500 border-teal-500 text-white" : "border-slate-300"
+                     )}>
+                        {isSelected && <Check className="h-4 w-4" />}
+                     </div>
+                     <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center mr-4">
+                        <Icon className="h-6 w-6 text-slate-700" />
+                     </div>
+                     <div>
+                        <h3 className="font-semibold text-slate-900">{item.label}</h3>
+                        <p className="text-sm text-slate-500">{item.desc}</p>
+                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Goals */}
+        {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">What are your main learning goals?</h1>
@@ -133,8 +202,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
         )}
 
-        {/* Step 2: Master Most */}
-        {step === 2 && (
+        {/* Step 3: Master Most */}
+        {step === 3 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">What do you want to master most?</h1>
@@ -178,8 +247,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
         )}
 
-        {/* Step 3: Frequency */}
-        {step === 3 && (
+        {/* Step 4: Frequency */}
+        {step === 4 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">How often do you want to learn?</h1>
@@ -234,11 +303,12 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 <ChevronLeft className="mr-2 h-4 w-4" /> Back
             </Button>
 
-            {step < 3 ? (
+            {step < totalSteps ? (
                  <Button 
                     variant="default" 
                     size="lg" 
                     onClick={handleNext}
+                    disabled={step === 1 && !role}
                     className="bg-teal-600 hover:bg-teal-700 w-32"
                 >
                     Confirm <ChevronRight className="ml-2 h-4 w-4" />
@@ -248,10 +318,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     variant="default"
                     size="lg"
                     onClick={handleConfirm}
-                    className="bg-teal-600 hover:bg-teal-700 w-40"
-                    disabled={!selections.frequency || submitting}
+                    className="bg-teal-600 hover:bg-teal-700 w-44"
+                    disabled={(role === "teacher" ? false : !selections.frequency) || submitting}
                 >
-                    {submitting ? "Saving..." : "Start learning"} <ChevronRight className="ml-2 h-4 w-4" />
+                    {submitting ? "Saving..." : role === "teacher" ? "Start teaching" : "Start learning"} <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
         </div>

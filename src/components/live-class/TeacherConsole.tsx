@@ -6,6 +6,7 @@ import { Copy, Link2, Loader2, Mic, Pause, Plus, Square } from "lucide-react";
 import { toast } from "sonner";
 import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-class";
 import { cn } from "@/lib/utils";
+import { ClassToMaterial } from "@/components/teacher/ClassToMaterial";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket } from "./useLiveClassSocket";
@@ -181,6 +182,18 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
               <p className="text-sm text-slate-500">
                 The transcript is saved. Students who open the class link can still read it.
               </p>
+              <div className="w-full rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                <p className="text-sm font-semibold text-slate-700">Turn this class into a lesson</p>
+                <p className="mb-3 text-xs text-slate-500">
+                  AI rewrites the transcript as an article for Deaf students, plus a 5-question quiz.
+                </p>
+                <ClassToMaterial
+                  code={cls.code}
+                  segmentCount={(fullTranscript ?? state.segments).length}
+                  materialId={initial.materialId}
+                  quizId={initial.quizId}
+                />
+              </div>
               <Link
                 href="/live-class"
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-[#2DA5A2] to-[#0B7077] px-5 text-sm font-semibold text-white shadow-md shadow-teal-900/10"

@@ -18,6 +18,7 @@ import {
 	ListChecks,
 	LogOut,
 	Menu,
+	Presentation,
 	Radio,
 	Settings,
 	ShoppingBag,
@@ -64,6 +65,12 @@ const navSections: { title: string; items: NavItem[] }[] = [
 		],
 	},
 ];
+
+// Khusus akun guru, tampil paling atas.
+const teachSection: { title: string; items: NavItem[] } = {
+	title: "Teach",
+	items: [{ href: "/teacher", label: "Teacher Dashboard", icon: Presentation }],
+};
 
 const bottomNavItems: NavItem[] = [
 	{ href: "/shop", label: "Shop", icon: ShoppingBag },
@@ -172,6 +179,7 @@ function SidebarContent({
 		user ? `vocabulary:${user.id}` : null,
 	);
 	const dueSigns = vocab?.stats.due ?? 0;
+	const sections = user?.role === "teacher" ? [teachSection, ...navSections] : navSections;
 
 	const handleLogout = () => {
 		logout();
@@ -220,7 +228,7 @@ function SidebarContent({
 
 			{/* Navigasi utama */}
 			<nav className="flex flex-col gap-5 px-3">
-				{navSections.map((section) => (
+				{sections.map((section) => (
 					<div key={section.title} className="flex flex-col gap-1">
 						{isCollapsed ? (
 							<div className="mx-auto mb-1 h-px w-8 bg-slate-100" />

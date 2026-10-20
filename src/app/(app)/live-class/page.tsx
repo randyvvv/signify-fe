@@ -256,7 +256,7 @@ export default function LiveClassPage() {
               <div>
                 <h2 className="font-heading text-lg font-bold text-slate-800">Teaching a class?</h2>
                 <p className="text-sm text-slate-500">
-                  Turn on Teacher Mode to create classes and broadcast your voice.
+                  Switch to a teacher account in Settings to create classes and broadcast your voice.
                 </p>
               </div>
             </div>
