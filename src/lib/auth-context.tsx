@@ -22,6 +22,8 @@ export interface User {
   /** false = akun Google yang belum punya password. */
   hasPassword?: boolean;
   googleLinked?: boolean;
+  /** "teacher" bisa membuat Kelas Live. */
+  role?: "learner" | "teacher";
   coins: number;
   streakCount: number;
   totalLearningSeconds?: number;

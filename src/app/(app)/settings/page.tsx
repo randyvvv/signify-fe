@@ -12,6 +12,7 @@ import {
   FileText,
   Flame,
   Globe,
+  GraduationCap,
   Hand,
   Info,
   KeyRound,
@@ -270,6 +271,7 @@ function ControlSkeleton({ wide }: { wide?: boolean }) {
 export default function SettingsPage() {
   const router = useRouter();
   const { user, logout, refresh } = useAuth();
+  const [savingRole, setSavingRole] = useState(false);
   // Akun Google tanpa password: form membuat password pertama (tanpa password lama).
   const hasPassword = user?.hasPassword !== false;
 
@@ -305,6 +307,21 @@ export default function SettingsPage() {
     } catch {
       setPrefs(prev); // revert
       toast.error("Gagal menyimpan preferensi");
+    }
+  };
+
+  // Mode Pengajar: membuka fitur membuat Kelas Live.
+  const toggleTeacherMode = async () => {
+    setSavingRole(true);
+    const role = user?.role === "teacher" ? "learner" : "teacher";
+    try {
+      await api.patch("/api/me", { role });
+      await refresh();
+      toast.success(role === "teacher" ? "Teacher Mode is on" : "Teacher Mode is off");
+    } catch {
+      toast.error("Gagal mengubah Mode Pengajar");
+    } finally {
+      setSavingRole(false);
     }
   };
 
@@ -563,6 +580,19 @@ export default function SettingsPage() {
           label="Edit Profile"
           description="Update your name, photo and bio"
         />
+        <SettingRow
+          icon={GraduationCap}
+          tone="bg-orange-50 text-orange-500"
+          label="Teacher Mode"
+          description="Create Live Classes and broadcast your voice as captions and sign language"
+        >
+          <Toggle
+            label="Teacher Mode"
+            enabled={user?.role === "teacher"}
+            disabled={!user || savingRole}
+            onClick={toggleTeacherMode}
+          />
+        </SettingRow>
         <div>
           <button
             type="button"
