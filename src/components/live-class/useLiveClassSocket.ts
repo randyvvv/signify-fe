@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import { getToken } from "@/lib/api";
 import {
   liveSocketUrl,
+  type LiveChatMessage,
   type LiveClass,
   type LiveRole,
   type LiveSegment,
@@ -25,6 +26,8 @@ export interface LiveState {
   partial: string;
   /** Hasil penyiapan isyarat per kalimat: true = siap diputar avatar. */
   poses: Record<number, boolean>;
+  /** Chat kelas (pesan terlama di depan). */
+  messages: LiveChatMessage[];
   /** Kalimat mulai seq ini diucapkan setelah perangkat ini bergabung. */
   liveFromSeq: number;
   /** Error fatal (kelas tidak ada, sesi login habis, dibuka di tab lain). */
@@ -46,6 +49,7 @@ const initial: LiveState = {
   segments: [],
   partial: "",
   poses: {},
+  messages: [],
   liveFromSeq: 0,
   fatal: null,
 };
@@ -67,6 +71,7 @@ function reducer(state: LiveState, action: Action): LiveState {
         broadcasting: event.broadcasting,
         viewers: event.viewers,
         segments: event.segments,
+        messages: event.messages ?? [],
         partial: "",
         liveFromSeq: Math.max(state.liveFromSeq, lastSeq + 1),
       };
@@ -82,10 +87,18 @@ function reducer(state: LiveState, action: Action): LiveState {
       return { ...state, poses: { ...state.poses, [event.seq]: event.ok } };
     case "viewers":
       return { ...state, viewers: event.count };
+    case "chat":
+      if (state.messages.some((m) => m.id === event.message.id)) return state;
+      return { ...state, messages: [...state.messages, event.message].slice(-MAX_MESSAGES) };
+    case "chat_deleted":
+      return { ...state, messages: state.messages.filter((m) => m.id !== event.id) };
     default:
       return state;
   }
 }
+
+// Pesan chat yang disimpan di perangkat (yang lebih lama dibuang).
+const MAX_MESSAGES = 200;
 
 // Kode tutup dari server yang tidak perlu disambung ulang.
 const NO_RECONNECT = new Set([4401, 4404, 4409, 4429]);
@@ -175,5 +188,18 @@ export function useLiveClassSocket(code: string, handlers: LiveSocketHandlers = 
     if (ws?.readyState === WebSocket.OPEN && ws.bufferedAmount < 256 * 1024) ws.send(pcm);
   }, []);
 
-  return { state, command, sendAudio };
+  /** Kirim pesan chat; false bila koneksi sedang tidak tersambung. */
+  const sendChat = useCallback((text: string) => {
+    const ws = socketRef.current;
+    if (ws?.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify({ type: "chat", text }));
+    return true;
+  }, []);
+
+  const deleteChat = useCallback((id: string) => {
+    const ws = socketRef.current;
+    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "chat_delete", id }));
+  }, []);
+
+  return { state, command, sendAudio, sendChat, deleteChat };
 }

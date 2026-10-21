@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Copy, Link2, Loader2, Mic, Pause, Plus, Square, Video, VideoOff } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-class";
 import { cn } from "@/lib/utils";
 import { ClassToMaterial } from "@/components/teacher/ClassToMaterial";
+import { ChatPanel } from "./ChatPanel";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket } from "./useLiveClassSocket";
@@ -152,8 +154,14 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
   };
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [fullTranscript, setFullTranscript] = useState<LiveSegment[] | null>(null);
-  const { state, command, sendAudio } = useLiveClassSocket(initial.code, {
-    onError: (message) => {
+  const { user } = useAuth();
+  const { state, command, sendAudio, sendChat, deleteChat } = useLiveClassSocket(initial.code, {
+    onError: (message, code) => {
+      // Error chat (mis. terlalu cepat mengirim) tidak boleh menghentikan siaran.
+      if (code.startsWith("chat_")) {
+        toast.error(message);
+        return;
+      }
       // Gagal memulai/melanjutkan transkripsi: matikan mikrofon juga.
       setStarting(false);
       stopMic();
@@ -372,13 +380,26 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
           )}
         </div>
 
-        <TranscriptPanel
-          cls={cls}
-          segments={ended && fullTranscript ? fullTranscript : state.segments}
-          partial={ended ? "" : state.partial}
-          emptyText={ended ? "No transcript for this class." : "Your sentences appear here as you speak."}
-          className="h-[480px] lg:col-span-5 lg:h-auto lg:max-h-[640px]"
-        />
+        <div className="flex flex-col gap-6 lg:col-span-5">
+          <TranscriptPanel
+            cls={cls}
+            segments={ended && fullTranscript ? fullTranscript : state.segments}
+            partial={ended ? "" : state.partial}
+            emptyText={ended ? "No transcript for this class." : "Your sentences appear here as you speak."}
+            className="h-[340px]"
+          />
+          <ChatPanel
+            messages={state.messages}
+            myUserId={user?.id ?? null}
+            isTeacher
+            closedText={
+              ended ? "Chat closed: this class has ended" : state.connection !== "open" ? "Connecting…" : null
+            }
+            onSend={sendChat}
+            onDelete={deleteChat}
+            className="h-[420px]"
+          />
+        </div>
       </div>
     </div>
   );

@@ -36,12 +36,26 @@ export interface LiveSegment {
   offsetMs: number;
 }
 
+export interface LiveChatMessage {
+  id: string;
+  userId: string;
+  name: string | null;
+  role: LiveRole;
+  text: string;
+  /** Waktu kirim (ISO). */
+  at: string;
+}
+
+/** Batas panjang satu pesan chat (sama dengan backend). */
+export const MAX_CHAT_CHARS = 300;
+
 export type LiveServerEvent =
   | {
       type: "ready";
       role: LiveRole;
       class: LiveClass;
       segments: LiveSegment[];
+      messages: LiveChatMessage[];
       broadcasting: boolean;
       viewers: number;
     }
@@ -50,6 +64,8 @@ export type LiveServerEvent =
   | { type: "segment"; segment: LiveSegment }
   | { type: "pose_ready"; seq: number; ok: boolean }
   | { type: "viewers"; count: number }
+  | { type: "chat"; message: LiveChatMessage }
+  | { type: "chat_deleted"; id: string }
   | { type: "error"; message: string; code: string }
   | { type: "ping" };
 

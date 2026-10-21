@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
 import { translateToPose, type PoseClip } from "@/components/shared/avatar/translate";
+import { useAuth } from "@/lib/auth-context";
 import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-class";
 import { cn } from "@/lib/utils";
+import { ChatPanel } from "./ChatPanel";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket, type LiveState } from "./useLiveClassSocket";
@@ -194,7 +196,10 @@ function SoundButton({ video, teacher }: { video: ReturnType<typeof useLiveVideo
 }
 
 export function StudentView({ initial }: { initial: LiveClassDetail }) {
-  const { state } = useLiveClassSocket(initial.code, { onError: (message) => toast.error(message) });
+  const { state, sendChat, deleteChat } = useLiveClassSocket(initial.code, {
+    onError: (message) => toast.error(message),
+  });
+  const { user } = useAuth();
   const avatar = useEquippedAvatar();
   const queue = useSignQueue(state);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -250,7 +255,20 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
       partial={ended ? "" : state.partial}
       activeSeq={queue.current?.seq ?? null}
       emptyText={ended ? "No transcript for this class." : "Sentences appear here as the teacher speaks."}
-      className={hasVideo ? "h-[360px]" : "h-[480px] lg:col-span-5 lg:h-auto lg:max-h-[620px]"}
+      className={hasVideo ? "h-[360px]" : "h-[300px]"}
+    />
+  );
+  const chat = (
+    <ChatPanel
+      messages={state.messages}
+      myUserId={user?.id ?? null}
+      isTeacher={false}
+      closedText={
+        ended ? "Chat closed: this class has ended" : state.connection !== "open" ? "Connecting…" : null
+      }
+      onSend={sendChat}
+      onDelete={deleteChat}
+      className={hasVideo ? "h-[360px]" : "h-[380px]"}
     />
   );
   const liveCaption = state.partial || state.segments.at(-1)?.text;
@@ -362,10 +380,20 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
           </div>
         </div>
 
-        {!hasVideo && transcript}
+        {!hasVideo && (
+          <div className="flex flex-col gap-6 lg:col-span-5">
+            {transcript}
+            {chat}
+          </div>
+        )}
       </div>
 
-      {hasVideo && transcript}
+      {hasVideo && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {transcript}
+          {chat}
+        </div>
+      )}
     </div>
   );
 }
