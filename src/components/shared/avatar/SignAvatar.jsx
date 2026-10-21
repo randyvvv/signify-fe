@@ -7,6 +7,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { buildBind, applyPose } from "./frontalRig";
 import { applyCustomization } from "./customize";
+import { createGlbAvatar, isBipedGltf } from "./glbHumanoid";
+import { resolveAvatarUrl } from "./useEquippedAvatar";
 
 /**
  * Props:
@@ -81,11 +83,19 @@ export default function SignAvatar({
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
     loader.load(
-      vrmUrl,
+      resolveAvatarUrl(vrmUrl),
       (gltf) => {
         if (disposed) return;
-        const vrm = gltf.userData.vrm;
-        VRMUtils.rotateVRM0(vrm); // no-op utk VRM1, benarkan arah VRM0
+        let vrm = gltf.userData.vrm;
+        if (!vrm) {
+          // GLB biasa (mis. Rocketbox): bungkus jadi objek mirip VRM.
+          if (!isBipedGltf(gltf)) {
+            onError?.("Model tidak punya rig humanoid yang dikenali");
+            return;
+          }
+          vrm = createGlbAvatar(gltf);
+        }
+        VRMUtils.rotateVRM0(vrm); // no-op utk VRM1/GLB, benarkan arah VRM0
         vrm.scene.traverse((o) => (o.frustumCulled = false));
         scene.add(vrm.scene);
         vrmRef.current = vrm;

@@ -3,8 +3,27 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
-// VRM bawaan kalau shop belum termuat / user belum punya pilihan.
-export const FALLBACK_VRM = "/avatar.vrm";
+// Avatar bawaan (Microsoft Rocketbox Female Adult 01) kalau shop belum termuat /
+// user belum punya pilihan.
+export const FALLBACK_VRM = "/avatars/female-adult-01.glb";
+
+// Path .vrm lama (anime VRoid) yang mungkin masih tersimpan di data shop backend ->
+// avatar Rocketbox (realistis, berpakaian sopan) penggantinya.
+const LEGACY_AVATARS: Record<string, string> = {
+  "/avatar.vrm": "/avatars/female-adult-01.glb",
+  "/avatar-b.vrm": "/avatars/male-adult-01.glb",
+  "/avatar-c.vrm": "/avatars/female-adult-02.glb",
+};
+
+export function resolveAvatarUrl(url: string): string {
+  return LEGACY_AVATARS[url] ?? url;
+}
+
+/** Gambar kecil avatar untuk Shop: file .webp bernama sama di sebelah model .glb. */
+export function avatarThumbnail(url: string): string | null {
+  const model = resolveAvatarUrl(url);
+  return model.endsWith(".glb") ? model.replace(/\.glb$/, ".webp") : null;
+}
 
 interface ShopItemLite {
   category: string;
@@ -16,7 +35,7 @@ interface ShopItemLite {
 }
 
 export interface EquippedAvatar {
-  /** Path .vrm model yang dipakai (kategori "Avatar"). */
+  /** Path model yang dipakai (kategori "Avatar", .glb Rocketbox atau .vrm lama). */
   vrmUrl: string;
   hairColor: string | null;
   eyeColor: string | null;

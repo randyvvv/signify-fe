@@ -105,15 +105,21 @@ function placeAccessories(vrm, head, glassesPos, hatPos) {
     eyeZ = Math.abs(_mid.z) || 0.06;
     fwd = Math.sign(_mid.z) || 1;
   }
-  glassesPos.set(0, eyeY, fwd * (eyeZ + 0.012));
-  hatPos.set(0, eyeY + 0.085, 0);
+  // Koreksi per-model (mis. tulang mata Rocketbox ada di pusat bola mata,
+  // bukan di permukaan seperti VRoid). Diset oleh adapter GLB.
+  const off = vrm.accessoryOffset ?? {};
+  glassesPos.set(0, eyeY, fwd * (eyeZ + 0.012 + (off.glassesZ ?? 0)));
+  hatPos.set(0, eyeY + 0.085 + (off.hatY ?? 0), 0);
 }
 
 const _gp = new THREE.Vector3();
 const _hp = new THREE.Vector3();
 
 function applyAccessory(vrm, accessory) {
-  const head = vrm.humanoid.getRawBoneNode?.("head");
+  // Tulang normalized: sumbu lokal = sumbu dunia saat rest, sehingga offset
+  // aksesoris (Y = atas) benar juga untuk rig non-VRoid (mis. Biped/Rocketbox).
+  const head =
+    vrm.humanoid.getNormalizedBoneNode?.("head") ?? vrm.humanoid.getRawBoneNode?.("head");
   if (!head) return;
 
   // Hapus aksesoris lama.

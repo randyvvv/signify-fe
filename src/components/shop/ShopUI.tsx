@@ -14,7 +14,6 @@ import {
   Palette,
   RotateCcw,
   Save,
-  Scissors,
   Search,
   SearchX,
   ShoppingBag,
@@ -26,7 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignAvatarViewer } from "@/components/shared";
-import { FALLBACK_VRM } from "@/components/shared/avatar/useEquippedAvatar";
+import { avatarThumbnail, FALLBACK_VRM } from "@/components/shared/avatar/useEquippedAvatar";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -43,12 +42,12 @@ interface ShopItem {
   equipped: boolean;
 }
 
-const CATEGORIES = ["Avatar", "Hair", "Eye Color", "Accessories", "Background"];
+// Avatar Rocketbox realistis: warna rambut & mata menyatu di teksturnya, jadi kategori
+// Hair dan Eye Color (recolor material VRoid) tidak ditampilkan lagi.
+const CATEGORIES = ["Avatar", "Accessories", "Background"];
 
 const CATEGORY_META: Record<string, { icon: LucideIcon; tone: string; desc: string }> = {
-  Avatar: { icon: UserRound, tone: "bg-teal-50 text-teal-600", desc: "Pick the 3D model that signs for you" },
-  Hair: { icon: Scissors, tone: "bg-rose-50 text-rose-500", desc: "Recolor your avatar's hair" },
-  "Eye Color": { icon: Eye, tone: "bg-sky-50 text-sky-600", desc: "Change the color of the eyes" },
+  Avatar: { icon: UserRound, tone: "bg-teal-50 text-teal-600", desc: "Pick the 3D person who signs for you, all free" },
   Accessories: { icon: Glasses, tone: "bg-violet-50 text-violet-600", desc: "Finish the look with glasses or a hat" },
   Background: { icon: Palette, tone: "bg-amber-50 text-amber-600", desc: "Set the stage behind your avatar" },
 };
@@ -70,7 +69,7 @@ function sameLook(a: EquippedMap, b: EquippedMap) {
   return CATEGORIES.every((c) => (a[c]?.id ?? null) === (b[c]?.id ?? null));
 }
 
-/** Gambar item: swatch warna, model VRM (Avatar), atau ikon cadangan. */
+/** Gambar item: swatch warna, foto avatar, atau ikon cadangan. */
 function ItemVisual({ item }: { item: ShopItem }) {
   if (item.color && item.category === "Background") {
     return (
@@ -95,7 +94,19 @@ function ItemVisual({ item }: { item: ShopItem }) {
     );
   }
   if (item.category === "Avatar" && item.imageUrl) {
-    // Preview VRM asli tiap model -> beda jelas antar avatar.
+    // Foto kecil per avatar (bukan 10 viewer 3D sekaligus yang berat di HP).
+    const thumb = avatarThumbnail(item.imageUrl);
+    if (thumb) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element -- aset statis kecil, tanpa optimasi Next
+        <img
+          src={thumb}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+        />
+      );
+    }
     return (
       <SignAvatarViewer
         vrmUrl={item.imageUrl}
@@ -252,7 +263,9 @@ export default function ShopUI() {
   useEffect(() => {
     api
       .get<ShopItem[]>("/api/shop/items")
-      .then((list) => {
+      .then((all) => {
+        // Item kategori yang disembunyikan (Hair, Eye Color) tidak ikut tampil maupun dihitung.
+        const list = all.filter((i) => CATEGORIES.includes(i.category));
         setItems(list);
         const map = buildEquipped(list);
         setEquipped(map);
@@ -428,8 +441,6 @@ export default function ShopUI() {
               ) : (
                 <SignAvatarViewer
                   vrmUrl={preview["Avatar"]?.imageUrl || FALLBACK_VRM}
-                  hairColor={preview["Hair"]?.color ?? null}
-                  eyeColor={preview["Eye Color"]?.color ?? null}
                   accessory={preview["Accessories"]?.name ?? null}
                   className="relative h-full w-full"
                   placeholder=""
@@ -688,7 +699,7 @@ export default function ShopUI() {
                         </h3>
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
                           {item.isOwned ? (
-                            item.isDefault ? "Free · default" : "In your collection"
+                            item.isDefault ? "Free · default" : item.price === 0 ? "Free" : "In your collection"
                           ) : (
                             <>
                               <Coins className="h-3.5 w-3.5 text-amber-500" />

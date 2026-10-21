@@ -5,13 +5,13 @@ import dynamic from "next/dynamic";
 import { Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { translateToPose, type PoseMeta } from "./avatar/translate";
+import { FALLBACK_VRM } from "./avatar/useEquippedAvatar";
 
 // Komponen three.js / WebGL hanya untuk browser (tanpa SSR).
 const SignAvatar = dynamic(() => import("./avatar/SignAvatar"), { ssr: false });
 
-// Model VRM bawaan (avatar 3D). Bisa di-override lewat prop `vrmUrl`.
-// Sampel VRoid CC0 di public/avatar.vrm.
-const DEFAULT_VRM = "/avatar.vrm";
+// Model avatar bawaan (VRM atau GLB ber-rig Biped). Bisa di-override lewat prop `vrmUrl`.
+const DEFAULT_VRM = FALLBACK_VRM;
 
 const DEFAULT_META: PoseMeta = { width: 512, height: 512, fps: 25 };
 
@@ -36,7 +36,7 @@ interface SignAvatarViewerProps {
   signedLanguage?: string;
   spokenLanguage?: string;
   className?: string;
-  /** Sumber model VRM. Default memakai sample VRM dari CDN pixiv/three-vrm. */
+  /** Sumber model avatar (.vrm atau .glb). Default: FALLBACK_VRM. */
   vrmUrl?: string;
   /** Warna rambut (hex). null/undefined = warna asli model. */
   hairColor?: string | null;
