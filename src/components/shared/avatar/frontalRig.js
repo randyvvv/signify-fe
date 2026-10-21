@@ -8,6 +8,17 @@
 // tapi gerak frontal akurat.
 
 import * as THREE from "three";
+import { handPresent } from "./poseSmoothing";
+
+// Kedalaman sintetis (+Z) yang sama untuk lengan bawah, telapak, dan jari: dengan
+// nilai berbeda, pergelangan & jari tampak tertekuk ke belakang terus-menerus.
+const FOREARM_FWD = 1.0;
+// Tekukan pergelangan terhadap lengan bawah dibatasi; data lebih ekstrem hampir
+// selalu derau dan membuat tangan tampak patah.
+const MAX_WRIST_BEND = (70 * Math.PI) / 180;
+// Telapak baru dianggap berbalik (menghadap/membelakangi kamera) kalau cukup jelas;
+// saat tangan menyamping arah lama dipertahankan supaya tidak berkedip bolak-balik.
+const PALM_FLIP_MIN = 0.3;
 
 // Definisi rantai tulang (urutan = parent-first).
 //  V = sisi tulang avatar ("left"/"right") -> menentukan nama tulang target.
@@ -21,11 +32,11 @@ function boneDefs(V, S = V) {
   const handKey = S === "left" ? "LEFT_HAND_LANDMARKS" : "RIGHT_HAND_LANDMARKS";
   // fwd = berapa banyak tulang ini didorong ke depan (+Z) karena Z asli datar.
   // Lengan bawah & telapak didorong lebih banyak supaya tangan keluar dari torso.
-  const d = (bone, comp, a, b, fwd = 0) => ({ bone: `${V}${bone}`, comp, a, b, handKey, fwd });
+  const d = (bone, comp, a, b, fwd = FOREARM_FWD) => ({ bone: `${V}${bone}`, comp, a, b, handKey, fwd });
   return [
     d("UpperArm", "POSE", sho, elb, 0.45),
-    d("LowerArm", "POSE", elb, wri, 1.0),
-    d("Hand", "HAND", 0, 9, 0.7),
+    d("LowerArm", "POSE", elb, wri),
+    d("Hand", "HAND", 0, 9),
     d("ThumbMetacarpal", "HAND", 1, 2),
     d("ThumbProximal", "HAND", 2, 3),
     d("ThumbDistal", "HAND", 3, 4),
@@ -111,20 +122,6 @@ function point(person, compName, idx) {
   return p;
 }
 
-// True jika tangan punya sebaran nyata (bukan numpuk di tengah / nol).
-function handPresent(person, key) {
-  const arr = person[key];
-  if (!arr || arr.length < 21) return false;
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  for (const p of arr) {
-    if (p.X < minX) minX = p.X;
-    if (p.X > maxX) maxX = p.X;
-    if (p.Y < minY) minY = p.Y;
-    if (p.Y > maxY) maxY = p.Y;
-  }
-  return maxX - minX > 3 && maxY - minY > 3;
-}
-
 const _target = new THREE.Vector3();
 const _parentQ = new THREE.Quaternion();
 const _desired = new THREE.Quaternion();
@@ -136,6 +133,9 @@ const _third2 = new THREE.Vector3();
 const _mt = new THREE.Matrix4();
 const _ml = new THREE.Matrix4();
 const _qNew = new THREE.Quaternion();
+const _bendAxis = new THREE.Vector3();
+const _worldQ = new THREE.Quaternion();
+const _forearm = new THREE.Vector3();
 
 // Arah dari pa ke pb di bidang frontal (XY), lalu didorong ke depan (+Z) sebesar
 // fwd*depth untuk mensintesis kedalaman (data asli ~2D). null jika degenerate.
@@ -161,7 +161,7 @@ function mapUnit(pa, pb, mirror, out) {
 
 // Orientasi PENUH telapak (arah + normal) -> roll terkunci, tak kebalik mendadak.
 // return true bila berhasil di-set.
-function aimHandFull(b, person, handKey, mirror, depth, fwd, lerp) {
+function aimHandFull(b, person, handKey, mirror, depth, fwd, lerp, forearmDir, maxStep) {
   const wrist = point(person, handKey, 0);
   const mid = point(person, handKey, 9);
   const idx = point(person, handKey, 5);
@@ -172,13 +172,26 @@ function aimHandFull(b, person, handKey, mirror, depth, fwd, lerp) {
   if (!F || !across) return false;
 
   // Normal telapak dari winding 2D (~±Z). Refleksi (mirror) membalik normal.
-  _N.crossVectors(F, across).normalize();
+  // |z| = sin sudut F-across: kecil saat tangan menyamping -> arah lama dipertahankan.
+  _N.crossVectors(F, across);
   if (mirror) _N.negate();
-  if (_N.lengthSq() < 1e-6) return false;
+  const sin = _N.z;
+  let sign = Math.sign(sin) || 1;
+  if (Math.abs(sin) < PALM_FLIP_MIN && b.palmSign) sign = b.palmSign;
+  b.palmSign = sign;
+  _N.set(0, 0, sign);
 
   // Dorong arah menunjuk ke depan untuk kedalaman, lalu bangun basis ortonormal.
   F.z += fwd * depth;
   F.normalize();
+  // Batasi tekukan pergelangan terhadap lengan bawah.
+  if (forearmDir) {
+    const bend = F.angleTo(forearmDir);
+    if (bend > MAX_WRIST_BEND) {
+      _bendAxis.crossVectors(forearmDir, F);
+      if (_bendAxis.lengthSq() > 1e-8) F.copy(forearmDir).applyAxisAngle(_bendAxis.normalize(), MAX_WRIST_BEND);
+    }
+  }
   _N.sub(_third.copy(F).multiplyScalar(F.dot(_N))).normalize();
   _third.crossVectors(F, _N).normalize();
   _mt.makeBasis(F, _N, _third);
@@ -189,13 +202,21 @@ function aimHandFull(b, person, handKey, mirror, depth, fwd, lerp) {
 
   b.node.parent.getWorldQuaternion(_parentQ);
   _desired.copy(_parentQ.invert()).multiply(_qNew);
-  b.node.quaternion.slerp(_desired, lerp);
+  if (maxStep) {
+    // Batas kecepatan putar: saat telapak berbalik (target berputar ~180°) tangan
+    // memutar mulus, bukan berputar kilat dalam 2-3 frame.
+    const step = Math.min(b.node.quaternion.angleTo(_desired) * lerp, maxStep);
+    b.node.quaternion.rotateTowards(_desired, step);
+  } else {
+    b.node.quaternion.slerp(_desired, lerp);
+  }
   return true;
 }
 
-function applyDefs(vrm, bind, defs, person, mirror, lerp, depth) {
+function applyDefs(vrm, bind, defs, person, mirror, lerp, depth, maxHandStep) {
   const handKey = defs[0].handKey;
-  const handOK = handPresent(person, handKey);
+  const handOK = handPresent(person[handKey]);
+  let forearmDir = null;
   for (const def of defs) {
     const b = bind[def.bone];
     if (!b) continue;
@@ -203,7 +224,7 @@ function applyDefs(vrm, bind, defs, person, mirror, lerp, depth) {
 
     // Telapak: pakai orientasi penuh kalau data + bind normal tersedia.
     if (def.comp === "HAND" && b.palmNormalLocal && handOK) {
-      if (aimHandFull(b, person, handKey, mirror, depth, def.fwd, lerp)) {
+      if (aimHandFull(b, person, handKey, mirror, depth, def.fwd, lerp, forearmDir, maxHandStep)) {
         node.updateWorldMatrix(false, false);
         continue;
       }
@@ -229,14 +250,18 @@ function applyDefs(vrm, bind, defs, person, mirror, lerp, depth) {
       node.quaternion.slerp(_desired, lerp);
     }
     node.updateWorldMatrix(false, false); // anak membaca parent baru
+    if (def.bone.endsWith("LowerArm")) {
+      forearmDir = _forearm.copy(b.localAxis).applyQuaternion(node.getWorldQuaternion(_worldQ)).normalize();
+    }
   }
 }
 
 // Terapkan satu frame ke avatar. swap menukar sumber data kiri<->kanan.
+// maxHandStep (radian) membatasi putaran telapak per frame; kosong = tanpa batas.
 export function applyPose(vrm, bound, person, opts) {
-  const { mirror = true, swap = false, lerp = 0.5, depth = 0.7 } = opts || {};
+  const { mirror = true, swap = false, lerp = 0.5, depth = 0.7, maxHandStep } = opts || {};
   const leftSrc = swap ? "right" : "left";
   const rightSrc = swap ? "left" : "right";
-  applyDefs(vrm, bound.bind, boneDefs("left", leftSrc), person, mirror, lerp, depth);
-  applyDefs(vrm, bound.bind, boneDefs("right", rightSrc), person, mirror, lerp, depth);
+  applyDefs(vrm, bound.bind, boneDefs("left", leftSrc), person, mirror, lerp, depth, maxHandStep);
+  applyDefs(vrm, bound.bind, boneDefs("right", rightSrc), person, mirror, lerp, depth, maxHandStep);
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { buildBind, applyPose } from "./frontalRig";
 import { applyCustomization } from "./customize";
+import { lerpPerson, smoothFrames } from "./poseSmoothing";
 import { createGlbAvatar, isBipedGltf } from "./glbHumanoid";
 import { resolveAvatarUrl } from "./useEquippedAvatar";
 
@@ -41,7 +42,9 @@ export default function SignAvatar({
   const boundRef = useRef(null);
   // Semua kontrol disimpan di ref supaya loop animasi tak perlu re-create.
   const stateRef = useRef({});
-  stateRef.current = { frames, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory, randomMotion };
+  // Data pose dihaluskan sekali per klip (getaran & lonjakan sign.mt), bukan tiap frame.
+  const smoothed = useMemo(() => smoothFrames(frames), [frames]);
+  stateRef.current = { frames: smoothed, meta, playing, frameIndex, mirror, swap, lerp, depth, onFrame, hairColor, eyeColor, accessory, randomMotion };
 
   // Terapkan ulang kustomisasi saat pilihan berubah (tanpa reload VRM).
   useEffect(() => {
@@ -115,16 +118,33 @@ export default function SignAvatar({
       },
     );
 
-    function applyFrame(person) {
+    // `lerp` = seberapa jauh tulang mengejar target per frame pada 60 fps. Diubah jadi
+    // faktor per frame render supaya kehalusannya sama di layar 30, 60, atau 120 Hz.
+    const followFactor = (perFrame60, delta) => 1 - Math.pow(1 - perFrame60, delta * 60);
+    // Saat klip berganti atau diulang dari awal, pose bisa beda jauh: dikejar lebih pelan.
+    const BLEND_SECONDS = 0.35;
+    const BLEND_LERP = 0.12;
+    // Frame yang tersendat (tab di latar, GPU sibuk) tidak boleh membuat tulang meloncat.
+    const MAX_DAMP_DELTA = 1 / 20;
+    // Kecepatan putar telapak maksimal (rad/detik, ~500°/detik).
+    const HAND_MAX_SPEED = 9;
+    let blendLeft = 0;
+    let lastFrames = null;
+    const lerpBuf = {};
+
+    function applyFrame(person, delta, blending) {
       const vrm = vrmRef.current;
       const bound = boundRef.current;
       const s = stateRef.current;
       if (!vrm || !bound || !person) return;
+      const perFrame = s.lerp ?? 0.5;
+      const dt = Math.min(delta, MAX_DAMP_DELTA);
       applyPose(vrm, bound, person, {
         mirror: s.mirror,
         swap: s.swap,
-        lerp: s.lerp ?? 0.5,
+        lerp: followFactor(blending ? Math.min(perFrame, BLEND_LERP) : perFrame, dt),
         depth: s.depth ?? 0.7,
+        maxHandStep: HAND_MAX_SPEED * dt,
       });
     }
 
@@ -218,17 +238,31 @@ export default function SignAvatar({
       const vrm = vrmRef.current;
 
       if (vrm && s.frames && s.frames.length) {
-        let idx;
+        const len = s.frames.length;
+        if (s.frames !== lastFrames) {
+          // Klip baru: mulai dari awal dan masuk dengan transisi halus.
+          lastFrames = s.frames;
+          playAccumFrame = 0;
+          blendLeft = BLEND_SECONDS;
+        }
+        let person;
         if (s.playing) {
           playAccumFrame += delta * (s.meta.fps || 25);
-          if (playAccumFrame >= s.frames.length) playAccumFrame = 0;
-          idx = Math.floor(playAccumFrame);
-          s.onFrame?.(idx);
+          if (playAccumFrame >= len) {
+            playAccumFrame %= len;
+            blendLeft = BLEND_SECONDS;
+          }
+          const i = Math.floor(playAccumFrame);
+          s.onFrame?.(i);
+          // Posisi di antara dua frame data -> gerak mulus walau data hanya 25-30 fps.
+          person = i + 1 < len ? lerpPerson(s.frames[i], s.frames[i + 1], playAccumFrame - i, lerpBuf) : s.frames[i];
         } else {
-          idx = Math.min(s.frameIndex ?? 0, s.frames.length - 1);
-          playAccumFrame = idx;
+          const i = Math.min(s.frameIndex ?? 0, len - 1);
+          playAccumFrame = i;
+          person = s.frames[i];
         }
-        applyFrame(s.frames[idx]);
+        blendLeft = Math.max(0, blendLeft - delta);
+        applyFrame(person, delta, blendLeft > 0);
       } else if (vrm && s.randomMotion && s.playing) {
         motionT += delta;
         applyRandomMotion(motionT); // tak ada pose, video jalan -> gerak acak
