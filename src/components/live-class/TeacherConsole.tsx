@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Copy, Link2, Loader2, Mic, Pause, Plus, Square, Video, VideoOff } from "lucide-react";
 import { toast } from "sonner";
+import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-class";
 import { cn } from "@/lib/utils";
 import { ClassToMaterial } from "@/components/teacher/ClassToMaterial";
 import { ChatPanel } from "./ChatPanel";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
+import { ParticipantGrid } from "./ParticipantGrid";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket } from "./useLiveClassSocket";
 import { useLiveVideo, type VideoStatus } from "./useLiveVideo";
@@ -192,6 +194,15 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
   const video = useLiveVideo(initial.code, !!initial.videoEnabled && !ended);
   const { setMic: setVideoMic } = video;
 
+  const muteStudents = async (identity?: string) => {
+    try {
+      const { muted } = await liveApi.mute(initial.code, identity);
+      if (!identity) toast.success(muted ? "All students are muted" : "No student microphone was on");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Couldn't mute, try again");
+    }
+  };
+
   // Suara guru ikut disiarkan ke video kelas selama siaran berjalan.
   useEffect(() => {
     if (video.status !== "connected") return;
@@ -272,6 +283,7 @@ export function TeacherConsole({ initial }: { initial: LiveClassDetail }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="flex flex-col gap-6 lg:col-span-7">
           {initial.videoEnabled && !ended && <CameraCard video={video} />}
+          {initial.videoEnabled && !ended && <ParticipantGrid video={video} role="teacher" onMute={muteStudents} />}
           {ended ? (
             <div className="flex flex-col items-start gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
               <h2 className="font-heading text-xl font-bold text-slate-800">This class has ended</h2>

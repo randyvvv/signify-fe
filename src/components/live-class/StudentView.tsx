@@ -11,6 +11,7 @@ import { liveApi, type LiveClassDetail, type LiveSegment } from "@/lib/live-clas
 import { cn } from "@/lib/utils";
 import { ChatPanel } from "./ChatPanel";
 import { ClassHeader, ConnectionNotice, FatalState } from "./LiveClassChrome";
+import { ParticipantGrid } from "./ParticipantGrid";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { useLiveClassSocket, type LiveState } from "./useLiveClassSocket";
 import { useLiveVideo } from "./useLiveVideo";
@@ -165,11 +166,11 @@ function useSignQueue(state: LiveState) {
 }
 
 /**
- * Suara guru untuk murid. Browser sering menahan audio sampai ada interaksi, jadi
- * selama tertahan tombolnya mencolok; setelah itu jadi tombol bisukan/nyalakan.
+ * Suara kelas (guru & teman) untuk murid. Browser sering menahan audio sampai ada
+ * interaksi, jadi selama tertahan tombolnya mencolok; setelah itu bisukan/nyalakan.
  */
-function SoundButton({ video, teacher }: { video: ReturnType<typeof useLiveVideo>; teacher: string }) {
-  if (!video.teacherAudio) return null;
+function SoundButton({ video }: { video: ReturnType<typeof useLiveVideo> }) {
+  if (!video.remoteAudio) return null;
   if (video.audioBlocked) {
     return (
       <button
@@ -186,8 +187,8 @@ function SoundButton({ video, teacher }: { video: ReturnType<typeof useLiveVideo
       type="button"
       onClick={() => video.setMuted(!video.muted)}
       aria-pressed={video.muted}
-      aria-label={video.muted ? `Unmute ${teacher}` : `Mute ${teacher}`}
-      title={video.muted ? `Unmute ${teacher}` : `Mute ${teacher}`}
+      aria-label={video.muted ? "Unmute class sound" : "Mute class sound"}
+      title={video.muted ? "Unmute class sound" : "Mute class sound"}
       className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-md ring-1 ring-slate-100 transition-colors hover:text-[#0B7077]"
     >
       {video.muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -290,7 +291,7 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
           <div className="relative overflow-hidden rounded-3xl bg-slate-900 shadow-sm lg:col-span-8">
             <VideoTile track={video.videoTrack} className="aspect-video h-full w-full object-contain" />
             <div className="absolute left-4 top-4">
-              <SoundButton video={video} teacher={teacher} />
+              <SoundButton video={video} />
             </div>
             {liveCaption && !ended && (
               <p
@@ -315,7 +316,7 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
           )}
         >
           <div className="absolute right-4 top-4 z-10 flex gap-2">
-            {!hasVideo && <SoundButton video={video} teacher={teacher} />}
+            {!hasVideo && <SoundButton video={video} />}
             {queue.behind >= BEHIND_LIMIT && (
               <button
                 type="button"
@@ -387,6 +388,8 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
           </div>
         )}
       </div>
+
+      {initial.videoEnabled && !ended && <ParticipantGrid video={video} role="student" />}
 
       {hasVideo && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

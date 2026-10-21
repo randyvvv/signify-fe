@@ -101,9 +101,12 @@ export const liveApi = {
     api.get<LiveSegment[]>(`/api/live/classes/${encodeURIComponent(code)}/segments`),
   end: (code: string) => api.post<LiveClass>(`/api/live/classes/${encodeURIComponent(code)}/end`),
   videoToken: (code: string) =>
-    api.post<{ url: string; token: string; canPublish: boolean }>(
+    api.post<{ url: string; token: string; canPublish: boolean; teacherId: string }>(
       `/api/live/classes/${encodeURIComponent(code)}/video-token`,
     ),
+  /** Guru: matikan mikrofon satu murid (identity = user id) atau semua murid. */
+  mute: (code: string, identity?: string) =>
+    api.post<{ muted: number }>(`/api/live/classes/${encodeURIComponent(code)}/mute`, identity ? { identity } : {}),
 };
 
 /** "1:05:30" / "12:04" dari milidetik. */

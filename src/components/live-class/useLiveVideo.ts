@@ -1,48 +1,89 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Room, RoomEvent, Track, VideoPresets, type RemoteAudioTrack } from "livekit-client";
+import {
+  Room,
+  RoomEvent,
+  Track,
+  VideoPresets,
+  type LocalParticipant,
+  type RemoteAudioTrack,
+  type RemoteParticipant,
+} from "livekit-client";
 import { liveApi } from "@/lib/live-class";
 
 export type VideoStatus = "off" | "connecting" | "connected" | "error";
 
+/** Peserta kelas selain guru (termasuk diri sendiri bila murid) di galeri video. */
+export interface VideoPeer {
+  identity: string;
+  name: string;
+  isLocal: boolean;
+  videoTrack: Track | null;
+  micOn: boolean;
+  speaking: boolean;
+}
+
+const micOnOf = (p: LocalParticipant | RemoteParticipant) => {
+  const mic = p.getTrackPublication(Track.Source.Microphone);
+  return !!mic && !mic.isMuted;
+};
+const cameraOf = (p: LocalParticipant | RemoteParticipant) => {
+  const cam = p.getTrackPublication(Track.Source.Camera);
+  return cam && !cam.isMuted ? (cam.track ?? null) : null;
+};
+
 /**
- * Video Kelas Live lewat LiveKit. Guru menyiarkan kamera (dan suaranya, memakai
- * track mikrofon yang sama dengan transkripsi); murid menonton. `enabled` false =
- * tidak tersambung (video belum dikonfigurasi atau kelas sudah berakhir).
+ * Video Kelas Live lewat LiveKit, seperti Zoom: guru dan murid bisa menyalakan
+ * kamera & mikrofon. Suara guru memakai salinan track mikrofon transkripsi (setMic);
+ * murid memakai mikrofon LiveKit sendiri (setMicEnabled). Guru dikenali dari
+ * identity = teacherId. `enabled` false = tidak tersambung (video belum
+ * dikonfigurasi atau kelas sudah berakhir).
  */
 export function useLiveVideo(code: string, enabled: boolean) {
   const roomRef = useRef<Room | null>(null);
   const micTrack = useRef<MediaStreamTrack | null>(null);
+  const isTeacherRef = useRef(false);
   const [status, setStatus] = useState<Exclude<VideoStatus, "off">>("connecting");
-  const [canPublish, setCanPublish] = useState(false);
-  // Kamera guru: track lokal (di perangkat guru) atau track remote (di perangkat murid).
+  // Kamera guru: track lokal (di perangkat guru) atau remote (di perangkat murid).
   const [videoTrack, setVideoTrack] = useState<Track | null>(null);
+  const [peers, setPeers] = useState<VideoPeer[]>([]);
   const [cameraOn, setCameraOn] = useState(false);
+  const [micOn, setMicOn] = useState(false);
   const [audioBlocked, setAudioBlocked] = useState(false);
-  // Murid: suara guru sedang dikirim, dan apakah murid membisukannya.
-  const [teacherAudio, setTeacherAudio] = useState(false);
+  // Ada suara peserta lain yang diputar, dan apakah pengguna membisukannya.
+  const [remoteAudio, setRemoteAudio] = useState(false);
   const [muted, setMutedState] = useState(false);
   const mutedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
     let disposed = false;
+    let teacherId = "";
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
-    const refreshRemote = () => {
-      let video: Track | null = null;
+    const refresh = () => {
+      const local = room.localParticipant;
+      let teacherVideo: Track | null = null;
       let audio = false;
-      for (const participant of room.remoteParticipants.values()) {
-        for (const publication of participant.trackPublications.values()) {
-          if (!publication.track || publication.isMuted) continue;
-          if (publication.kind === Track.Kind.Video) video ??= publication.track;
-          if (publication.kind === Track.Kind.Audio) audio = true;
+      const list: VideoPeer[] = [];
+      for (const p of [local, ...room.remoteParticipants.values()]) {
+        const isLocal = p === local;
+        const video = cameraOf(p);
+        const mic = micOnOf(p);
+        if (!isLocal && mic) audio = true;
+        if (p.identity === teacherId) {
+          teacherVideo = video;
+          continue;
         }
+        list.push({ identity: p.identity, name: p.name || "Student", isLocal, videoTrack: video, micOn: mic, speaking: p.isSpeaking });
       }
-      setVideoTrack(video);
-      setTeacherAudio(audio);
+      setVideoTrack(teacherVideo);
+      setPeers(list);
+      setRemoteAudio(audio);
+      setCameraOn(!!cameraOf(local));
+      setMicOn(micOnOf(local));
     };
 
     // Browser menahan audio sampai ada interaksi; sentuhan pertama di halaman langsung membukanya.
@@ -55,21 +96,28 @@ export function useLiveVideo(code: string, enabled: boolean) {
     room
       .on(RoomEvent.TrackSubscribed, (track) => {
         if (track.kind === Track.Kind.Audio) {
-          // Suara guru untuk murid yang bisa mendengar; elemen audio tersembunyi.
+          // Suara guru & murid lain; elemen audio tersembunyi.
           const el = track.attach();
           el.style.display = "none";
           document.body.appendChild(el);
           (track as RemoteAudioTrack).setVolume(mutedRef.current ? 0 : 1);
         }
-        refreshRemote();
+        refresh();
       })
       .on(RoomEvent.TrackUnsubscribed, (track) => {
         if (track.kind === Track.Kind.Audio) track.detach().forEach((el) => el.remove());
-        refreshRemote();
+        refresh();
       })
-      .on(RoomEvent.TrackMuted, refreshRemote)
-      .on(RoomEvent.TrackUnmuted, refreshRemote)
-      .on(RoomEvent.ParticipantDisconnected, refreshRemote)
+      .on(RoomEvent.TrackPublished, refresh)
+      .on(RoomEvent.TrackUnpublished, refresh)
+      .on(RoomEvent.TrackMuted, refresh)
+      .on(RoomEvent.TrackUnmuted, refresh)
+      .on(RoomEvent.LocalTrackPublished, refresh)
+      .on(RoomEvent.LocalTrackUnpublished, refresh)
+      .on(RoomEvent.ParticipantConnected, refresh)
+      .on(RoomEvent.ParticipantDisconnected, refresh)
+      .on(RoomEvent.ParticipantNameChanged, refresh)
+      .on(RoomEvent.ActiveSpeakersChanged, refresh)
       .on(RoomEvent.AudioPlaybackStatusChanged, () => setAudioBlocked(!room.canPlaybackAudio))
       .on(RoomEvent.Reconnecting, () => setStatus("connecting"))
       .on(RoomEvent.Reconnected, () => setStatus("connected"))
@@ -79,14 +127,16 @@ export function useLiveVideo(code: string, enabled: boolean) {
 
     liveApi
       .videoToken(code)
-      .then(async ({ url, token, canPublish: publish }) => {
+      .then(async ({ url, token, teacherId: tid }) => {
         if (disposed) return;
-        setCanPublish(publish);
+        // Diset sebelum connect: event peserta yang datang saat menyambung sudah tahu siapa gurunya.
+        teacherId = tid;
         await room.connect(url, token);
         if (disposed) return;
+        isTeacherRef.current = room.localParticipant.identity === tid;
         setStatus("connected");
         setAudioBlocked(!room.canPlaybackAudio);
-        refreshRemote();
+        refresh();
       })
       .catch(() => {
         if (!disposed) setStatus("error");
@@ -102,14 +152,13 @@ export function useLiveVideo(code: string, enabled: boolean) {
     };
   }, [code, enabled]);
 
-  /** Guru: nyalakan/matikan kamera. Melempar error bila izin kamera ditolak. */
+  /** Nyalakan/matikan kamera sendiri. Melempar error bila izin kamera ditolak. */
   const setCamera = useCallback(async (on: boolean) => {
     const room = roomRef.current;
     if (!room) return;
-    // 540p cukup untuk ukuran video di layar murid dan lebih ringan untuk laptop guru.
-    await room.localParticipant.setCameraEnabled(on, { resolution: VideoPresets.h540.resolution });
-    const publication = room.localParticipant.getTrackPublication(Track.Source.Camera);
-    setVideoTrack(on ? (publication?.videoTrack ?? null) : null);
+    // Guru 540p (video utama); murid 360p cukup untuk ubin galeri dan lebih hemat bandwidth.
+    const preset = isTeacherRef.current ? VideoPresets.h540 : VideoPresets.h360;
+    await room.localParticipant.setCameraEnabled(on, { resolution: preset.resolution });
     setCameraOn(on);
   }, []);
 
@@ -128,11 +177,19 @@ export function useLiveVideo(code: string, enabled: boolean) {
     }
   }, []);
 
+  /** Murid: nyalakan/matikan mikrofon sendiri. Melempar error bila izin ditolak. */
+  const setMicEnabled = useCallback(async (on: boolean) => {
+    const room = roomRef.current;
+    if (!room) return;
+    await room.localParticipant.setMicrophoneEnabled(on);
+    setMicOn(on);
+  }, []);
+
   const unlockAudio = useCallback(() => {
     void roomRef.current?.startAudio();
   }, []);
 
-  /** Murid: bisukan/nyalakan suara guru (video & avatar tetap jalan). */
+  /** Bisukan/nyalakan semua suara kelas di perangkat ini (video & avatar tetap jalan). */
   const setMuted = useCallback((next: boolean) => {
     mutedRef.current = next;
     setMutedState(next);
@@ -147,14 +204,16 @@ export function useLiveVideo(code: string, enabled: boolean) {
 
   return {
     status: enabled ? status : ("off" as VideoStatus),
-    canPublish,
     videoTrack: enabled ? videoTrack : null,
+    peers: enabled ? peers : [],
     cameraOn: enabled && cameraOn,
+    micOn: enabled && micOn,
     audioBlocked: enabled && audioBlocked,
-    teacherAudio: enabled && teacherAudio,
+    remoteAudio: enabled && remoteAudio,
     muted,
     setCamera,
     setMic,
+    setMicEnabled,
     unlockAudio,
     setMuted,
   };
