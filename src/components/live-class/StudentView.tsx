@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FastForward, Maximize2, Minimize2, Radio, Volume2 } from "lucide-react";
+import { FastForward, Maximize2, Minimize2, Radio, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { SignAvatarViewer } from "@/components/shared";
 import { useEquippedAvatar } from "@/components/shared/avatar/useEquippedAvatar";
@@ -162,6 +162,37 @@ function useSignQueue(state: LiveState) {
   return { current: view.current, playing: view.playing, behind, catchUp };
 }
 
+/**
+ * Suara guru untuk murid. Browser sering menahan audio sampai ada interaksi, jadi
+ * selama tertahan tombolnya mencolok; setelah itu jadi tombol bisukan/nyalakan.
+ */
+function SoundButton({ video, teacher }: { video: ReturnType<typeof useLiveVideo>; teacher: string }) {
+  if (!video.teacherAudio) return null;
+  if (video.audioBlocked) {
+    return (
+      <button
+        type="button"
+        onClick={video.unlockAudio}
+        className="flex items-center gap-1.5 rounded-full bg-[#FD661F] px-3 py-1.5 text-xs font-semibold text-white shadow-md transition-transform hover:scale-105"
+      >
+        <Volume2 className="h-3.5 w-3.5" aria-hidden /> Turn on sound
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => video.setMuted(!video.muted)}
+      aria-pressed={video.muted}
+      aria-label={video.muted ? `Unmute ${teacher}` : `Mute ${teacher}`}
+      title={video.muted ? `Unmute ${teacher}` : `Mute ${teacher}`}
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-md ring-1 ring-slate-100 transition-colors hover:text-[#0B7077]"
+    >
+      {video.muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+    </button>
+  );
+}
+
 export function StudentView({ initial }: { initial: LiveClassDetail }) {
   const { state } = useLiveClassSocket(initial.code, { onError: (message) => toast.error(message) });
   const avatar = useEquippedAvatar();
@@ -240,15 +271,9 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
         {hasVideo && video.videoTrack && (
           <div className="relative overflow-hidden rounded-3xl bg-slate-900 shadow-sm lg:col-span-8">
             <VideoTile track={video.videoTrack} className="aspect-video h-full w-full object-contain" />
-            {video.audioBlocked && (
-              <button
-                type="button"
-                onClick={video.unlockAudio}
-                className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md"
-              >
-                <Volume2 className="h-3.5 w-3.5" aria-hidden /> Turn on sound
-              </button>
-            )}
+            <div className="absolute left-4 top-4">
+              <SoundButton video={video} teacher={teacher} />
+            </div>
             {liveCaption && !ended && (
               <p
                 aria-live="polite"
@@ -272,6 +297,7 @@ export function StudentView({ initial }: { initial: LiveClassDetail }) {
           )}
         >
           <div className="absolute right-4 top-4 z-10 flex gap-2">
+            {!hasVideo && <SoundButton video={video} teacher={teacher} />}
             {queue.behind >= BEHIND_LIMIT && (
               <button
                 type="button"
