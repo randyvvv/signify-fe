@@ -1,20 +1,25 @@
 import type { Metadata } from "next";
-import { Raleway, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 
-const raleway = Raleway({
+// Font disimpan di repo (variable font, lisensi OFL, dari Fontsource) supaya build tidak
+// bergantung pada Google Fonts: next/font/google di Turbopack gagal membaca format URL
+// font Google yang baru ("next/font/google queries have exactly one entry").
+const raleway = localFont({
+  src: "./fonts/raleway-latin-wght-normal.woff2",
   variable: "--font-raleway",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "100 900",
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
+  src: "./fonts/dm-sans-latin-standard-normal.woff2",
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 1000",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
